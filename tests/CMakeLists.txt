@@ -1,4 +1,6 @@
-project(${CMAKE_PROJECT_NAME}_test)
+project(${CMAKE_PROJECT_NAME}Test)
+
+# TODO: split project into tests for engine and game tests
 
 add_executable(${PROJECT_NAME} tester.cpp)
 
