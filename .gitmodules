@@ -1,0 +1,12 @@
+[submodule "external/vulkan"]
+	path = external/vulkan
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "external/stb"]
+	path = external/stb
+	url = https://github.com/nothings/stb
+[submodule "external/glslang"]
+	path = external/glslang
+	url = https://github.com/KhronosGroup/glslang
+[submodule "external/googletest"]
+	path = external/googletest
+	url = https://github.com/google/googletest
