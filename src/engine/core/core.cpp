@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 static unsigned tickCount{};
-static bool isAlreadyInitiated{ false };
+static auto isAlreadyInitiated{ false };
 
 namespace ts
 {
