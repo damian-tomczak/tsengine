@@ -7,6 +7,7 @@
 #include "events/key_released_event.hpp"
 
 #include "components/rigid_body_component.hpp"
+#include "components/texture_component.hpp"
 #include "components/transform_component.hpp"
 
 class KeyboardSystem : public ts::System
@@ -16,7 +17,7 @@ public:
     {
         requireComponent<TransformComponent>();
         requireComponent<RigidBodyComponent>();
-        requireComponent<SpriteComponent>();
+        requireComponent<TextureComponent>();
     }
 
     void subscribeToEvents(std::unique_ptr<ts::EventBus>& pEventBus)
@@ -31,7 +32,7 @@ public:
         {
             auto& transformComponent{ entity.getComponent<TransformComponent>() };
             auto& rigidBodyComponent{ entity.getComponent<RigidBodyComponent>() };
-            auto& spriteComponent{ entity.getComponent<SpriteComponent>() };
+            auto& spriteComponent{ entity.getComponent<TextureComponent>() };
 
             if (entity.hasTag("player"))
             {

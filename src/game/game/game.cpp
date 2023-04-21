@@ -50,7 +50,7 @@ bool Game::tick()
         mpPlayer->setTag("player");
         mpPlayer->addComponent<TransformComponent>(
           ts::Vec2{ static_cast<float>(mWidth - (mWidth / 2)), static_cast<float>(mHeight - 50) });
-        mpPlayer->addComponent<SpriteComponent>("player-left");
+        mpPlayer->addComponent<TextureComponent>("player-left");
         mpPlayer->addComponent<RigidBodyComponent>();
     }
 

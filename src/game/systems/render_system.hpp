@@ -4,7 +4,7 @@
 #include "tsengine/core.h"
 #include "tsengine/ecs.hpp"
 
-#include "components/sprite_component.hpp"
+#include "components/texture_component.hpp"
 #include "components/transform_component.hpp"
 
 #include <iostream>
@@ -15,7 +15,7 @@ public:
     RenderSystem()
     {
         requireComponent<TransformComponent>();
-        requireComponent<SpriteComponent>();
+        requireComponent<TextureComponent>();
     }
 
     void update(std::unique_ptr<ts::AssetStore>& pAssetStore, float deltaTime)
