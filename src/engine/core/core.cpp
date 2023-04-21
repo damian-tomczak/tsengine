@@ -24,7 +24,10 @@ int run(Engine* pEngine)
         return EXIT_FAILURE;
     }
 
-    const char* pGameName; int width; int height; bool isFullscreen;
+    const char* pGameName;
+    int width;
+    int height;
+    bool isFullscreen;
     pEngine->preInit(pGameName, width, height, isFullscreen);
     isAlreadyInitiated = true;
 
