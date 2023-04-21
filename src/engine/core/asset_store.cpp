@@ -6,26 +6,27 @@ namespace ts
 {
 void AssetStore::clearAssets()
 {
-    //for (const auto& sprite : sprites)
+    // for (const auto& sprite : sprites)
     //{
     //    destroySprite(sprite.second);
     //}
-    //sprites.clear();
+    // sprites.clear();
 }
 
 void AssetStore::addTexture(const char* pAssetId, const char* pFilePath)
 {
-    //auto sprite{ createSprite((DATA_PATH + filePath).c_str()) };
-    //if (sprite == nullptr)
+    // auto sprite{ createSprite((DATA_PATH + filePath).c_str()) };
+    // if (sprite == nullptr)
     //{
-    //    throw std::runtime_error{ "Creation of the sprite \"" + assetId + "\" wasn't succesful!" };
+    //    throw std::runtime_error{ "Creation of the sprite \"" + assetId + "\"
+    //    wasn't succesful!" };
     //}
-    //sprites.emplace(assetId, sprite);
+    // sprites.emplace(assetId, sprite);
 }
 
 void* AssetStore::getTexture(const char* pAssetId)
 {
-    //return sprites.at(assetId);
+    // return sprites.at(assetId);
     return nullptr;
 }
-}
+} // namespace ts

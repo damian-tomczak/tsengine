@@ -1,12 +1,12 @@
 
 #include "tsengine/ecs.hpp"
 
-#include "components/transform_component.hpp"
 #include "components/rigid_body_component.hpp"
+#include "components/transform_component.hpp"
 
-#include <iostream>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <iostream>
 
 class MovementSystem : public ts::System
 {
@@ -19,12 +19,12 @@ public:
 
     void update(float deltaTime)
     {
-        for (auto entity : getSystemEntities())
+        for(auto entity : getSystemEntities())
         {
             auto& transformComponent = entity.getComponent<TransformComponent>();
             auto& rigidbodyComponent = entity.getComponent<RigidBodyComponent>();
 
-            if (entity.hasTag("player"))
+            if(entity.hasTag("player"))
             {
             }
         }

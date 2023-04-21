@@ -6,5 +6,7 @@
 struct KeyPressedEvent : public ts::Event
 {
     ts::Key symbol;
-    KeyPressedEvent(ts::Key symbol) : symbol(symbol) {}
+    KeyPressedEvent(ts::Key symbol) : symbol(symbol)
+    {
+    }
 };

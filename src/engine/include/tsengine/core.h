@@ -24,7 +24,7 @@ class Engine
 {
 public:
     Engine() = default;
-    virtual ~Engine() {};
+    virtual ~Engine(){};
 
     Engine(const Engine&) = delete;
     Engine& operator=(Engine&) = delete;
@@ -32,7 +32,8 @@ public:
     Engine(const Engine&&) = delete;
     Engine& operator=(Engine&&) = delete;
 
-    // no function calls are available here, this function should only return width, height and fullscreen values
+    // no function calls are available here, this function should only return
+    // width, height and fullscreen values
     virtual void preInit(const char* pGameName, int& width, int& height, bool& fullscreen) = 0;
 
     // return : true - ok, false - failed, application will exit
@@ -55,4 +56,4 @@ public:
 };
 
 int run(Engine*);
-}
+} // namespace ts

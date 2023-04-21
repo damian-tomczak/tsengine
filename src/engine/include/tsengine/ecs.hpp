@@ -1,15 +1,15 @@
 #pragma once
 
-#include <cstdint>
-#include <set>
-#include <vector>
+#include <algorithm>
+#include <any>
 #include <bitset>
+#include <compare>
+#include <cstdint>
+#include <memory>
+#include <set>
 #include <typeindex>
 #include <unordered_map>
-#include <memory>
-#include <compare>
-#include <any>
-#include <algorithm>
+#include <vector>
 
 namespace ts
 {
@@ -119,8 +119,9 @@ private:
 };
 
 // Entity
-inline Entity::Entity(TId id_, Registry* pRegistry_) : id{ id_ }, pRegistry{pRegistry_}
-{}
+inline Entity::Entity(TId id_, Registry* pRegistry_) : id{ id_ }, pRegistry{ pRegistry_ }
+{
+}
 
 inline TId Entity::getId()
 {
@@ -198,26 +199,23 @@ void System::requireComponent()
 // Registry
 inline void Registry::update()
 {
-    for (auto entity : mEntitiesToBeAdded)
+    for(auto entity : mEntitiesToBeAdded)
     {
         addEntityToSystems(entity);
     }
     mEntitiesToBeAdded.clear();
 
-    for (auto entity : mEntitiesToBeDestroyed)
+    for(auto entity : mEntitiesToBeDestroyed)
     {
         removeEntityFromSystems(entity);
         mEntitySignatures.at(entity.getId()).reset();
 
-        for (auto& pPool : mComponentPools)
+        for(auto& pPool : mComponentPools)
         {
-            if (pPool != nullptr)
+            if(pPool != nullptr)
             {
                 std::erase_if(*pPool,
-                    [&entity](const std::pair<TId, std::any>& p) {
-                        return p.first == entity.getId();
-                    }
-                );
+                              [&entity](const std::pair<TId, std::any>& p) { return p.first == entity.getId(); });
             }
         }
     }
@@ -227,7 +225,7 @@ inline void Registry::update()
 inline Entity Registry::createEntity()
 {
     auto entityId{ mNumEntities++ };
-    if (entityId >= mEntitySignatures.size())
+    if(entityId >= mEntitySignatures.size())
     {
         mEntitySignatures.resize(entityId + 1);
     }
@@ -260,7 +258,7 @@ inline void Registry::addComponent(Entity entity, TArgs&&... args)
     const auto componentId{ Component<TComponent>::getId() };
     const auto entityId{ entity.getId() };
 
-    if (componentId >= mComponentPools.size())
+    if(componentId >= mComponentPools.size())
     {
         mComponentPools.emplace_back(std::make_unique<TPool>());
     }
@@ -272,11 +270,11 @@ inline void Registry::addEntityToSystems(Entity entity)
 {
     const auto& entitySignature = mEntitySignatures[entity.getId()];
 
-    for (auto& system : mSystems)
+    for(auto& system : mSystems)
     {
         const auto& systemSignature = system.second->getSignature();
 
-        if ((entitySignature & systemSignature) == systemSignature)
+        if((entitySignature & systemSignature) == systemSignature)
         {
             system.second->addEntityToSystem(entity);
         }
@@ -285,7 +283,7 @@ inline void Registry::addEntityToSystems(Entity entity)
 
 inline void Registry::removeEntityFromSystems(Entity entity)
 {
-    for (auto system : mSystems)
+    for(auto system : mSystems)
     {
         system.second->removeEntityFromSystem(entity);
     }
@@ -298,9 +296,7 @@ TComponent& Registry::getComponent(Entity entity) const
     const auto entityId = entity.getId();
     auto& componentPool = mComponentPools.at(componentId);
 
-    auto it{ std::ranges::find_if(*componentPool, [&entityId](const auto& pair) {
-        return pair.first == entityId;
-    }) };
+    auto it{ std::ranges::find_if(*componentPool, [&entityId](const auto& pair) { return pair.first == entityId; }) };
 
     return std::any_cast<TComponent&>(it->second);
 }
@@ -312,11 +308,11 @@ inline void Registry::setEntityTag(Entity entity, const std::string& tag)
 
 inline bool Registry::hasEntityTag(Entity entity, const std::string& tag) const
 {
-    if (mEntities.find(tag) != mEntities.end())
+    if(mEntities.find(tag) != mEntities.end())
     {
         return true;
     }
 
     return false;
 }
-}
+} // namespace ts
