@@ -19,12 +19,12 @@ public:
 
     void update(float deltaTime)
     {
-        for(auto entity : getSystemEntities())
+        for (auto entity : getSystemEntities())
         {
             auto& transformComponent = entity.getComponent<TransformComponent>();
             auto& rigidbodyComponent = entity.getComponent<RigidBodyComponent>();
 
-            if(entity.hasTag("player"))
+            if (entity.hasTag("player"))
             {
             }
         }

@@ -61,7 +61,7 @@ public:
     template <typename TEvent, typename TOwner>
     void subscribeToEvent(TOwner* pOwner, void (TOwner::*callback)(TEvent&))
     {
-        if(mSubscribers[typeid(TEvent)] == nullptr)
+        if (mSubscribers[typeid(TEvent)] == nullptr)
         {
             mSubscribers[typeid(TEvent)] = std::make_unique<THandlerList>();
         }
@@ -73,9 +73,9 @@ public:
     void emitEvent(TArgs&&... args)
     {
         auto handlers{ mSubscribers.at(typeid(TEvent)).get() };
-        if(handlers)
+        if (handlers)
         {
-            for(auto it{ handlers->begin() }; it != handlers->end(); ++it)
+            for (auto it{ handlers->begin() }; it != handlers->end(); ++it)
             {
                 auto handler{ it->get() };
                 TEvent event(std::forward<TArgs>(args)...);

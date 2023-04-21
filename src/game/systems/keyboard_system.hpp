@@ -27,13 +27,13 @@ public:
 
     void onKeyPressed(KeyPressedEvent& event)
     {
-        for(auto entity : getSystemEntities())
+        for (auto entity : getSystemEntities())
         {
             auto& transformComponent{ entity.getComponent<TransformComponent>() };
             auto& rigidBodyComponent{ entity.getComponent<RigidBodyComponent>() };
             auto& spriteComponent{ entity.getComponent<SpriteComponent>() };
 
-            if(entity.hasTag("player"))
+            if (entity.hasTag("player"))
             {
             }
         }
@@ -41,12 +41,12 @@ public:
 
     void onKeyReleased(KeyReleasedEvent& event)
     {
-        for(auto entity : getSystemEntities())
+        for (auto entity : getSystemEntities())
         {
             auto& rigidBodyComponent{ entity.getComponent<RigidBodyComponent>() };
             auto& transformComponent{ entity.getComponent<TransformComponent>() };
 
-            if(entity.hasTag("player"))
+            if (entity.hasTag("player"))
             {
             }
         }

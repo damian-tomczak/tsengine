@@ -11,7 +11,7 @@ unsigned getTickCount()
 
 int run(Engine* pEngine)
 {
-    if(pEngine == nullptr)
+    if (pEngine == nullptr)
     {
         return 1;
     }

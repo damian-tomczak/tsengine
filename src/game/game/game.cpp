@@ -44,7 +44,7 @@ bool Game::tick()
     auto deltaTime{ ((currentTime - mPreviousTickCount) / 1000.f) };
     mPreviousTickCount = currentTime;
 
-    if(mpPlayer == std::nullopt)
+    if (mpPlayer == std::nullopt)
     {
         mpPlayer = mpRegistry->createEntity();
         mpPlayer->setTag("player");

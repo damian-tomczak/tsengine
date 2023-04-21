@@ -24,7 +24,6 @@ class Engine
 {
 public:
     Engine() = default;
-    virtual ~Engine(){};
 
     Engine(const Engine&) = delete;
     Engine& operator=(Engine&) = delete;
