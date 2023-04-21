@@ -15,7 +15,7 @@ class Game final : public ts::Engine
 public:
     Game() = default;
 
-    void preInit(const char* pGameName, int& width, int& height, bool& fullscreen) override;
+    void preInit(const char* pGameName, int& width, int& height, bool& isFullscreen) override;
     bool init() override;
     void close() override;
     bool tick() override;
@@ -27,7 +27,7 @@ public:
 private:
     int mWidth{ 1280 };
     int mHeight{ 720 };
-    bool mIsFullScreen;
+    bool mIsFullScreen{};
 
     std::unique_ptr<ts::AssetStore> mpAssetStore;
     std::unique_ptr<ts::Registry> mpRegistry;
