@@ -1,7 +1,7 @@
 #pragma once
 
-#include "tsengine/core.h"
 #include "tsengine/asset_store.h"
+#include "tsengine/core.h"
 #include "tsengine/ecs.hpp"
 #include "tsengine/event_bus.hpp"
 #include "tsengine/math.hpp"
@@ -14,9 +14,8 @@ class Game final : public ts::Engine
 {
 public:
     Game() = default;
-    ~Game() = default;
 
-    void preInit(const char* pGameName, int& width, int& height, bool& fullscreen) override;
+    void preInit(const char* pGameName, int& width, int& height, bool& isFullscreen) override;
     bool init() override;
     void close() override;
     bool tick() override;
@@ -26,9 +25,9 @@ public:
     void onKeyReleased(ts::Key k) override;
 
 private:
-    int mWidth{1280};
-    int mHeight{720};
-    bool mIsFullScreen;
+    int mWidth{ 1280 };
+    int mHeight{ 720 };
+    bool mIsFullScreen{};
 
     std::unique_ptr<ts::AssetStore> mpAssetStore;
     std::unique_ptr<ts::Registry> mpRegistry;

@@ -12,4 +12,4 @@ struct Vec2
         return Vec2{ x * scalar, y * scalar };
     }
 };
-}
+} // namespace ts

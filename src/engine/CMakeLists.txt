@@ -32,7 +32,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
     include
 )
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE DATA_PATH="${DATA_PATH}/")
+target_compile_definitions(${PROJECT_NAME} PRIVATE ASSETS_PATH="${ASSETS_PATH}/")
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES
     ${SRC_FILES}

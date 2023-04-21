@@ -12,7 +12,7 @@ int main(int argc, char** argv)
         if (returnValue)
         {
             throw std::runtime_error{ "TSEngine::run returned error: " + std::to_string(returnValue) };
-        };
+        }
     }
     catch (const std::exception& e)
     {

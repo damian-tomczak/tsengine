@@ -1,12 +1,12 @@
 
 #include "tsengine/ecs.hpp"
 
-#include "components/transform_component.hpp"
 #include "components/rigid_body_component.hpp"
+#include "components/transform_component.hpp"
 
-#include <iostream>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <iostream>
 
 class MovementSystem : public ts::System
 {

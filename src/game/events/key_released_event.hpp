@@ -7,5 +7,7 @@
 struct KeyReleasedEvent : public ts::Event
 {
     ts::Key symbol;
-    KeyReleasedEvent(ts::Key symbol) : symbol(symbol) {}
+    KeyReleasedEvent(ts::Key symbol) : symbol(symbol)
+    {
+    }
 };

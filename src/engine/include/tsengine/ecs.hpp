@@ -1,15 +1,15 @@
 #pragma once
 
-#include <cstdint>
-#include <set>
-#include <vector>
+#include <algorithm>
+#include <any>
 #include <bitset>
+#include <compare>
+#include <cstdint>
+#include <memory>
+#include <set>
 #include <typeindex>
 #include <unordered_map>
-#include <memory>
-#include <compare>
-#include <any>
-#include <algorithm>
+#include <vector>
 
 namespace ts
 {
@@ -62,7 +62,6 @@ class System
 {
 public:
     System() = default;
-    virtual ~System() = default;
 
     void addEntityToSystem(Entity entity);
     void removeEntityFromSystem(Entity entity);
@@ -119,8 +118,9 @@ private:
 };
 
 // Entity
-inline Entity::Entity(TId id_, Registry* pRegistry_) : id{ id_ }, pRegistry{pRegistry_}
-{}
+inline Entity::Entity(TId id_, Registry* pRegistry_) : id{ id_ }, pRegistry{ pRegistry_ }
+{
+}
 
 inline TId Entity::getId()
 {
@@ -214,10 +214,7 @@ inline void Registry::update()
             if (pPool != nullptr)
             {
                 std::erase_if(*pPool,
-                    [&entity](const std::pair<TId, std::any>& p) {
-                        return p.first == entity.getId();
-                    }
-                );
+                              [&entity](const std::pair<TId, std::any>& p) { return p.first == entity.getId(); });
             }
         }
     }
@@ -298,9 +295,7 @@ TComponent& Registry::getComponent(Entity entity) const
     const auto entityId = entity.getId();
     auto& componentPool = mComponentPools.at(componentId);
 
-    auto it{ std::ranges::find_if(*componentPool, [&entityId](const auto& pair) {
-        return pair.first == entityId;
-    }) };
+    auto it{ std::ranges::find_if(*componentPool, [&entityId](const auto& pair) { return pair.first == entityId; }) };
 
     return std::any_cast<TComponent&>(it->second);
 }
@@ -319,4 +314,4 @@ inline bool Registry::hasEntityTag(Entity entity, const std::string& tag) const
 
     return false;
 }
-}
+} // namespace ts
