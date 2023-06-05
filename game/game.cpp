@@ -67,10 +67,16 @@ bool Game::tick()
 
 void Game::onMouseMove(int x, int y, int xrelative, int yrelative)
 {
+    (void)x;
+    (void)y;
+    (void)xrelative;
+    (void)yrelative;
 }
 
 void Game::onMouseButtonClick(ts::MouseButton button, bool isReleased)
 {
+    (void)button;
+    (void)isReleased;
 }
 
 void Game::onKeyPressed(ts::Key k)

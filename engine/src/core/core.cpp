@@ -24,7 +24,7 @@ int run(Engine* pEngine)
         return EXIT_FAILURE;
     }
 
-    const char* pGameName;
+    const char* pGameName{};
     int width;
     int height;
     bool isFullscreen;
