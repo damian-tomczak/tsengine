@@ -39,7 +39,6 @@ public:
             (void)rigidBodyComponent;
             (void)spriteComponent;
 
-
             if (entity.hasTag("player"))
             {
             }
@@ -56,7 +55,6 @@ public:
             auto& transformComponent{ entity.getComponent<TransformComponent>() };
             (void)rigidBodyComponent;
             (void)transformComponent;
-
 
             if (entity.hasTag("player"))
             {

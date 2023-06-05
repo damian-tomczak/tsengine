@@ -2,8 +2,6 @@
 
 #include "tsengine/core.h"
 
-#include <stdexcept>
-
 int main()
 {
     try

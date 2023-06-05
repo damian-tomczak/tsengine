@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.26)
+
 project(${CMAKE_PROJECT_NAME}Engine)
 
 file(GLOB_RECURSE SRC_FILES
@@ -19,6 +21,8 @@ add_library(${PROJECT_NAME} STATIC
     ${H_FILES}
     ${HPP_FILES}
 )
+
+target_precompile_headers(${PROJECT_NAME} PUBLIC src/pch.h)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -42,7 +46,6 @@ endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${OUTPUT_DIR}
     ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR}
-    VS_DEBUGGER_WORKING_DIRECTORY ${OUTPUT_DIR}
 )
 
 if(MSVC)
