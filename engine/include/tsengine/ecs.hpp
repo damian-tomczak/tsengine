@@ -307,6 +307,8 @@ inline void Registry::setEntityTag(Entity entity, const std::string& tag)
 
 inline bool Registry::hasEntityTag(Entity entity, const std::string& tag) const
 {
+    (void)entity;
+
     if (mEntities.find(tag) != mEntities.end())
     {
         return true;

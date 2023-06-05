@@ -15,6 +15,8 @@ void AssetStore::clearAssets()
 
 void AssetStore::addTexture(const char* pAssetId, const char* pFilePath)
 {
+    (void)pAssetId;
+    (void)pFilePath;
     // auto sprite{ createSprite((DATA_PATH + filePath).c_str()) };
     // if (sprite == nullptr)
     //{
@@ -26,6 +28,7 @@ void AssetStore::addTexture(const char* pAssetId, const char* pFilePath)
 
 void* AssetStore::getTexture(const char* pAssetId)
 {
+    (void)pAssetId;
     // return sprites.at(assetId);
     return nullptr;
 }

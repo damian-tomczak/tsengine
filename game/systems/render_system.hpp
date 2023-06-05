@@ -20,5 +20,7 @@ public:
 
     void update(std::unique_ptr<ts::AssetStore>& pAssetStore, float deltaTime)
     {
+        (void)pAssetStore;
+        (void)deltaTime;
     }
 };
