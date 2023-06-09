@@ -19,10 +19,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # TODO: consider add doxygen to the project
-set(EXTERNAL_PATH external)
-get_filename_component(EXTERNAL_PATH ${EXTERNAL_PATH} ABSOLUTE)
-set(ASSETS_PATH assets)
-get_filename_component(ASSETS_PATH ${ASSETS_PATH} ABSOLUTE)
+set(EXTERNAL_DIR external)
+get_filename_component(EXTERNAL_DIR ${EXTERNAL_DIR} ABSOLUTE)
+set(ASSETS_DIR assets)
+get_filename_component(ASSETS_PATH ${ASSETS_DIR} ABSOLUTE)
+
+add_subdirectory(${EXTERNAL_DIR}/vulkan)
 
 add_subdirectory(game)
 add_subdirectory(engine)
