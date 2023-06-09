@@ -24,6 +24,10 @@ add_library(${PROJECT_NAME} STATIC
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC src/pch.h)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Vulkan-Headers
+)
+
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     include
@@ -59,6 +63,6 @@ option(ENABLE_TESTS "Test the basic operations" ON)
 if(ENABLE_TESTS)
     enable_testing()
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    add_subdirectory(${EXTERNAL_PATH}/googletest ${CMAKE_BINARY_DIR}/external/googletest)
+    add_subdirectory(${EXTERNAL_DIR}/googletest ${CMAKE_BINARY_DIR}/external/googletest)
     add_subdirectory(tests)
 endif()
