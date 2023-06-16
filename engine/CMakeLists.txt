@@ -31,6 +31,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     include
+    src
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE ASSETS_PATH="${ASSETS_PATH}/")
@@ -55,7 +56,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PUBLIC
         $<IF:$<CONFIG:Debug>, /Zi /Od /MDd, /O2 /MD>
-        /W4 /WX /wd4710
+        /W3 /WX /wd4710
     )
 endif()
 

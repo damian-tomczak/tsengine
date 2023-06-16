@@ -15,7 +15,7 @@ class Game final : public ts::Engine
 public:
     Game() = default;
 
-    void preInit(const char* pGameName, int& width, int& height, bool& isFullscreen) override;
+    void preInit(const char*& pGameName, int& width, int& height, bool& isFullscreen) override;
     bool init() override;
     void close() override;
     bool tick() override;
@@ -35,5 +35,6 @@ private:
 
     std::optional<ts::Entity> mpPlayer;
 
+    // TODO: move to the engine
     unsigned mPreviousTickCount{};
 };

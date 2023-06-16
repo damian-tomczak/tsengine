@@ -1,9 +1,9 @@
 #include "tsengine/core.h"
+#include "core/window.h"
 #include "vulkan/vulkan.h"
-#include <stdlib.h>
 
-static unsigned tickCount{};
-static auto isAlreadyInitiated{ false };
+unsigned tickCount{};
+auto isAlreadyInitiated{ false };
 
 namespace ts
 {
@@ -14,7 +14,7 @@ unsigned getTickCount()
 
 int run(Engine* pEngine)
 {
-    if (pEngine == nullptr)
+    if (!pEngine)
     {
         return EXIT_FAILURE;
     }
@@ -29,15 +29,22 @@ int run(Engine* pEngine)
     int height;
     bool isFullscreen;
     pEngine->preInit(pGameName, width, height, isFullscreen);
-    isAlreadyInitiated = true;
 
-    // TODO: window setup
+    if (!pGameName)
+    {
+        // TODO: logger
+    }
+
+    auto pWindow{ Window::createWindow(pGameName) };
+    pWindow->show();
 
     pEngine->init();
+    isAlreadyInitiated = true;
 
     while (!pEngine->tick())
     {
-        // TODO: mainloop
+        auto message{ pWindow->peekMessage() };
+        (void)message;
         if (false)
         {
             pEngine->onMouseMove(-1, -1, -1, -1);
@@ -65,4 +72,22 @@ int run(Engine* pEngine)
     return EXIT_SUCCESS;
 }
 
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_CLOSE:
+        DestroyWindow(hwnd);
+        break;
+
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+
+    default:
+        return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    }
+
+    return 0;
+}
 } // namespace ts

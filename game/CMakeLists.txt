@@ -47,6 +47,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PUBLIC
         $<IF:$<CONFIG:Debug>, /Zi /Od /MDd, /O2 /MD>
-        /W4 /WX
+        /W3 /WX
     )
 endif()
