@@ -9,7 +9,7 @@ int main()
         auto returnedValue{ ts::run(new Game) };
         if (returnedValue)
         {
-            throw std::runtime_error{ "TSEngine::run returned error: " + std::to_string(returnedValue) };
+            // TODO: logger
         }
     }
     catch (const std::exception& e)

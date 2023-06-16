@@ -7,7 +7,7 @@
 #include "events/key_pressed_event.hpp"
 #include "events/key_released_event.hpp"
 
-void Game::preInit(const char* pGameName, int& width, int& height, bool& isFullscreen)
+void Game::preInit(const char*& pGameName, int& width, int& height, bool& isFullscreen)
 {
     pGameName = "Awesome Game!";
     width = mWidth;
