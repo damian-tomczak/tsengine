@@ -35,7 +35,7 @@ Win32Window::Win32Window(const std::string_view& windowName) :
         mpHInstance,
         nullptr);
 
-    if (!mpHwnd)
+    if (mpHwnd == nullptr)
     {
         // TODO: logger
     }
