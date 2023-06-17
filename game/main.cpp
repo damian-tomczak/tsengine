@@ -6,8 +6,8 @@ int main()
 {
     try
     {
-        auto returnedValue{ ts::run(new Game) };
-        if (returnedValue)
+        auto result{ ts::run(new Game) };
+        if (result)
         {
             // TODO: logger
         }

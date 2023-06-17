@@ -11,6 +11,8 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+set(CMAKE_CONFIGURATION_TYPES "Release;Debug" CACHE STRING "Limited Configs" FORCE)
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
@@ -21,8 +23,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # TODO: consider add doxygen to the project
 set(EXTERNAL_DIR external)
 get_filename_component(EXTERNAL_DIR ${EXTERNAL_DIR} ABSOLUTE)
-set(ASSETS_DIR assets)
-get_filename_component(ASSETS_PATH ${ASSETS_DIR} ABSOLUTE)
 
 add_subdirectory(${EXTERNAL_DIR}/vulkan)
 
