@@ -1,9 +1,10 @@
 #include "tsengine/core.h"
+#include "context.h"
 #include "core/window.h"
 #include "vulkan/vulkan.h"
 
 unsigned tickCount{};
-auto isAlreadyInitiated{ false };
+bool isAlreadyInitiated{};
 
 namespace ts
 {
@@ -12,7 +13,7 @@ unsigned getTickCount()
     return tickCount;
 }
 
-int run(Engine* pEngine)
+int run(Engine* const pEngine)
 {
     if (!pEngine)
     {
@@ -35,8 +36,14 @@ int run(Engine* pEngine)
         // TODO: logger
     }
 
+    if (!std::filesystem::is_directory("assets"))
+    {
+        // TODO: logger
+    }
+
     auto pWindow{ Window::createWindow(pGameName) };
     pWindow->show();
+    Context ctx;
 
     pEngine->init();
     isAlreadyInitiated = true;
@@ -70,24 +77,5 @@ int run(Engine* pEngine)
     isAlreadyInitiated = false;
 
     return EXIT_SUCCESS;
-}
-
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
-    case WM_CLOSE:
-        DestroyWindow(hwnd);
-        break;
-
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-
-    default:
-        return DefWindowProc(hwnd, uMsg, wParam, lParam);
-    }
-
-    return 0;
 }
 } // namespace ts

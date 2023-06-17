@@ -20,11 +20,18 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# TODO: consider add doxygen to the project
 set(EXTERNAL_DIR external)
 get_filename_component(EXTERNAL_DIR ${EXTERNAL_DIR} ABSOLUTE)
 
+set(ASSETS_DIR assets)
+get_filename_component(ASSETS_DIR ${ASSETS_DIR} ABSOLUTE)
+
 add_subdirectory(${EXTERNAL_DIR}/vulkan)
+add_subdirectory(${EXTERNAL_DIR}/glslang)
+
+if (MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
 
 add_subdirectory(game)
 add_subdirectory(engine)

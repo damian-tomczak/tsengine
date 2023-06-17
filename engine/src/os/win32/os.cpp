@@ -4,7 +4,8 @@ namespace ts
 {
 Win32Window::Win32Window(const std::string_view& windowName) : mWindowName{ windowName }
 {
-    WNDCLASSEX wc{
+    const WNDCLASSEX wc
+    {
         .cbSize{ sizeof(WNDCLASSEX) },
         .style{ CS_HREDRAW | CS_VREDRAW },
         .lpfnWndProc{ windowProcedure },
@@ -19,9 +20,18 @@ Win32Window::Win32Window(const std::string_view& windowName) : mWindowName{ wind
         // TODO: logger
     }
 
-    mpHwnd = CreateWindow("tsengine", mWindowName.data(), WS_OVERLAPPEDWINDOW,
-                          (GetSystemMetrics(SM_CXSCREEN) - mWidth) / 2, (GetSystemMetrics(SM_CYSCREEN) - mHeight) / 2,
-                          mWidth, mHeight, nullptr, nullptr, mpHInstance, nullptr);
+    mpHwnd = CreateWindow(
+        "tsengine",
+        mWindowName.data(),
+        WS_OVERLAPPEDWINDOW,
+        (GetSystemMetrics(SM_CXSCREEN) - mWidth) / 2,
+        (GetSystemMetrics(SM_CYSCREEN) - mHeight) / 2,
+        mWidth,
+        mHeight,
+        nullptr,
+        nullptr,
+        mpHInstance,
+        nullptr);
 
     if (!mpHwnd)
     {
@@ -58,6 +68,7 @@ Window::Message Win32Window::peekMessage()
 
 LRESULT CALLBACK Win32Window::windowProcedure(HWND pHwnd, UINT msg, WPARAM pWParam, LPARAM pLParam)
 {
+    // TODO: investigate switch cases
     switch (msg)
     {
     case WM_SIZE:
