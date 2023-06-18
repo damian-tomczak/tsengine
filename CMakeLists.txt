@@ -44,3 +44,5 @@ set_property(TARGET gmock_main PROPERTY FOLDER "ThirdPartyLibraries")
 set_property(TARGET gtest PROPERTY FOLDER "ThirdPartyLibraries")
 set_property(TARGET gtest_main PROPERTY FOLDER "ThirdPartyLibraries")
 set_property(TARGET gtest_main PROPERTY FOLDER "ThirdPartyLibraries")
+
+set_property(TARGET copy_assets PROPERTY FOLDER "tools")

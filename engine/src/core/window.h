@@ -2,7 +2,13 @@
 
 #include "pch.h"
 #include "tools.h"
+
+#ifdef _WIN32
+#define NOMINMAX
 #include <Windows.h>
+#else
+#error not implemented
+#endif
 
 namespace ts
 {

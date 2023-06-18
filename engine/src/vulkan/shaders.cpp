@@ -158,4 +158,4 @@ void compileShaders(const std::string_view& shadersPath)
 
     glslang_finalize_process();
 }
-}
+} // namespace ts

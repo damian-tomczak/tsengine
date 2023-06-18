@@ -43,7 +43,7 @@ int run(Engine* const pEngine)
 
     auto pWindow{ Window::createWindow(pGameName) };
     pWindow->show();
-    Context ctx;
+    Context ctx{pGameName};
 
     pEngine->init();
     isAlreadyInitiated = true;

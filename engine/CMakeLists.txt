@@ -70,7 +70,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     glslang
     SPIRV
     openxr_loader
-#   headers WHY DOESN'T THIS WORK!
+    headers
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -87,12 +87,16 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     src
     ${OS_DIR}
     ${EXTERNAL_DIR}/glslang # glslang doesn't support modern cmake approach
-    ${EXTERNAL_DIR}/openxr/include
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     VK_USE_PLATFORM_${VK_USE_PLATFORM}_KHR
     VK_NO_PROTOTYPES
+    XR_USE_GRAPHICS_API_VULKAN
+)
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+    ENGINE_NAME="${PROJECT_NAME}"
 )
 
 source_group(TREE ${CMAKE_SOURCE_DIR}/engine FILES

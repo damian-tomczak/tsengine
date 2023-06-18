@@ -2,7 +2,7 @@
 
 namespace ts
 {
-Context::Context()
+Context::Context(const std::string_view& appName) : mAppName{ appName }
 {
     compileShaders("assets/shaders");
 
@@ -14,53 +14,76 @@ Context::Context()
 
 void Context::createOpenXRInstance()
 {
-    XrApplicationInfo applicationInfo;
-    applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
-    applicationInfo.applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0));
-    applicationInfo.engineVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0));
+    XrApplicationInfo appInfo
+    {
+        .applicationVersion{ static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)) },
+        .engineName{ ENGINE_NAME },
+        .engineVersion{ static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)) },
+        .apiVersion{ XR_CURRENT_API_VERSION },
+    };
 
-    memcpy(applicationInfo.applicationName, "", 0);
-    memcpy(applicationInfo.engineName, "", 0);
+    if (mAppName.length() > XR_MAX_APPLICATION_NAME_SIZE - 1)
+    {
+        // TODO: logger
+    }
 
-    std::vector<const char*> extensions = { "" };
+    mAppName.copy(appInfo.applicationName,
+        std::min(mAppName.length(), static_cast<std::size_t>(XR_MAX_APPLICATION_NAME_SIZE - 1)));
+
+    std::vector<const char*> extensions{ XR_KHR_VULKAN_ENABLE_EXTENSION_NAME };
 
 #ifdef _DEBUG
     extensions.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-    // Check that all OpenXR instance extensions are supported
-    for (const char* extension : extensions)
+    std::vector<XrExtensionProperties> supportedXrInstanceExtensions;
+
+    uint32_t instanceExtensionCount;
+    if (!xrEnumerateInstanceExtensionProperties(nullptr, 0u, &instanceExtensionCount, nullptr))
     {
-        bool extensionSupported = false;
-        for (const XrExtensionProperties& supportedExtension : std::vector<XrExtensionProperties>{})
+        // TODO: logger
+    }
+
+    supportedXrInstanceExtensions.resize(instanceExtensionCount);
+    for (XrExtensionProperties& extensionProperty : supportedXrInstanceExtensions)
+    {
+        extensionProperty.type = XR_TYPE_EXTENSION_PROPERTIES;
+        extensionProperty.next = nullptr;
+    }
+
+    if (!xrEnumerateInstanceExtensionProperties(
+        nullptr,
+        instanceExtensionCount,
+        &instanceExtensionCount,
+        supportedXrInstanceExtensions.data()))
+    {
+        // TODO: logger
+    }
+
+    for (const auto& extension : extensions)
+    {
+        for (const XrExtensionProperties& supportedExtension : supportedXrInstanceExtensions)
         {
-            if (strcmp(extension, supportedExtension.extensionName) == 0)
+            if (extension == supportedExtension.extensionName)
             {
-                extensionSupported = true;
+                // TODO: logger
                 break;
             }
         }
-
-        if (!extensionSupported)
-        {
-            std::stringstream s;
-            s << "OpenXR instance extension \"" << extension << "\"";
-            //util::error(Error::FeatureNotSupported, s.str());
-            //valid = false;
-            return;
-        }
     }
 
-    XrInstanceCreateInfo instanceCreateInfo{ XR_TYPE_INSTANCE_CREATE_INFO };
-    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    instanceCreateInfo.enabledExtensionNames = extensions.data();
-    instanceCreateInfo.applicationInfo = applicationInfo;
-    const XrResult result = xrCreateInstance(&instanceCreateInfo, nullptr);
-    if (XR_FAILED(result))
+    const XrInstanceCreateInfo instanceCi
     {
-        //util::error(Error::HeadsetNotConnected);
-        //valid = false;
-        return;
+        .type{ XR_TYPE_INSTANCE_CREATE_INFO },
+        .applicationInfo{ appInfo },
+        .enabledExtensionCount{ static_cast<uint32_t>(extensions.size())},
+        .enabledExtensionNames{ extensions.data() },
+    };
+
+    if (!xrCreateInstance(&instanceCi, &mXrInstance))
+    {
+        puts("123");
+        // TODO: logger
     }
 }
 } // namespace ts

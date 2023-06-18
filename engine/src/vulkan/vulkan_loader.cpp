@@ -19,11 +19,11 @@ void connectWithLoader()
 void loadExportingFunction()
 {
 #define EXPORTED_VULKAN_FUNCTION(name)                                       \
-name = reinterpret_cast<PFN_##name>(LoadFunction(vulkanLibrary, #name)); \
-if(name == nullptr)                                                      \
-{                                                                        \
-    /* TODO: logger */                                                   \
-}
+    name = reinterpret_cast<PFN_##name>(LoadFunction(vulkanLibrary, #name)); \
+    if(name == nullptr)                                                      \
+    {                                                                        \
+        /* TODO: logger */                                                   \
+    }
 
 #include "vulkan_functions.inl"
 }
@@ -31,11 +31,11 @@ if(name == nullptr)                                                      \
 void loadGlobalLevelFunctions()
 {
 #define GLOBAL_LEVEL_VULKAN_FUNCTION(name)                                      \
-name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(nullptr, #name)); \
-if (name == nullptr)                                                        \
-{                                                                           \
-    /* TODO: logger */                                                      \
-}
+    name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(nullptr, #name)); \
+    if (name == nullptr)                                                        \
+    {                                                                           \
+        /* TODO: logger */                                                      \
+    }
 
 #include "vulkan_functions.inl"
 }

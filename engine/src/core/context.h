@@ -1,5 +1,4 @@
 #pragma once
-
 #include "pch.h"
 
 #include "vulkan/shaders.h"
@@ -12,9 +11,12 @@ namespace ts
 class Context final
 {
 public:
-    Context();
+    Context(const std::string_view& applicationName);
 
 private:
     void createOpenXRInstance();
+
+    std::string_view mAppName;
+    XrInstance mXrInstance{};
 };
 } // namespace ts
