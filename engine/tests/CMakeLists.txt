@@ -1,4 +1,4 @@
-project(${CMAKE_PROJECT_NAME}Test)
+project(${CMAKE_PROJECT_NAME}test)
 
 add_executable(${PROJECT_NAME} tester.cpp)
 

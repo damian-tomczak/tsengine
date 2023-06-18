@@ -1,4 +1,4 @@
-project(${CMAKE_PROJECT_NAME}Game)
+project(${CMAKE_PROJECT_NAME}game)
 
 file(GLOB_RECURSE SRC_FILES
     *.cpp
@@ -28,7 +28,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    TSEngine
+    tsengine
 )
 
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES

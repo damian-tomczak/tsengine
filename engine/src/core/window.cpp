@@ -8,7 +8,7 @@ std::unique_ptr<Window> Window::createWindow(const std::string_view& windowName)
 #ifdef _WIN32
     return std::make_unique<Win32Window>(windowName);
 #else
-    #pragma message("not implemented")
+    #error "not implemented"
 #endif
 }
 } // namespace ts

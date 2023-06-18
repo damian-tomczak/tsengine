@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(${CMAKE_PROJECT_NAME}Engine)
+project(${CMAKE_PROJECT_NAME}engine)
 
 function(os_files files_list_name regex)
     set(files_list ${${files_list_name}})
@@ -69,6 +69,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     Vulkan-Headers
     glslang
     SPIRV
+    openxr_loader
+#   headers WHY DOESN'T THIS WORK!
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -85,6 +87,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     src
     ${OS_DIR}
     ${EXTERNAL_DIR}/glslang # glslang doesn't support modern cmake approach
+    ${EXTERNAL_DIR}/openxr/include
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE

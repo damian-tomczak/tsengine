@@ -3,6 +3,8 @@
 #include "pch.h"
 
 #include "vulkan/shaders.h"
+#include "vulkan/vulkan_loader.h"
+#include "openxr/openxr_platform.h"
 #include "os.h"
 
 namespace ts
@@ -13,8 +15,6 @@ public:
     Context();
 
 private:
-    void connectWithVkLoaderLibrary();
-
-    LIBRARY_TYPE vkLibrary{};
+    void createOpenXRInstance();
 };
 } // namespace ts
