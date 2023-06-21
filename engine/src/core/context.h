@@ -11,7 +11,7 @@ namespace ts
 class Context final
 {
 public:
-    Context(const std::string_view& applicationName);
+    Context(const std::string_view& appName);
 
 private:
     void createOpenXRInstance();
