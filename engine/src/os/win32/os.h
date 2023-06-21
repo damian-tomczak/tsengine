@@ -3,6 +3,7 @@
 #include "core/window.h"
 
 #define LIBRARY_TYPE HMODULE
+#define LoadFunction GetProcAddress
 
 namespace ts
 {

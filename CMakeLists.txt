@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(TS VERSION 0.0.1 LANGUAGES CXX)
+project(ts VERSION 0.0.1 LANGUAGES CXX)
 
 if(NOT WIN32 AND NOT CMAKE_COMPILER_IS_MSVC)
     message(WARNING "Config was tested only on a environment with Windows system and MVSC compiler!")
@@ -28,6 +28,7 @@ get_filename_component(ASSETS_DIR ${ASSETS_DIR} ABSOLUTE)
 
 add_subdirectory(${EXTERNAL_DIR}/vulkan)
 add_subdirectory(${EXTERNAL_DIR}/glslang)
+add_subdirectory(${EXTERNAL_DIR}/openxr)
 
 if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -36,10 +37,12 @@ endif()
 add_subdirectory(game)
 add_subdirectory(engine)
 
-set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${CMAKE_PROJECT_NAME}Game)
+set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${CMAKE_PROJECT_NAME}game)
 
 set_property(TARGET gmock PROPERTY FOLDER "ThirdPartyLibraries")
 set_property(TARGET gmock_main PROPERTY FOLDER "ThirdPartyLibraries")
 set_property(TARGET gtest PROPERTY FOLDER "ThirdPartyLibraries")
 set_property(TARGET gtest_main PROPERTY FOLDER "ThirdPartyLibraries")
 set_property(TARGET gtest_main PROPERTY FOLDER "ThirdPartyLibraries")
+
+set_property(TARGET copy_assets PROPERTY FOLDER "tools")

@@ -1,7 +1,5 @@
 #include "shaders.h"
 
-#include "pch.h"
-
 #include "glslang/Include/glslang_c_interface.h"
 #include "glslang/Public/resource_limits_c.h"
 
@@ -111,7 +109,7 @@ std::vector<uint32_t> compileShaderFile(const std::filesystem::path& path)
     return processShader(getShaderStage(path), src.c_str());
 }
 
-void saveSPIRV(std::filesystem::path outputFileName, std::vector<uint32_t> spirv)
+void saveSPIRV(const std::filesystem::path& outputFileName, const std::vector<uint32_t>& spirv)
 {
     std::ofstream file(outputFileName, std::ios::binary);
     if (!file.is_open())
@@ -121,29 +119,41 @@ void saveSPIRV(std::filesystem::path outputFileName, std::vector<uint32_t> spirv
 
     std::copy(spirv.begin(), spirv.end(), std::ostreambuf_iterator<char>(file));
 }
-} // namespace
+}
 
 namespace ts
 {
-void compileShaders()
+void compileShaders(const std::string_view& shadersPath)
 {
     if (!glslang_initialize_process())
     {
         // TODO: logger
     }
 
-    constexpr auto shadersPath{ "assets/shaders" };
-
     if (!std::filesystem::is_directory(shadersPath))
     {
         // TODO: logger
     }
 
-    for (const auto& file : std::filesystem::directory_iterator(shadersPath))
+    auto compiledShadersNumber{ 0 };
+
+    for (const auto& file : std::filesystem::recursive_directory_iterator(shadersPath))
     {
+        if (file.is_directory() || file.path().extension() == ".spirv")
+        {
+            continue;
+        }
+
         auto spriv{ compileShaderFile(file.path()) };
 
         saveSPIRV(std::string{ shadersPath } + "/" + file.path().filename().string() + ".spirv", spriv);
+
+        compiledShadersNumber++;
+    }
+
+    if (compiledShadersNumber == 0)
+    {
+        // TODO: logger
     }
 
     glslang_finalize_process();

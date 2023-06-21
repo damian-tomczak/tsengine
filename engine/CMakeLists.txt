@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(${CMAKE_PROJECT_NAME}Engine)
+project(${CMAKE_PROJECT_NAME}engine)
 
 function(os_files files_list_name regex)
     set(files_list ${${files_list_name}})
@@ -69,6 +69,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     Vulkan-Headers
     glslang
     SPIRV
+    openxr_loader
+    headers
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -90,6 +92,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     VK_USE_PLATFORM_${VK_USE_PLATFORM}_KHR
     VK_NO_PROTOTYPES
+    XR_USE_GRAPHICS_API_VULKAN
+    BUILD_ENGINE
+)
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+    ENGINE_NAME="${PROJECT_NAME}"
 )
 
 source_group(TREE ${CMAKE_SOURCE_DIR}/engine FILES
