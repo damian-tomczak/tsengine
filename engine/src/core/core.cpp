@@ -1,7 +1,8 @@
 #include "tsengine/core.h"
 #include "context.h"
 #include "core/window.h"
-#include "vulkan/vulkan.h"
+#include "vulkan/vulkan_functions.h"
+#include "tsengine/logger.h"
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
@@ -31,9 +32,9 @@ int run(Engine* const pEngine)
     bool isFullscreen;
     pEngine->preInit(pGameName, width, height, isFullscreen);
 
-    if (!pGameName)
+    if (pGameName != nullptr)
     {
-        // TODO: logger
+        LOGGER_ERR("Game hasn't been named");
     }
 
     if (!std::filesystem::is_directory("assets"))
