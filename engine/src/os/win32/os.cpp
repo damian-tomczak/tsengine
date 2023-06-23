@@ -1,4 +1,5 @@
 #include "os.h"
+#include "tsengine/logger.h"
 
 namespace ts
 {
@@ -19,7 +20,7 @@ Win32Window::Win32Window(const std::string_view& windowName) :
 
     if (!RegisterClassEx(&wc))
     {
-        // TODO: logger
+        LOGGER_ERR("WNDCLASSEX registration failure");
     }
 
     mpHwnd = CreateWindow(
@@ -37,7 +38,7 @@ Win32Window::Win32Window(const std::string_view& windowName) :
 
     if (mpHwnd == nullptr)
     {
-        // TODO: logger
+        LOGGER_ERR("Window creation failure");
     }
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef BUILDING_TSENGINE
+#ifdef TSENGINE_BULDING
     #include "pch.h"
     #include "vulkan/vulkan_functions.h"
     #include "openxr/openxr_platform.h"
@@ -16,7 +16,7 @@
 #define LOGGER_WARN(message) ts::logger::warning(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
 #define LOGGER_ERR(message) ts::logger::error(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
 
-#ifdef BUILDING_TSENGINE
+#ifdef TSENGINE_BULDING
 #define LOGGER_VK(function, ...)                                                                \
     {                                                                                           \
         VkResult result{function(__VA_ARGS__)};                                                 \
@@ -68,7 +68,7 @@ namespace logger
         const char* functionName,
         unsigned lineNumber);
 
-#ifdef BUILDING_TSENGINE
+#ifdef TSENGINE_BULDING
     // TODO: vkResultToString doesn't cover every VkResult
     std::string vkResultToString(VkResult result);
     std::string xrResultToString(XrResult result);

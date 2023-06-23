@@ -86,19 +86,25 @@ void error(
     unsigned lineNumber)
 {
     std::lock_guard<std::mutex> lock(loggerMutex);
-    std::cerr
-        << colorToString(Color::RED)
-        << "LOG [" + currentDateTimeToString()
+
+    std::cerr <<
+        colorToString(Color::RED)
+        << "LOG [" << currentDateTimeToString()
 #ifdef _DEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif
-        + "]: "
+        << "]: "
         << message
         << loggerSuffix;
 
-    throw std::runtime_error{ message };
+#ifdef WIN32
+    DebugBreak();
+#endif
+
+    throw std::exception{};
 }
 
+#ifdef TSENGINE_BULDING
 std::string vkResultToString(VkResult result)
 {
     switch (result)
@@ -234,5 +240,6 @@ std::string xrResultToString(XrResult result)
         return "XR_RESULT_PARSING_ERROR";
     }
 }
+#endif
 }
 }

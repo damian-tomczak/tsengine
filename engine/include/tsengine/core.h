@@ -42,4 +42,4 @@ public:
 };
 
 int run(Engine* const pEngine);
-} // namespace ts
+}

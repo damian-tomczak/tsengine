@@ -14,16 +14,16 @@ unsigned getTickCount()
     return tickCount;
 }
 
-int run(Engine* const pEngine)
+int run(Engine* const pEngine) try
 {
     if (!pEngine)
     {
-        return EXIT_FAILURE;
+        LOGGER_ERR("game is unallocated");
     }
 
     if (isAlreadyInitiated)
     {
-        return EXIT_FAILURE;
+        LOGGER_ERR("game is already initiated");
     }
 
     const char* pGameName{};
@@ -32,14 +32,14 @@ int run(Engine* const pEngine)
     bool isFullscreen;
     pEngine->preInit(pGameName, width, height, isFullscreen);
 
-    if (pGameName != nullptr)
+    if (pGameName == nullptr)
     {
-        LOGGER_ERR("Game hasn't been named");
+        LOGGER_ERR("game hasn't been named");
     }
 
     if (!std::filesystem::is_directory("assets"))
     {
-        // TODO: logger
+        LOGGER_ERR("assets can not be found");
     }
 
     auto pWindow{ Window::createWindow(pGameName) };
@@ -79,4 +79,8 @@ int run(Engine* const pEngine)
 
     return EXIT_SUCCESS;
 }
-} // namespace ts
+catch (...)
+{
+    return EXIT_FAILURE;
+}
+}

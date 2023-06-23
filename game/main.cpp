@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include "tsengine/core.h"
+#include "tsengine/logger.h"
 
 int main()
 {
@@ -9,12 +10,12 @@ int main()
         auto result{ ts::run(new Game) };
         if (result)
         {
-            // TODO: logger
+            return result;
         }
     }
     catch (const std::exception& e)
     {
-        puts(e.what());
+        std::cerr << e.what() << "\n";
         return EXIT_FAILURE;
     }
 
