@@ -1,4 +1,5 @@
 #include "context.h"
+#include "tsengine/logger.h"
 
 namespace ts
 {
@@ -24,7 +25,9 @@ void Context::createOpenXRInstance()
 
     if (mAppName.length() > XR_MAX_APPLICATION_NAME_SIZE - 1)
     {
-        // TODO: logger
+        LOGGER_WARN(
+            "length of the game name has been reduced to the sie of XR_MAX_APPLICATION_NAME_SIZE,"
+            "which is " STR(XR_MAX_APPLICATION_NAME_SIZE) );
     }
 
     mAppName.copy(appInfo.applicationName,
@@ -39,10 +42,7 @@ void Context::createOpenXRInstance()
     std::vector<XrExtensionProperties> supportedXrInstanceExtensions;
 
     uint32_t instanceExtensionCount;
-    if (!xrEnumerateInstanceExtensionProperties(nullptr, 0u, &instanceExtensionCount, nullptr))
-    {
-        // TODO: logger
-    }
+    LOGGER_XR(xrEnumerateInstanceExtensionProperties, nullptr, 0u, &instanceExtensionCount, nullptr)
 
     supportedXrInstanceExtensions.resize(instanceExtensionCount);
     for (XrExtensionProperties& extensionProperty : supportedXrInstanceExtensions)
@@ -51,24 +51,28 @@ void Context::createOpenXRInstance()
         extensionProperty.next = nullptr;
     }
 
-    if (!xrEnumerateInstanceExtensionProperties(
+    LOGGER_XR(
+        xrEnumerateInstanceExtensionProperties,
         nullptr,
         instanceExtensionCount,
         &instanceExtensionCount,
-        supportedXrInstanceExtensions.data()))
-    {
-        // TODO: logger
-    }
+        supportedXrInstanceExtensions.data());
 
     for (const auto& extension : extensions)
     {
-        for (const XrExtensionProperties& supportedExtension : supportedXrInstanceExtensions)
+        bool isExtensionSupported{};
+        for (const auto& supportedExtension : supportedXrInstanceExtensions)
         {
             if (extension == supportedExtension.extensionName)
             {
-                // TODO: logger
+                isExtensionSupported = true;
                 break;
             }
+        }
+
+        if (!isExtensionSupported)
+        {
+            LOGGER_WARN((extension + std::string{ " xr extension isn't supported" }).c_str());
         }
     }
 
@@ -80,10 +84,6 @@ void Context::createOpenXRInstance()
         .enabledExtensionNames{ extensions.data() },
     };
 
-    if (!xrCreateInstance(&instanceCi, &mXrInstance))
-    {
-        puts("123");
-        // TODO: logger
-    }
+    LOGGER_XR(xrCreateInstance, &instanceCi, &mXrInstance);
 }
-} // namespace ts
+}

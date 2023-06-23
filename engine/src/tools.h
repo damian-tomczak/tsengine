@@ -11,3 +11,6 @@
 #define NOT_COPYABLE_AND_MOVEABLE(TypeName) \
     NOT_COPYABLE(TypeName)                  \
     NOT_MOVEABLE(TypeName)
+
+#define XSTR(x) #x
+#define STR(x) XSTR(x)
