@@ -59,7 +59,7 @@ add_library(${PROJECT_NAME} STATIC
     ${OTHER_FILES}
 )
 
-target_sources(${PROJECT_NAME} PRIVATE 
+target_sources(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIR}/glslang/glslang/ResourceLimits/ResourceLimits.cpp
     ${EXTERNAL_DIR}/glslang/glslang/ResourceLimits/resource_limits_c.cpp)
 
