@@ -1,4 +1,4 @@
-project(${PROJECT_NAME}-tests)
+project(${PROJECT_NAME}_tests)
 
 add_executable(${PROJECT_NAME} tester.cpp)
 

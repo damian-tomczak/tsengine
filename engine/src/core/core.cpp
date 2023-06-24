@@ -44,7 +44,8 @@ int run(Engine* const pEngine) try
 
     auto pWindow{ Window::createWindow(pGameName) };
     pWindow->show();
-    Context ctx{pGameName};
+    auto& ctx{Context::getInstance()};
+    ctx.createContext(pGameName);
 
     pEngine->init();
     isAlreadyInitiated = true;

@@ -10,12 +10,13 @@
 
 namespace ts
 {
-class Context final
+class Context final : public Singleton<Context>
 {
+    SINGLETON_BODY(Context);
     NOT_COPYABLE_AND_MOVEABLE(Context);
 
 public:
-    Context(const std::string_view& appName);
+    void createContext(const std::string_view& appName);
 
 private:
     void createOpenXRInstance();
@@ -23,4 +24,4 @@ private:
     std::string_view mAppName;
     XrInstance mXrInstance{};
 };
-} // namespace ts
+}

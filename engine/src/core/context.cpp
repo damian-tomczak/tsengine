@@ -3,8 +3,10 @@
 
 namespace ts
 {
-Context::Context(const std::string_view& appName) : mAppName{ appName }
+void Context::createContext(const std::string_view& appName)
 {
+    mAppName = appName;
+
     compileShaders("assets/shaders");
 
     createOpenXRInstance();
@@ -63,7 +65,7 @@ void Context::createOpenXRInstance()
         bool isExtensionSupported{};
         for (const auto& supportedExtension : supportedXrInstanceExtensions)
         {
-            if (extension == supportedExtension.extensionName)
+            if (strcmp(extension, supportedExtension.extensionName) == 0)
             {
                 isExtensionSupported = true;
                 break;
