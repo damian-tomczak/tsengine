@@ -2,11 +2,11 @@
 
 #define NOT_COPYABLE(TypeName)                    \
     TypeName(const TypeName&) = delete;           \
-    TypeName& operator=(const TypeName&) = delete;
+    TypeName& operator=(TypeName&) = delete;
 
 #define NOT_MOVEABLE(TypeName)                     \
-    TypeName(const TypeName&&) = delete;           \
-    TypeName& operator=(const TypeName&&) = delete;
+    TypeName(TypeName&&) = delete;           \
+    TypeName& operator=(TypeName&&) = delete;
 
 #define NOT_COPYABLE_AND_MOVEABLE(TypeName) \
     NOT_COPYABLE(TypeName)                  \

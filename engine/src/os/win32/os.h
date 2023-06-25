@@ -10,7 +10,7 @@ namespace ts
 class Win32Window final : public Window
 {
 public:
-    Win32Window(const std::string_view& windowName);
+    Win32Window(uint32_t width, uint32_t height);
     ~Win32Window();
 
 private:
@@ -21,8 +21,7 @@ private:
 
     HINSTANCE mpHInstance{ GetModuleHandle(nullptr) };
     HWND mpHwnd{};
-    uint32_t mWidth{ 1280 };
-    uint32_t mHeight{ 720 };
-    std::string_view mWindowName;
+    uint32_t mWidth;
+    uint32_t mHeight;
 };
 } // namespace ts

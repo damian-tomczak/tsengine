@@ -26,28 +26,20 @@ int run(Engine* const pEngine) try
         LOGGER_ERR("game is already initiated");
     }
 
-    const char* pGameName{};
-    int width;
-    int height;
-    bool isFullscreen;
-    pEngine->preInit(pGameName, width, height, isFullscreen);
-
-    if (pGameName == nullptr)
-    {
-        LOGGER_ERR("game hasn't been named");
-    }
+    std::unique_ptr<uint32_t> width{ std::make_unique<uint32_t>(1280) };
+    std::unique_ptr<uint32_t> height{ std::make_unique<uint32_t>(720) };
+    pEngine->init(width.get(), height.get());
 
     if (!std::filesystem::is_directory("assets"))
     {
         LOGGER_ERR("assets can not be found");
     }
 
-    auto pWindow{ Window::createWindow(pGameName) };
+    auto pWindow{ Window::createWindow(*width, *height) };
     pWindow->show();
     auto& ctx{Context::getInstance()};
-    ctx.createContext(pGameName);
+    ctx.createContext();
 
-    pEngine->init();
     isAlreadyInitiated = true;
 
     LOGGER_LOG("tsengine initialization completed successfully");
