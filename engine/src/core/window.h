@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pch.h"
-#include "tools.h"
+#include "utils.hpp"
 
 #ifdef _WIN32
 #define NOMINMAX

@@ -25,7 +25,7 @@
             ts::logger::error(                                                                  \
                 (#function " failed with status: " + logger::vkResultToString(result)).c_str(), \
                 __FILE__,                                                                       \
-                __FUNCTION__,                                                                   \
+                FUNCTION_SIGNATURE,                                                                   \
                 __LINE__);                                                                      \
         }                                                                                       \
                                                                                                 \
@@ -39,7 +39,7 @@
             ts::logger::error(                                                                  \
                 (#function " failed with status: " + logger::xrResultToString(result)).c_str(), \
                 __FILE__,                                                                       \
-                __FUNCTION__,                                                                   \
+                FUNCTION_SIGNATURE,                                                                   \
                 __LINE__);                                                                      \
         }                                                                                       \
                                                                                                 \

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pch.h"
-#include "tools.h"
+#include "utils.hpp"
 
 #include "vulkan/shaders_compiler.h"
 #include "vulkan/vulkan_loader.h"
@@ -20,11 +20,13 @@ public:
 private:
     friend class Singleton<Context>;
     Context() = default;
+    ~Context();
 
     void createXrInstance();
     void loadXrExtensions();
     void initXrSystemId();
     void checkAvailabilityXrBlendMode();
+    void getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<std::string>& requiredVkInstanceExtensions);
 
     static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
     static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;

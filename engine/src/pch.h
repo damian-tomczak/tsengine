@@ -7,3 +7,4 @@
 #include <optional>
 #include <string_view>
 #include <algorithm>
+#include <ranges>

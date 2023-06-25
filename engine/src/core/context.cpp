@@ -29,6 +29,10 @@ void Context::createContext(std::string_view appName)
 
     vulkanloader::connectWithLoader();
     vulkanloader::loadExportingFunction();
+    vulkanloader::loadGlobalLevelFunctions();
+
+    std::vector<std::string> requiredVkInstanceExtensions;
+    getRequiredVkInstanceExtensionsAndCheckAvailability(requiredVkInstanceExtensions);
 }
 
 void Context::loadXrExtensions()
@@ -48,11 +52,6 @@ void Context::loadXrExtensions()
         "xrGetVulkanDeviceExtensionsKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanDeviceExtensionsKHR));
 
-    LOGGER_XR(xrGetInstanceProcAddr,
-        mXrInstance,
-        "xrCreateDebugUtilsMessengerEXT",
-        reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsRequirementsKHR));
-
 #ifdef DEBUG
     LOGGER_XR(xrGetInstanceProcAddr,
         mXrInstance,
@@ -63,7 +62,6 @@ void Context::loadXrExtensions()
         mXrInstance,
         "xrDestroyDebugUtilsMessengerEXT",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrDestroyDebugUtilsMessengerEXT));
-#endif
 
     const XrDebugUtilsMessengerCreateInfoEXT xrDebugUtilsMessengerCi {
         .type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
@@ -76,6 +74,7 @@ void Context::loadXrExtensions()
         mXrInstance,
         &xrDebugUtilsMessengerCi,
         &mXrDebugUtilsMessenger);
+#endif
 }
 
 void Context::initXrSystemId()
@@ -86,7 +85,6 @@ void Context::initXrSystemId()
     };
 
     auto result{ xrGetSystem(mXrInstance, &ci, &mXrSystemId) };
-
     if (XR_FAILED(result))
     {
         LOGGER_ERR("no headset detected");
@@ -126,6 +124,73 @@ void Context::checkAvailabilityXrBlendMode()
     {
         LOGGER_ERR("selected XrEnvironmentBlendMode isn't supported");
     }
+}
+
+void Context::getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<std::string>& requiredVkInstanceExtensions)
+{
+    uint32_t count;
+    LOGGER_XR(xrGetVulkanInstanceExtensionsKHR,
+        mXrInstance,
+        mXrSystemId,
+        0u,
+        &count,
+        nullptr);
+
+    std::string xrVulkanExtensions(count, ' ');
+    LOGGER_XR(xrGetVulkanInstanceExtensionsKHR,
+        mXrInstance,
+        mXrSystemId,
+        count,
+        &count,
+        xrVulkanExtensions.data());
+
+    std::ranges::move(utils::unpackExtensionString(xrVulkanExtensions),
+        std::back_inserter(requiredVkInstanceExtensions));
+
+#ifdef _DEBUG
+    requiredVkInstanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+    std::vector<VkExtensionProperties> supportedVulkanInstanceExtensions;
+    uint32_t instanceExtensionCount;
+    LOGGER_VK(vkEnumerateInstanceExtensionProperties,
+        nullptr,
+        &instanceExtensionCount,
+        nullptr);
+
+    supportedVulkanInstanceExtensions.resize(instanceExtensionCount);
+    LOGGER_VK(vkEnumerateInstanceExtensionProperties,
+        nullptr,
+        &instanceExtensionCount,
+        supportedVulkanInstanceExtensions.data());
+
+    for (const auto& extension : requiredVkInstanceExtensions)
+    {
+        bool isExtensionSupported{};
+        for (const auto& supportedExtension : supportedVulkanInstanceExtensions)
+        {
+            if (strcmp(supportedExtension.extensionName, extension.c_str()) == 0)
+            {
+                isExtensionSupported = true;
+                break;
+            }
+        }
+
+        if (!isExtensionSupported)
+        {
+            LOGGER_ERR(("required extension " + extension + " isn't available").c_str());
+        }
+    }
+}
+
+Context::~Context()
+{
+#ifdef DEBUG
+    if (mXrDebugUtilsMessenger)
+    {
+        xrDestroyDebugUtilsMessengerEXT(mXrDebugUtilsMessenger);
+    }
+#endif
 }
 
 void Context::createXrInstance()
