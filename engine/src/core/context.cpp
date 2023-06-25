@@ -1,6 +1,19 @@
 #include "context.h"
 #include "tsengine/logger.h"
 
+namespace
+{
+    PFN_xrGetVulkanInstanceExtensionsKHR xrGetVulkanInstanceExtensionsKHR{};
+    PFN_xrGetVulkanGraphicsDeviceKHR xrGetVulkanGraphicsDeviceKHR{};
+    PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtensionsKHR{};
+    PFN_xrGetVulkanGraphicsRequirementsKHR xrGetVulkanGraphicsRequirementsKHR{};
+
+#ifdef DEBUG
+    PFN_xrCreateDebugUtilsMessengerEXT xrCreateDebugUtilsMessengerEXT{};
+    PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
+#endif
+}
+
 namespace ts
 {
 void Context::createContext(const std::string_view& appName)
@@ -9,20 +22,67 @@ void Context::createContext(const std::string_view& appName)
 
     compileShaders("assets/shaders");
 
-    createOpenXRInstance();
+    createXrInstance();
+    loadXrExtensions();
 
     vulkanloader::connectWithLoader();
     vulkanloader::loadExportingFunction();
 }
 
-void Context::createOpenXRInstance()
+void Context::loadXrExtensions()
 {
-    XrApplicationInfo appInfo
-    {
-        .applicationVersion{ static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)) },
-        .engineName{ ENGINE_NAME },
-        .engineVersion{ static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)) },
-        .apiVersion{ XR_CURRENT_API_VERSION },
+    LOGGER_XR(xrGetInstanceProcAddr,
+        mXrInstance,
+        "xrGetVulkanInstanceExtensionsKHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanInstanceExtensionsKHR));
+
+    LOGGER_XR(xrGetInstanceProcAddr,
+        mXrInstance,
+        "xrGetVulkanGraphicsDeviceKHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsDeviceKHR));
+
+    LOGGER_XR(xrGetInstanceProcAddr,
+        mXrInstance,
+        "xrGetVulkanDeviceExtensionsKHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanDeviceExtensionsKHR));
+
+    LOGGER_XR(xrGetInstanceProcAddr,
+        mXrInstance,
+        "xrCreateDebugUtilsMessengerEXT",
+        reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsRequirementsKHR));
+
+#ifdef DEBUG
+    LOGGER_XR(xrGetInstanceProcAddr,
+        mXrInstance,
+        "xrCreateDebugUtilsMessengerEXT",
+        reinterpret_cast<PFN_xrVoidFunction*>(&xrCreateDebugUtilsMessengerEXT));
+
+    LOGGER_XR(xrGetInstanceProcAddr,
+        mXrInstance,
+        "xrDestroyDebugUtilsMessengerEXT",
+        reinterpret_cast<PFN_xrVoidFunction*>(&xrDestroyDebugUtilsMessengerEXT));
+#endif
+
+    const XrDebugUtilsMessengerCreateInfoEXT xrDebugUtilsMessengerCi{
+        .type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .messageSeverities = logger::xrDebugUtilsMessageSeverityFlags,
+        .messageTypes = logger::xrDebugUtilsMessageTypeFlags,
+        .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(logger::xrCallback)
+    };
+
+    LOGGER_XR(xrCreateDebugUtilsMessengerEXT,
+        mXrInstance,
+        &xrDebugUtilsMessengerCi,
+        &mXrDebugUtilsMessenger);
+}
+
+void Context::createXrInstance()
+{
+    XrApplicationInfo appInfo {
+        .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
+        .engineName = ENGINE_NAME,
+        .engineVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
+        .apiVersion = XR_CURRENT_API_VERSION,
     };
 
     if (mAppName.length() > XR_MAX_APPLICATION_NAME_SIZE - 1)
@@ -37,7 +97,7 @@ void Context::createOpenXRInstance()
 
     std::vector<const char*> extensions{ XR_KHR_VULKAN_ENABLE_EXTENSION_NAME };
 
-#ifdef _DEBUG
+#ifdef DEBUG
     extensions.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
@@ -78,12 +138,11 @@ void Context::createOpenXRInstance()
         }
     }
 
-    const XrInstanceCreateInfo instanceCi
-    {
-        .type{ XR_TYPE_INSTANCE_CREATE_INFO },
-        .applicationInfo{ appInfo },
-        .enabledExtensionCount{ static_cast<uint32_t>(extensions.size())},
-        .enabledExtensionNames{ extensions.data() },
+    const XrInstanceCreateInfo instanceCi {
+        .type = XR_TYPE_INSTANCE_CREATE_INFO,
+        .applicationInfo = appInfo,
+        .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+        .enabledExtensionNames = extensions.data(),
     };
 
     LOGGER_XR(xrCreateInstance, &instanceCi, &mXrInstance);

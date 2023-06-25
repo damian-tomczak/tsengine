@@ -30,8 +30,3 @@ public:
 protected:
     Singleton() = default;
 };
-
-#define SINGLETON_BODY(DerivedClass)      \
-private:                                  \
-    friend class Singleton<DerivedClass>; \
-    DerivedClass() = default;             \

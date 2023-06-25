@@ -50,6 +50,8 @@ int run(Engine* const pEngine) try
     pEngine->init();
     isAlreadyInitiated = true;
 
+    LOGGER_LOG("tsengine initialization completed successfully");
+
     while (!pEngine->tick())
     {
         auto message{ pWindow->peekMessage() };

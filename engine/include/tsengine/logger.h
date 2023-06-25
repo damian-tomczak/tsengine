@@ -54,24 +54,39 @@ namespace logger
         const char* message,
         const char* fileName,
         const char* functionName,
-        unsigned lineNumber);
+        int lineNumber);
 
     void warning(
         const char* message,
         const char* fileName,
         const char* functionName,
-        unsigned lineNumber);
+        int lineNumber);
 
     void error(
         const char* message,
         const char* fileName,
         const char* functionName,
-        unsigned lineNumber);
+        int lineNumber);
 
 #ifdef TSENGINE_BULDING
     // TODO: vkResultToString doesn't cover every VkResult
     std::string vkResultToString(VkResult result);
     std::string xrResultToString(XrResult result);
-#endif
-}
-}
+
+#ifdef DEBUG
+    constexpr XrDebugUtilsMessageSeverityFlagsEXT xrDebugUtilsMessageSeverityFlags =
+        XR_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+        XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+
+    constexpr XrDebugUtilsMessageTypeFlagsEXT xrDebugUtilsMessageTypeFlags =
+        XR_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+        XR_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_TYPE_CONFORMANCE_BIT_EXT;
+
+    const XrBool32 xrCallback(XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
+        XrDebugUtilsMessageTypeFlagsEXT messageTypes,
+        const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
+        void* userData);
+#endif // DEBUG
+#endif // TSENGINE_BUILDING
+} // namespace logger
+} // namespace ts
