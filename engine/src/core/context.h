@@ -1,26 +1,43 @@
 #pragma once
 
 #include "pch.h"
-#include "tools.h"
+#include "utils.hpp"
 
 #include "vulkan/shaders_compiler.h"
 #include "vulkan/vulkan_loader.h"
-#include "openxr/openxr_platform.h"
+#include "openxr/openxr.h"
 #include "os.h"
 
 namespace ts
 {
-class Context final
+class Context final : public Singleton<Context>
 {
-    NOT_COPYABLE_AND_MOVEABLE(Context);
+    NOT_MOVEABLE(Context);
 
 public:
-    Context(const std::string_view& appName);
+    void createContext(std::string_view appName);
 
 private:
-    void createOpenXRInstance();
+    friend class Singleton<Context>;
+    Context() = default;
+    ~Context();
+
+    void createXrInstance();
+    void loadXrExtensions();
+    void initXrSystemId();
+    void checkAvailabilityXrBlendMode();
+    void getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<std::string>& requiredVkInstanceExtensions);
+
+    static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 
     std::string_view mAppName;
     XrInstance mXrInstance{};
+
+#ifdef DEBUG
+    XrDebugUtilsMessengerEXT mXrDebugUtilsMessenger{};
+#endif
+
+    XrSystemId mXrSystemId{};
 };
-} // namespace ts
+}

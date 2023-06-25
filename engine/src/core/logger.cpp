@@ -29,13 +29,17 @@ namespace
 
     std::string currentDateTimeToString()
     {
-        return std::format("{:%d-%m-%Y %H:%M:%S}",
+        return std::format("{:%d-%m-%Y %H:%M:%OS}",
             std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::system_clock::now()));
     }
 
-    inline auto debugInfo(std::string fileName, std::string functionName, uint32_t lineNumber)
+    inline auto debugInfo(std::string fileName, std::string functionName, int lineNumber)
     {
-        return " at " + fileName + " " + functionName + ":" + std::to_string(lineNumber);
+        std::ostringstream ss;
+        ss << " at " << fileName << " " << functionName <<
+            ((lineNumber >= 0) ? (":" + std::to_string(lineNumber)) : "");
+
+        return ss.str();
     }
 }
 
@@ -47,13 +51,13 @@ void log(
     const char* message,
     const char* fileName,
     const char* functionName,
-    unsigned lineNumber)
+    int lineNumber)
 {
     std::lock_guard<std::mutex> lock(loggerMutex);
     std::cout
         << colorToString(Color::GREEN)
         << "LOG [" + currentDateTimeToString()
-#ifdef _DEBUG
+#ifdef DEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif
         + "]: "
@@ -65,13 +69,13 @@ void warning(
     const char* message,
     const char* fileName,
     const char* functionName,
-    unsigned lineNumber)
+    int lineNumber)
 {
     std::lock_guard<std::mutex> lock(loggerMutex);
     std::cout
         << colorToString(Color::YELLOW)
         << "LOG [" + currentDateTimeToString()
-#ifdef _DEBUG
+#ifdef DEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif
         + "]: "
@@ -83,22 +87,26 @@ void error(
     const char* message,
     const char* fileName,
     const char* functionName,
-    unsigned lineNumber)
+    int lineNumber)
 {
     std::lock_guard<std::mutex> lock(loggerMutex);
 
     std::cerr <<
         colorToString(Color::RED)
         << "LOG [" << currentDateTimeToString()
-#ifdef _DEBUG
+#ifdef DEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif
         << "]: "
         << message
         << loggerSuffix;
 
+#ifdef DEBUG
 #ifdef WIN32
     DebugBreak();
+#else
+    #error not implemented
+#endif
 #endif
 
     throw std::exception{};
@@ -240,6 +248,20 @@ std::string xrResultToString(XrResult result)
         return "XR_RESULT_PARSING_ERROR";
     }
 }
-#endif
-}
-}
+#ifdef DEBUG
+    XrBool32 xrCallback(XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
+        XrDebugUtilsMessageTypeFlagsEXT messageTypes,
+        const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
+        void* userData)
+    {
+        if (messageSeverity >= XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        {
+            warning(callbackData->message, "", "", -1);
+        }
+
+        return XR_FALSE;
+    }
+#endif // DEBUG
+#endif // TSENGINE_BUILDING
+} // namespace logger
+} // namespace ts
