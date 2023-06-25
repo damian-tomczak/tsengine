@@ -15,7 +15,7 @@ class Context final : public Singleton<Context>
     NOT_MOVEABLE(Context);
 
 public:
-    void createContext(std::string_view appName);
+    void createContext();
 
 private:
     friend class Singleton<Context>;
@@ -28,16 +28,20 @@ private:
     void checkAvailabilityXrBlendMode();
     void getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<std::string>& requiredVkInstanceExtensions);
 
-    static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-
-    std::string_view mAppName;
-    XrInstance mXrInstance{};
+    void createVkInstance(std::vector<std::string>&& vulkanInstanceExtensions);
 
 #ifdef DEBUG
     XrDebugUtilsMessengerEXT mXrDebugUtilsMessenger{};
+
+    static constexpr std::array vkLayers = { "VK_LAYER_KHRONOS_validation" };
 #endif
 
+    static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+
+    XrInstance mXrInstance{};
     XrSystemId mXrSystemId{};
+
+    VkInstance mVkInstance{};
 };
 }

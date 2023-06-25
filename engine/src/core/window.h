@@ -4,10 +4,10 @@
 #include "utils.hpp"
 
 #ifdef _WIN32
-#define NOMINMAX
-#include <Windows.h>
+    #define NOMINMAX
+    #include <Windows.h>
 #else
-#error not implemented
+    #error not implemented
 #endif
 
 namespace ts
@@ -17,7 +17,10 @@ class Window
     NOT_COPYABLE_AND_MOVEABLE(Window);
 
 public:
-    Window() = default;
+    Window(uint32_t width, uint32_t height) :
+        mWidth{width},
+        mHeight{height}
+    {}
 
     enum class Message
     {
@@ -32,6 +35,10 @@ public:
     virtual void show() = 0;
     virtual Message peekMessage() = 0;
 
-    static std::unique_ptr<Window> createWindow(const std::string_view& windowName);
+    static std::unique_ptr<Window> createWindow(uint32_t width, uint32_t height);
+
+private:
+    uint32_t mWidth;
+    uint32_t mHeight;
 };
-} // namespace ts
+}

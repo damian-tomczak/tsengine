@@ -29,9 +29,7 @@ public:
     Engine(const Engine&&) = delete;
     Engine& operator=(Engine&&) = delete;
 
-    virtual void preInit(const char*& pGameName, int& width, int& height, bool& isFullscreen) = 0;
-    // TODO: reconsider if init is needed
-    virtual bool init() = 0;
+    virtual bool init(unsigned* const width, unsigned* const height) = 0;
     virtual void close() = 0;
     virtual bool tick() = 0;
 

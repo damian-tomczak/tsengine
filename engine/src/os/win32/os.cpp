@@ -3,9 +3,7 @@
 
 namespace ts
 {
-Win32Window::Win32Window(const std::string_view& windowName) :
-    Window{},
-    mWindowName{ windowName }
+Win32Window::Win32Window(uint32_t width, uint32_t height) : Window{width, height}
 {
     const WNDCLASSEX wc
     {
@@ -15,7 +13,7 @@ Win32Window::Win32Window(const std::string_view& windowName) :
         .hInstance{ mpHInstance },
         .hCursor{ LoadCursor(nullptr, IDC_ARROW) },
         .hbrBackground{ reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1) },
-        .lpszClassName{ "tsengine" },
+        .lpszClassName{ ENGINE_NAME },
     };
 
     if (!RegisterClassEx(&wc))
@@ -24,8 +22,8 @@ Win32Window::Win32Window(const std::string_view& windowName) :
     }
 
     mpHwnd = CreateWindow(
-        "tsengine",
-        mWindowName.data(),
+        ENGINE_NAME,
+        GAME_NAME,
         WS_OVERLAPPEDWINDOW,
         (GetSystemMetrics(SM_CXSCREEN) - mWidth) / 2,
         (GetSystemMetrics(SM_CYSCREEN) - mHeight) / 2,

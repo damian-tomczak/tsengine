@@ -16,10 +16,8 @@ namespace
 
 namespace ts
 {
-void Context::createContext(std::string_view appName)
+void Context::createContext()
 {
-    mAppName = appName;
-
     compileShaders("assets/shaders");
 
     createXrInstance();
@@ -31,8 +29,10 @@ void Context::createContext(std::string_view appName)
     vulkanloader::loadExportingFunction();
     vulkanloader::loadGlobalLevelFunctions();
 
-    std::vector<std::string> requiredVkInstanceExtensions;
-    getRequiredVkInstanceExtensionsAndCheckAvailability(requiredVkInstanceExtensions);
+    std::vector<std::string> vulkanInstanceExtensions;
+    getRequiredVkInstanceExtensionsAndCheckAvailability(vulkanInstanceExtensions);
+
+    createVkInstance(std::move(vulkanInstanceExtensions));
 }
 
 void Context::loadXrExtensions()
@@ -176,11 +176,78 @@ void Context::getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<st
             }
         }
 
-        if (!isExtensionSupported)
+        if ((!isExtensionSupported) && (extension != VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
         {
-            LOGGER_ERR(("required extension " + extension + " isn't available").c_str());
+            LOGGER_ERR((extension + " isn't supported").c_str());
+        }
+        else if ((!isExtensionSupported) && extension == VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
+        {
+            LOGGER_WARN(VK_EXT_DEBUG_UTILS_EXTENSION_NAME " isn't supported");
         }
     }
+}
+
+void Context::createVkInstance(std::vector<std::string>&& vulkanInstanceExtensions)
+{
+    const VkApplicationInfo applicationInfo {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pApplicationName = GAME_NAME,
+        .applicationVersion = VK_MAKE_API_VERSION(0, 0, 1, 0),
+        .pEngineName = "OpenXR Vulkan Example",
+        .engineVersion = VK_MAKE_API_VERSION(0, 0, 1, 0),
+        .apiVersion = VK_API_VERSION_1_3,
+    };
+
+    std::vector<const char*> rawVulkanInstanceExtensions;
+    for (const auto& str : vulkanInstanceExtensions)
+    {
+        rawVulkanInstanceExtensions.emplace_back(str.c_str());
+    }
+
+    VkInstanceCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pApplicationInfo = &applicationInfo,
+        .enabledExtensionCount = static_cast<uint32_t>(vulkanInstanceExtensions.size()),
+        .ppEnabledExtensionNames = rawVulkanInstanceExtensions.data()
+    };
+
+#ifdef DEBUG
+    std::vector<VkLayerProperties> supportedInstanceLayers;
+    uint32_t instanceLayerCount;
+    LOGGER_VK(vkEnumerateInstanceLayerProperties,
+        &instanceLayerCount, nullptr);
+
+    supportedInstanceLayers.resize(instanceLayerCount);
+    LOGGER_VK(vkEnumerateInstanceLayerProperties,
+        &instanceLayerCount,
+        supportedInstanceLayers.data());
+
+    for (const auto layer : vkLayers)
+    {
+        bool isLayerSupported{};
+        for (const VkLayerProperties& supportedLayer : supportedInstanceLayers)
+        {
+            if (strcmp(layer, supportedLayer.layerName) == 0)
+            {
+                isLayerSupported = true;
+                break;
+            }
+        }
+
+        if (!isLayerSupported)
+        {
+            LOGGER_WARN((std::string{ layer } + " vulkan layer isn't supported").c_str());
+        }
+    }
+
+    ci.enabledLayerCount = static_cast<uint32_t>(vkLayers.size());
+    ci.ppEnabledLayerNames = vkLayers.data();
+#endif
+
+    LOGGER_VK(vkCreateInstance,
+        &ci,
+        nullptr,
+        &mVkInstance);
 }
 
 Context::~Context()
@@ -196,21 +263,18 @@ Context::~Context()
 void Context::createXrInstance()
 {
     XrApplicationInfo appInfo {
+        .applicationName = GAME_NAME,
         .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
         .engineName = ENGINE_NAME,
         .engineVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
         .apiVersion = XR_CURRENT_API_VERSION,
     };
 
-    if (mAppName.length() > XR_MAX_APPLICATION_NAME_SIZE - 1)
+    if (strlen(GAME_NAME) > XR_MAX_APPLICATION_NAME_SIZE - 1)
     {
-        LOGGER_WARN(
-            "length of the game name has been reduced to the sie of XR_MAX_APPLICATION_NAME_SIZE,"
+        LOGGER_WARN("length of the game name has been reduced to the sie of XR_MAX_APPLICATION_NAME_SIZE,"
             "which is " STR(XR_MAX_APPLICATION_NAME_SIZE) );
     }
-
-    mAppName.copy(appInfo.applicationName,
-        std::min(mAppName.length(), static_cast<std::size_t>(XR_MAX_APPLICATION_NAME_SIZE - 1)));
 
     std::vector<const char*> extensions{ XR_KHR_VULKAN_ENABLE_EXTENSION_NAME };
 
@@ -230,8 +294,7 @@ void Context::createXrInstance()
         extensionProperty.next = nullptr;
     }
 
-    LOGGER_XR(
-        xrEnumerateInstanceExtensionProperties,
+    LOGGER_XR(xrEnumerateInstanceExtensionProperties,
         nullptr,
         instanceExtensionCount,
         &instanceExtensionCount,

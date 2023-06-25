@@ -98,6 +98,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
     ENGINE_NAME="${PROJECT_NAME}"
+    GAME_NAME="${GAME_NAME}"
 )
 
 source_group(TREE ${CMAKE_SOURCE_DIR}/engine FILES
