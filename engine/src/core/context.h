@@ -15,7 +15,7 @@ class Context final : public Singleton<Context>
     NOT_MOVEABLE(Context);
 
 public:
-    void createContext(const std::string_view& appName);
+    void createContext(std::string_view appName);
 
 private:
     friend class Singleton<Context>;
@@ -23,6 +23,11 @@ private:
 
     void createXrInstance();
     void loadXrExtensions();
+    void initXrSystemId();
+    void checkAvailabilityXrBlendMode();
+
+    static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 
     std::string_view mAppName;
     XrInstance mXrInstance{};
@@ -30,5 +35,7 @@ private:
 #ifdef DEBUG
     XrDebugUtilsMessengerEXT mXrDebugUtilsMessenger{};
 #endif
+
+    XrSystemId mXrSystemId{};
 };
 }

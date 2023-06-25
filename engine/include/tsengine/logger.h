@@ -82,7 +82,7 @@ namespace logger
         XR_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
         XR_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_TYPE_CONFORMANCE_BIT_EXT;
 
-    const XrBool32 xrCallback(XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
+    XrBool32 xrCallback(XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
         XrDebugUtilsMessageTypeFlagsEXT messageTypes,
         const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
         void* userData);

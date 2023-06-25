@@ -249,7 +249,7 @@ std::string xrResultToString(XrResult result)
     }
 }
 #ifdef DEBUG
-    const XrBool32 xrCallback(XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
+    XrBool32 xrCallback(XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
         XrDebugUtilsMessageTypeFlagsEXT messageTypes,
         const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
         void* userData)

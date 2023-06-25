@@ -16,7 +16,7 @@ namespace
 
 namespace ts
 {
-void Context::createContext(const std::string_view& appName)
+void Context::createContext(std::string_view appName)
 {
     mAppName = appName;
 
@@ -24,6 +24,8 @@ void Context::createContext(const std::string_view& appName)
 
     createXrInstance();
     loadXrExtensions();
+    initXrSystemId();
+    checkAvailabilityXrBlendMode();
 
     vulkanloader::connectWithLoader();
     vulkanloader::loadExportingFunction();
@@ -63,7 +65,7 @@ void Context::loadXrExtensions()
         reinterpret_cast<PFN_xrVoidFunction*>(&xrDestroyDebugUtilsMessengerEXT));
 #endif
 
-    const XrDebugUtilsMessengerCreateInfoEXT xrDebugUtilsMessengerCi{
+    const XrDebugUtilsMessengerCreateInfoEXT xrDebugUtilsMessengerCi {
         .type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
         .messageSeverities = logger::xrDebugUtilsMessageSeverityFlags,
         .messageTypes = logger::xrDebugUtilsMessageTypeFlags,
@@ -74,6 +76,56 @@ void Context::loadXrExtensions()
         mXrInstance,
         &xrDebugUtilsMessengerCi,
         &mXrDebugUtilsMessenger);
+}
+
+void Context::initXrSystemId()
+{
+    const XrSystemGetInfo ci {
+        .type = XR_TYPE_SYSTEM_GET_INFO,
+        .formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
+    };
+
+    auto result{ xrGetSystem(mXrInstance, &ci, &mXrSystemId) };
+
+    if (XR_FAILED(result))
+    {
+        LOGGER_ERR("no headset detected");
+    }
+}
+
+void Context::checkAvailabilityXrBlendMode()
+{
+    uint32_t environmentBlendModeCount;
+    LOGGER_XR(xrEnumerateEnvironmentBlendModes,
+        mXrInstance,
+        mXrSystemId,
+        xrViewType,
+        0u,
+        &environmentBlendModeCount, nullptr);
+
+    std::vector<XrEnvironmentBlendMode> supportedEnvironmentBlendModes(environmentBlendModeCount);
+    LOGGER_XR(xrEnumerateEnvironmentBlendModes,
+        mXrInstance,
+        mXrSystemId,
+        xrViewType,
+        environmentBlendModeCount,
+        &environmentBlendModeCount,
+        supportedEnvironmentBlendModes.data());
+
+    bool isModeFound{};
+    for (const auto& mode : supportedEnvironmentBlendModes)
+    {
+        if (mode == xrEnvironmentBlendMode)
+        {
+            isModeFound = true;
+            break;
+        }
+    }
+
+    if (!isModeFound)
+    {
+        LOGGER_ERR("selected XrEnvironmentBlendMode isn't supported");
+    }
 }
 
 void Context::createXrInstance()
