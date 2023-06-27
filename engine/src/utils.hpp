@@ -37,16 +37,16 @@ namespace utils
 {
 inline std::vector<std::string> unpackExtensionString(const std::string& str)
 {
-    std::vector<std::string> out;
+    std::vector<std::string> result;
     std::istringstream stream(str);
     std::string extension;
 
     while (getline(stream, extension, ' '))
     {
-        out.emplace_back(extension);
+        result.emplace_back(std::move(extension));
     }
 
-    return out;
+    return result;
 }
 }
 }

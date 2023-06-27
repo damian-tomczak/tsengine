@@ -59,7 +59,7 @@ void log(
         << "LOG [" + currentDateTimeToString()
 #ifdef DEBUG
         << debugInfo(fileName, functionName, lineNumber)
-#endif
+#endif // DEBUG
         + "]: "
         << message
         << loggerSuffix;
@@ -77,7 +77,7 @@ void warning(
         << "LOG [" + currentDateTimeToString()
 #ifdef DEBUG
         << debugInfo(fileName, functionName, lineNumber)
-#endif
+#endif // DEBUG
         + "]: "
         << message
         << loggerSuffix;
@@ -96,18 +96,18 @@ void error(
         << "LOG [" << currentDateTimeToString()
 #ifdef DEBUG
         << debugInfo(fileName, functionName, lineNumber)
-#endif
+#endif // DEBUG
         << "]: "
         << message
         << loggerSuffix;
 
 #ifdef DEBUG
-#ifdef WIN32
+#ifdef _WIN32
     DebugBreak();
 #else
-    #error not implemented
-#endif
-#endif
+#error not implemented
+#endif // _WIN32
+#endif // DEBUG
 
     throw std::exception{};
 }

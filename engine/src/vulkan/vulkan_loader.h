@@ -5,6 +5,7 @@
 namespace vulkanloader
 {
 void connectWithLoader();
-void loadExportingFunction();
+void loadExportFunction();
 void loadGlobalLevelFunctions();
+void loadInstanceLevelFunctions();
 }

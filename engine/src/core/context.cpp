@@ -11,8 +11,8 @@ namespace
 #ifdef DEBUG
     PFN_xrCreateDebugUtilsMessengerEXT xrCreateDebugUtilsMessengerEXT{};
     PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
-#endif
-}
+#endif // DEBUG
+} // namespace
 
 namespace ts
 {
@@ -26,13 +26,14 @@ void Context::createContext()
     checkAvailabilityXrBlendMode();
 
     vulkanloader::connectWithLoader();
-    vulkanloader::loadExportingFunction();
+    vulkanloader::loadExportFunction();
     vulkanloader::loadGlobalLevelFunctions();
+    vulkanloader::loadInstanceLevelFunctions();
 
     std::vector<std::string> vulkanInstanceExtensions;
     getRequiredVkInstanceExtensionsAndCheckAvailability(vulkanInstanceExtensions);
 
-    createVkInstance(std::move(vulkanInstanceExtensions));
+    createVkInstance(vulkanInstanceExtensions);
 }
 
 void Context::loadXrExtensions()
@@ -74,7 +75,7 @@ void Context::loadXrExtensions()
         mXrInstance,
         &xrDebugUtilsMessengerCi,
         &mXrDebugUtilsMessenger);
-#endif
+#endif // DEBUG
 }
 
 void Context::initXrSystemId()
@@ -147,9 +148,12 @@ void Context::getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<st
     std::ranges::move(utils::unpackExtensionString(xrVulkanExtensions),
         std::back_inserter(requiredVkInstanceExtensions));
 
-#ifdef _DEBUG
+    requiredVkInstanceExtensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    requiredVkInstanceExtensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+
+#ifdef DEBUG
     requiredVkInstanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
+#endif // DEBUG
 
     std::vector<VkExtensionProperties> supportedVulkanInstanceExtensions;
     uint32_t instanceExtensionCount;
@@ -187,7 +191,7 @@ void Context::getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<st
     }
 }
 
-void Context::createVkInstance(std::vector<std::string>&& vulkanInstanceExtensions)
+void Context::createVkInstance(const std::vector<std::string>& vulkanInstanceExtensions)
 {
     const VkApplicationInfo applicationInfo {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -214,13 +218,10 @@ void Context::createVkInstance(std::vector<std::string>&& vulkanInstanceExtensio
 #ifdef DEBUG
     std::vector<VkLayerProperties> supportedInstanceLayers;
     uint32_t instanceLayerCount;
-    LOGGER_VK(vkEnumerateInstanceLayerProperties,
-        &instanceLayerCount, nullptr);
+    LOGGER_VK(vkEnumerateInstanceLayerProperties, &instanceLayerCount, nullptr);
 
     supportedInstanceLayers.resize(instanceLayerCount);
-    LOGGER_VK(vkEnumerateInstanceLayerProperties,
-        &instanceLayerCount,
-        supportedInstanceLayers.data());
+    LOGGER_VK(vkEnumerateInstanceLayerProperties, &instanceLayerCount, supportedInstanceLayers.data());
 
     for (const auto layer : vkLayers)
     {
@@ -242,12 +243,9 @@ void Context::createVkInstance(std::vector<std::string>&& vulkanInstanceExtensio
 
     ci.enabledLayerCount = static_cast<uint32_t>(vkLayers.size());
     ci.ppEnabledLayerNames = vkLayers.data();
-#endif
+#endif // DEBUG
 
-    LOGGER_VK(vkCreateInstance,
-        &ci,
-        nullptr,
-        &mVkInstance);
+    LOGGER_VK(vkCreateInstance, &ci, nullptr, &mVkInstance);
 }
 
 Context::~Context()
@@ -257,7 +255,14 @@ Context::~Context()
     {
         xrDestroyDebugUtilsMessengerEXT(mXrDebugUtilsMessenger);
     }
-#endif
+#endif // DEBUG
+
+    if (mXrInstance)
+    {
+        xrDestroyInstance(mXrInstance);
+    }
+
+    vkDestroyInstance(mVkInstance, nullptr);
 }
 
 void Context::createXrInstance()
@@ -280,7 +285,7 @@ void Context::createXrInstance()
 
 #ifdef DEBUG
     extensions.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
+#endif // DEBUG
 
     std::vector<XrExtensionProperties> supportedXrInstanceExtensions;
 
@@ -327,4 +332,4 @@ void Context::createXrInstance()
 
     LOGGER_XR(xrCreateInstance, &instanceCi, &mXrInstance);
 }
-}
+} // namespace ts

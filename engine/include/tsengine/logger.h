@@ -1,16 +1,15 @@
 #pragma once
 
 #ifdef TSENGINE_BULDING
-    #include "pch.h"
-    #include "vulkan/vulkan_functions.h"
-    #include "openxr/openxr_platform.h"
-#endif
+#include "vulkan/vulkan_functions.h"
+#include "openxr/openxr_platform.h"
+#endif // TSENGINE_BULDING
 
-#ifdef WIN32
-    #define FUNCTION_SIGNATURE __FUNCSIG__
+#ifdef _WIN32
+#define FUNCTION_SIGNATURE __FUNCSIG__
 #else
-    #error "not implemented"
-#endif
+#error "not implemented"
+#endif // _WIN32
 
 #define LOGGER_LOG(message) ts::logger::log(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
 #define LOGGER_WARN(message) ts::logger::warning(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
@@ -25,7 +24,7 @@
             ts::logger::error(                                                                  \
                 (#function " failed with status: " + logger::vkResultToString(result)).c_str(), \
                 __FILE__,                                                                       \
-                FUNCTION_SIGNATURE,                                                                   \
+                FUNCTION_SIGNATURE,                                                             \
                 __LINE__);                                                                      \
         }                                                                                       \
                                                                                                 \
@@ -39,12 +38,12 @@
             ts::logger::error(                                                                  \
                 (#function " failed with status: " + logger::xrResultToString(result)).c_str(), \
                 __FILE__,                                                                       \
-                FUNCTION_SIGNATURE,                                                                   \
+                FUNCTION_SIGNATURE,                                                             \
                 __LINE__);                                                                      \
         }                                                                                       \
                                                                                                 \
     }
-#endif
+#endif // TSENGINE_BULDING
 
 namespace ts
 {

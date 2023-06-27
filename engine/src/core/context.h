@@ -1,6 +1,5 @@
 #pragma once
 
-#include "pch.h"
 #include "utils.hpp"
 
 #include "vulkan/shaders_compiler.h"
@@ -28,13 +27,13 @@ private:
     void checkAvailabilityXrBlendMode();
     void getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<std::string>& requiredVkInstanceExtensions);
 
-    void createVkInstance(std::vector<std::string>&& vulkanInstanceExtensions);
+    void createVkInstance(const std::vector<std::string>& vulkanInstanceExtensions);
 
 #ifdef DEBUG
     XrDebugUtilsMessengerEXT mXrDebugUtilsMessenger{};
 
     static constexpr std::array vkLayers = { "VK_LAYER_KHRONOS_validation" };
-#endif
+#endif // DEBUG
 
     static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
     static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
