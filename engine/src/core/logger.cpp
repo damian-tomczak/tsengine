@@ -36,8 +36,25 @@ namespace
     inline auto debugInfo(std::string fileName, std::string functionName, int lineNumber)
     {
         std::ostringstream ss;
-        ss << " at " << fileName << " " << functionName <<
-            ((lineNumber != NOT_PRINT_LINE_NUMBER) ? (":" + std::to_string(lineNumber)) : "");
+        if (fileName.length() || functionName.length())
+        {
+            ss << "at";
+        }
+
+        if (fileName.length())
+        {
+            ss << fileName;
+        }
+
+        if (functionName.length())
+        {
+            ss << functionName;
+        }
+
+        if (lineNumber != NOT_PRINT_LINE_NUMBER)
+        {
+            ss << ":" + std::to_string(lineNumber);
+        }
 
         return ss.str();
     }

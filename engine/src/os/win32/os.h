@@ -13,6 +13,9 @@ public:
     Win32Window(uint32_t width, uint32_t height);
     ~Win32Window();
 
+    HINSTANCE getHInstance() const { return mpHInstance; }
+    HWND getHwnd() const { return mpHwnd; }
+
 private:
     virtual void show() override;
     virtual Message peekMessage() override;

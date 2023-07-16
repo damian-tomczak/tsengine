@@ -7,7 +7,7 @@
 #include "events/key_pressed_event.hpp"
 #include "events/key_released_event.hpp"
 
-bool Game::init(unsigned* const width, unsigned* const height)
+bool Game::init(unsigned& width, unsigned& height)
 {
     mpAssetStore = std::make_unique<ts::AssetStore>();
     mpRegistry = std::make_unique<ts::Registry>();

@@ -15,7 +15,7 @@ class Game final : public ts::Engine
 public:
     Game() = default;
 
-    bool init(unsigned* const width, unsigned* const height) override;
+    bool init(unsigned& width, unsigned& height) override;
     void close() override;
     bool tick() override;
     void onMouseMove(int x, int y, int xrelative, int yrelative) override;

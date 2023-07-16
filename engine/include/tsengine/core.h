@@ -29,7 +29,7 @@ public:
     Engine(const Engine&&) = delete;
     Engine& operator=(Engine&&) = delete;
 
-    virtual bool init(unsigned* const width, unsigned* const height) = 0;
+    virtual bool init(unsigned& width, unsigned& height) = 0;
     virtual void close() = 0;
     virtual bool tick() = 0;
 

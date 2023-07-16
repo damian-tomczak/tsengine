@@ -1,8 +1,9 @@
 #include "tsengine/core.h"
 #include "context.h"
-#include "core/window.h"
+#include "window.h"
 #include "vulkan/vulkan_functions.h"
 #include "tsengine/logger.h"
+#include "mirror_view.h"
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
@@ -26,9 +27,9 @@ int run(Engine* const pEngine) try
         LOGGER_ERR("game is already initiated");
     }
 
-    std::unique_ptr<uint32_t> width{ std::make_unique<uint32_t>(1280) };
-    std::unique_ptr<uint32_t> height{ std::make_unique<uint32_t>(720) };
-    pEngine->init(width.get(), height.get());
+    unsigned width{ 1280 };
+    unsigned height{ 720 };
+    pEngine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
     {
@@ -37,8 +38,9 @@ int run(Engine* const pEngine) try
 
     auto& ctx{Context::getInstance()};
     ctx.createContext();
-    auto pWindow{ Window::createWindow(*width, *height) };
+    auto pWindow{ Window::createWindow(width, height) };
     pWindow->show();
+    MirrorView mirrorView{ctx, pWindow};
 
     isAlreadyInitiated = true;
 

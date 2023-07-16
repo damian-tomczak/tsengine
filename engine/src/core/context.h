@@ -5,6 +5,7 @@
 #include "vulkan/shaders_compiler.h"
 #include "vulkan/vulkan_loader.h"
 #include "openxr/openxr.h"
+#include "tsengine/logger.h"
 #include "os.h"
 
 namespace ts
@@ -15,6 +16,8 @@ class Context final : public Singleton<Context>
 
 public:
     void createContext();
+
+    VkInstance getVkInstance() { return mpVkInstance; }
 
 private:
     friend class Singleton<Context>;
