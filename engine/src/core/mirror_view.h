@@ -14,11 +14,13 @@ class MirrorView final
 public:
     MirrorView(Context& pContext, const std::unique_ptr<Window>& pWindow);
 
+    VkSurfaceKHR getSurface() const { return mpSurface; }
+
 private:
     void createSurface();
 
     Context& mpContext;
     const std::unique_ptr<Window>& mpWindow;
-    VkSurfaceKHR mSurface;
+    VkSurfaceKHR mpSurface{};
 };
 }

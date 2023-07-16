@@ -26,7 +26,7 @@ void MirrorView::createSurface()
         .hwnd = pWindow->getHwnd()
     };
 
-    LOGGER_VK(vkCreateWin32SurfaceKHR, mpContext.getVkInstance(), &ci, nullptr, &mSurface);
+    LOGGER_VK(vkCreateWin32SurfaceKHR, mpContext.getVkInstance(), &ci, nullptr, &mpSurface);
 #else
 #error not implemented
 #endif

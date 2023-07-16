@@ -38,17 +38,17 @@ namespace
         std::ostringstream ss;
         if (fileName.length() || functionName.length())
         {
-            ss << "at";
+            ss << " at";
         }
 
         if (fileName.length())
         {
-            ss << fileName;
+            ss << " " << fileName;
         }
 
         if (functionName.length())
         {
-            ss << functionName;
+            ss << " " << functionName;
         }
 
         if (lineNumber != NOT_PRINT_LINE_NUMBER)

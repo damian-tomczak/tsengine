@@ -12,6 +12,10 @@
     NOT_COPYABLE(TypeName)                  \
     NOT_MOVEABLE(TypeName)
 
+#define SINGLETON(TypeName)           \
+    NOT_COPYABLE(TypeName);           \
+    friend class Singleton<TypeName>; \
+
 #define XSTR(x) #x
 #define STR(x) XSTR(x)
 
@@ -35,9 +39,9 @@ protected:
 
 namespace utils
 {
-inline std::vector<std::string> unpackExtensionString(const std::string& str)
+// TODO: investigate performance of it
+inline void unpackXrExtensionString(const std::string& str, std::vector<std::string>& result)
 {
-    std::vector<std::string> result;
     std::istringstream stream(str);
     std::string extension;
 
@@ -45,8 +49,6 @@ inline std::vector<std::string> unpackExtensionString(const std::string& str)
     {
         result.emplace_back(std::move(extension));
     }
-
-    return result;
 }
 } // namespace utils
 } // namespace ts

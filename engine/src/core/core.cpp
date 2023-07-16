@@ -27,8 +27,7 @@ int run(Engine* const pEngine) try
         LOGGER_ERR("game is already initiated");
     }
 
-    unsigned width{ 1280 };
-    unsigned height{ 720 };
+    unsigned width{ 1280 }, height{ 720 };
     pEngine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
@@ -41,6 +40,7 @@ int run(Engine* const pEngine) try
     auto pWindow{ Window::createWindow(width, height) };
     pWindow->show();
     MirrorView mirrorView{ctx, pWindow};
+    ctx.createDevice(mirrorView.getSurface());
 
     isAlreadyInitiated = true;
 
