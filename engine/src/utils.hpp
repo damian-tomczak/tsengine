@@ -48,5 +48,5 @@ inline std::vector<std::string> unpackExtensionString(const std::string& str)
 
     return result;
 }
-}
-}
+} // namespace utils
+} // namespace ts

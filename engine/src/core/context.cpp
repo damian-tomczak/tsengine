@@ -22,61 +22,75 @@ void Context::createContext()
 
     createXrInstance();
     loadXrExtensions();
+#ifdef DEBUG
+    createXrDebugMessenger();
+#endif
     initXrSystemId();
     checkAvailabilityXrBlendMode();
 
     vulkanloader::connectWithLoader();
     vulkanloader::loadExportFunction();
     vulkanloader::loadGlobalLevelFunctions();
-    vulkanloader::loadInstanceLevelFunctions();
 
     std::vector<std::string> vulkanInstanceExtensions;
     getRequiredVkInstanceExtensionsAndCheckAvailability(vulkanInstanceExtensions);
 
     createVkInstance(vulkanInstanceExtensions);
+
+    vulkanloader::loadInstanceLevelFunctions(mpVkInstance, vulkanInstanceExtensions);
+
+#ifdef _DEBUG
+    vulkanloader::loadDebugLevelFunctions(mpVkInstance);
+    createVkDebugMessenger(mpVkInstance);
+#endif
 }
 
 void Context::loadXrExtensions()
 {
     LOGGER_XR(xrGetInstanceProcAddr,
-        mXrInstance,
+        mpXrInstance,
         "xrGetVulkanInstanceExtensionsKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanInstanceExtensionsKHR));
 
     LOGGER_XR(xrGetInstanceProcAddr,
-        mXrInstance,
+        mpXrInstance,
         "xrGetVulkanGraphicsDeviceKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsDeviceKHR));
 
     LOGGER_XR(xrGetInstanceProcAddr,
-        mXrInstance,
+        mpXrInstance,
         "xrGetVulkanDeviceExtensionsKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanDeviceExtensionsKHR));
 
 #ifdef DEBUG
     LOGGER_XR(xrGetInstanceProcAddr,
-        mXrInstance,
+        mpXrInstance,
         "xrCreateDebugUtilsMessengerEXT",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrCreateDebugUtilsMessengerEXT));
 
     LOGGER_XR(xrGetInstanceProcAddr,
-        mXrInstance,
+        mpXrInstance,
         "xrDestroyDebugUtilsMessengerEXT",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrDestroyDebugUtilsMessengerEXT));
+#endif // DEBUG
+}
 
-    const XrDebugUtilsMessengerCreateInfoEXT xrDebugUtilsMessengerCi {
+#ifdef DEBUG
+void Context::createXrDebugMessenger()
+{
+    const XrDebugUtilsMessengerCreateInfoEXT ci{
         .type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverities = logger::xrDebugUtilsMessageSeverityFlags,
-        .messageTypes = logger::xrDebugUtilsMessageTypeFlags,
+        .messageSeverities = logger::xrDebugMessageSeverityFlags,
+        .messageTypes = logger::xrDebugMessageTypeFlags,
         .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(logger::xrCallback)
     };
 
     LOGGER_XR(xrCreateDebugUtilsMessengerEXT,
-        mXrInstance,
-        &xrDebugUtilsMessengerCi,
-        &mXrDebugUtilsMessenger);
-#endif // DEBUG
+        mpXrInstance,
+        &ci,
+        &mpXrDebugMessenger);
 }
+#endif // DEBUG
 
 void Context::initXrSystemId()
 {
@@ -85,7 +99,7 @@ void Context::initXrSystemId()
         .formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
     };
 
-    auto result{ xrGetSystem(mXrInstance, &ci, &mXrSystemId) };
+    auto result{ xrGetSystem(mpXrInstance, &ci, &mXrSystemId) };
     if (XR_FAILED(result))
     {
         LOGGER_ERR("no headset detected");
@@ -96,7 +110,7 @@ void Context::checkAvailabilityXrBlendMode()
 {
     uint32_t environmentBlendModeCount;
     LOGGER_XR(xrEnumerateEnvironmentBlendModes,
-        mXrInstance,
+        mpXrInstance,
         mXrSystemId,
         xrViewType,
         0u,
@@ -104,7 +118,7 @@ void Context::checkAvailabilityXrBlendMode()
 
     std::vector<XrEnvironmentBlendMode> supportedEnvironmentBlendModes(environmentBlendModeCount);
     LOGGER_XR(xrEnumerateEnvironmentBlendModes,
-        mXrInstance,
+        mpXrInstance,
         mXrSystemId,
         xrViewType,
         environmentBlendModeCount,
@@ -131,7 +145,7 @@ void Context::getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<st
 {
     uint32_t count;
     LOGGER_XR(xrGetVulkanInstanceExtensionsKHR,
-        mXrInstance,
+        mpXrInstance,
         mXrSystemId,
         0u,
         &count,
@@ -139,7 +153,7 @@ void Context::getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<st
 
     std::string xrVulkanExtensions(count, ' ');
     LOGGER_XR(xrGetVulkanInstanceExtensionsKHR,
-        mXrInstance,
+        mpXrInstance,
         mXrSystemId,
         count,
         &count,
@@ -245,24 +259,45 @@ void Context::createVkInstance(const std::vector<std::string>& vulkanInstanceExt
     ci.ppEnabledLayerNames = vkLayers.data();
 #endif // DEBUG
 
-    LOGGER_VK(vkCreateInstance, &ci, nullptr, &mVkInstance);
+    LOGGER_VK(vkCreateInstance, &ci, nullptr, &mpVkInstance);
 }
+
+#ifdef DEBUG
+void Context::createVkDebugMessenger(const VkInstance instance)
+{
+    const VkDebugUtilsMessengerCreateInfoEXT ci {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .messageSeverity = logger::vkDebugMessageSeverityFlags,
+        .messageType = logger::vkDebugMessageTypeFlags,
+        .pfnUserCallback = &logger::vkCallback
+    };
+
+    LOGGER_VK(vkCreateDebugUtilsMessengerEXT, instance, &ci, nullptr, &mpVkDebugMessenger);
+}
+#endif
 
 Context::~Context()
 {
 #ifdef DEBUG
-    if (mXrDebugUtilsMessenger)
+    if (mpXrDebugMessenger != nullptr)
     {
-        xrDestroyDebugUtilsMessengerEXT(mXrDebugUtilsMessenger);
+        xrDestroyDebugUtilsMessengerEXT(mpXrDebugMessenger);
     }
 #endif // DEBUG
 
-    if (mXrInstance)
+    if (mpXrInstance != nullptr)
     {
-        xrDestroyInstance(mXrInstance);
+        xrDestroyInstance(mpXrInstance);
     }
 
-    vkDestroyInstance(mVkInstance, nullptr);
+#ifdef DEBUG
+    if (mpVkDebugMessenger != nullptr)
+    {
+        vkDestroyDebugUtilsMessengerEXT(mpVkInstance, mpVkDebugMessenger, nullptr);
+    }
+#endif // DEBUG
+
+    vkDestroyInstance(mpVkInstance, nullptr);
 }
 
 void Context::createXrInstance()
@@ -330,6 +365,6 @@ void Context::createXrInstance()
         .enabledExtensionNames = extensions.data(),
     };
 
-    LOGGER_XR(xrCreateInstance, &instanceCi, &mXrInstance);
+    LOGGER_XR(xrCreateInstance, &instanceCi, &mpXrInstance);
 }
 } // namespace ts

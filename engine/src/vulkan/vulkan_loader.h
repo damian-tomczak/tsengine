@@ -7,5 +7,6 @@ namespace vulkanloader
 void connectWithLoader();
 void loadExportFunction();
 void loadGlobalLevelFunctions();
-void loadInstanceLevelFunctions();
+void loadInstanceLevelFunctions(const VkInstance instance, const std::vector<std::string>& vulkanInstanceExtensions);
+void loadDebugLevelFunctions(const VkInstance instance);
 }

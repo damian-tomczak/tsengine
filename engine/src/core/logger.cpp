@@ -37,15 +37,13 @@ namespace
     {
         std::ostringstream ss;
         ss << " at " << fileName << " " << functionName <<
-            ((lineNumber >= 0) ? (":" + std::to_string(lineNumber)) : "");
+            ((lineNumber != NOT_PRINT_LINE_NUMBER) ? (":" + std::to_string(lineNumber)) : "");
 
         return ss.str();
     }
 }
 
-namespace ts
-{
-namespace logger
+namespace ts::logger
 {
 void log(
     const char* message,
@@ -109,7 +107,7 @@ void error(
 #endif // _WIN32
 #endif // DEBUG
 
-    throw std::exception{};
+    throw std::terminate;
 }
 
 #ifdef TSENGINE_BULDING
@@ -249,19 +247,33 @@ std::string xrResultToString(XrResult result)
     }
 }
 #ifdef DEBUG
-    XrBool32 xrCallback(XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
-        XrDebugUtilsMessageTypeFlagsEXT messageTypes,
+    XrBool32 xrCallback(
+        XrDebugUtilsMessageSeverityFlagsEXT severity,
+        XrDebugUtilsMessageTypeFlagsEXT,
         const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
-        void* userData)
+        void*)
     {
-        if (messageSeverity >= XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        if (severity >= XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
-            warning(callbackData->message, "", "", -1);
+            warning(callbackData->message, "", "", NOT_PRINT_LINE_NUMBER);
         }
 
         return XR_FALSE;
     }
+
+    VkBool32 vkCallback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+        VkDebugUtilsMessageTypeFlagsEXT,
+        const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+        void*)
+    {
+        if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        {
+            warning(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER);
+        }
+
+        return VK_FALSE;
+    }
 #endif // DEBUG
 #endif // TSENGINE_BUILDING
-} // namespace logger
-} // namespace ts
+} // namespace ts::logger

@@ -44,28 +44,42 @@ void loadGlobalLevelFunctions()
 #include "vulkan_functions.inl"
 }
 
-void loadInstanceLevelFunctions()
+void loadInstanceLevelFunctions(const VkInstance instance, const std::vector<std::string>& vulkanInstanceExtensions)
 {
-//#define INSTANCE_LEVEL_VULKAN_FUNCTION(name)                                         \
-//        name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(instance, #name)); \
-//        if(name == nullptr)                                                          \
-//        {                                                                            \
-//            LOGGER_ERR("unable to load vk instance level function: " #name);         \
-//        }
-//
-//#define INSTANCE_LEVEL_VULKAN_FUNCTION_FROM_EXTENSION(name, extension)                              \
-//        for (const auto& enabledExtension : vulkanInstanceExtensions)                               \
-//        {                                                                                           \
-//            if (strcmp(enabledExtension.c_str(), extension) == 0)                                   \
-//            {                                                                                       \
-//                name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(instance, #name));        \
-//                if (name == nullptr)                                                                \
-//                {                                                                                   \
-//                    LOGGER_ERR("unable to load vk instance extension level function: " #extension); \                                                            \
-//                }                                                                                   \
-//            }                                                                                       \
-//        }
+#define INSTANCE_LEVEL_VULKAN_FUNCTION(name)                                         \
+        name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(instance, #name)); \
+        if(name == nullptr)                                                          \
+        {                                                                            \
+            LOGGER_ERR("unable to load vk instance level function: " #name);         \
+        }
+
+#define INSTANCE_LEVEL_VULKAN_FUNCTION_FROM_EXTENSION(name, extension)                              \
+        for (const auto& enabledExtension : vulkanInstanceExtensions)                               \
+        {                                                                                           \
+            if (strcmp(enabledExtension.c_str(), extension) == 0)                                   \
+            {                                                                                       \
+                name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(instance, #name));        \
+                if (name == nullptr)                                                                \
+                {                                                                                   \
+                    LOGGER_ERR("unable to load vk instance extension level function: " #extension); \
+                }                                                                                   \
+            }                                                                                       \
+        }
 
 #include "vulkan_functions.inl"
 }
+
+#ifdef _DEBUG
+void loadDebugLevelFunctions(const VkInstance instance)
+{
+#define DEBUG_LEVEL_VULKAN_FUNCTION(name)                                               \
+    name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(instance, #name));        \
+    if(name == nullptr)                                                                 \
+    {                                                                                   \
+        LOGGER_ERR("unable to load vk instance extension level function: " #name);      \
+    }
+
+#include "vulkan_functions.inl"
+}
+#endif
 }

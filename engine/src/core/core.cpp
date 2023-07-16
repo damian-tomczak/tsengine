@@ -35,10 +35,10 @@ int run(Engine* const pEngine) try
         LOGGER_ERR("assets can not be found");
     }
 
-    auto pWindow{ Window::createWindow(*width, *height) };
-    pWindow->show();
     auto& ctx{Context::getInstance()};
     ctx.createContext();
+    auto pWindow{ Window::createWindow(*width, *height) };
+    pWindow->show();
 
     isAlreadyInitiated = true;
 
@@ -78,4 +78,4 @@ catch (...)
 {
     return EXIT_FAILURE;
 }
-}
+} // namespace ts

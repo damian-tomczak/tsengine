@@ -21,26 +21,29 @@ private:
     Context() = default;
     ~Context();
 
+#ifdef DEBUG
+    void createXrDebugMessenger();
+    void createVkDebugMessenger(const VkInstance instance);
+
+    XrDebugUtilsMessengerEXT mpXrDebugMessenger{};
+    static constexpr std::array vkLayers = { "VK_LAYER_KHRONOS_validation" };
+
+    VkDebugUtilsMessengerEXT mpVkDebugMessenger{};
+#endif // DEBUG
+
     void createXrInstance();
     void loadXrExtensions();
     void initXrSystemId();
     void checkAvailabilityXrBlendMode();
     void getRequiredVkInstanceExtensionsAndCheckAvailability(std::vector<std::string>& requiredVkInstanceExtensions);
-
     void createVkInstance(const std::vector<std::string>& vulkanInstanceExtensions);
-
-#ifdef DEBUG
-    XrDebugUtilsMessengerEXT mXrDebugUtilsMessenger{};
-
-    static constexpr std::array vkLayers = { "VK_LAYER_KHRONOS_validation" };
-#endif // DEBUG
 
     static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
     static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 
-    XrInstance mXrInstance{};
+    XrInstance mpXrInstance{};
     XrSystemId mXrSystemId{};
 
-    VkInstance mVkInstance{};
+    VkInstance mpVkInstance{};
 };
-}
+} // namespace ts
