@@ -76,6 +76,11 @@ int run(Engine* const pEngine) try
 
     return EXIT_SUCCESS;
 }
+catch (const std::exception& e)
+{
+    LOGGER_ERR(e.what());
+    return EXIT_FAILURE;
+}
 catch (...)
 {
     return EXIT_FAILURE;

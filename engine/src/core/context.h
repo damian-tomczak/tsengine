@@ -47,9 +47,19 @@ private:
     void createPhysicalDevice();
     void getGraphicsQueue();
     void getPresentQueue(VkSurfaceKHR pMirrorSurface);
-    void isVulkanDeviceExtensionsAvailable();
+    void isVulkanDeviceExtensionsAvailable(
+        std::vector<std::string>& requiredVulkanDeviceExtensions,
+        VkPhysicalDeviceFeatures& physicalDeviceFeatures,
+        VkPhysicalDeviceMultiviewFeatures& physicalDeviceMultiviewFeatures,
+        VkPhysicalDeviceFeatures2& physicalDeviceFeatures2);
     void getSupportedVulkanDeviceExtensions(std::vector<VkExtensionProperties>& vulkanDeviceExtensions);
     void getRequiredVulkanDeviceExtensions(std::vector<std::string>& vulkanDeviceExtensions);
+    void createLogicalDevice(
+        const std::vector<std::string>& requiredVulkanDeviceExtensions,
+        const VkPhysicalDeviceFeatures& physicalDeviceFeatures,
+        const VkPhysicalDeviceMultiviewFeatures& physicalDeviceMultiviewFeatures,
+        std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
+    void createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
 
     static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
     static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
@@ -60,5 +70,6 @@ private:
     VkInstance mpVkInstance{};
     VkPhysicalDevice mpPhysicalDevice{};
     std::optional<uint32_t> mpGraphicsQueueFamilyIndex, mpPresentQueueFamilyIndex;
+    VkDevice mpDevice{};
 };
 } // namespace ts

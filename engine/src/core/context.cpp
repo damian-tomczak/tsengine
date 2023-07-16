@@ -52,7 +52,29 @@ void Context::createDevice(VkSurfaceKHR pMirrorSurface)
     getGraphicsQueue();
     getPresentQueue(pMirrorSurface);
 
-    isVulkanDeviceExtensionsAvailable();
+    std::vector<std::string> requiredVulkanDeviceExtensions;
+    getRequiredVulkanDeviceExtensions(requiredVulkanDeviceExtensions);
+
+    VkPhysicalDeviceFeatures physicalDeviceFeatures;
+    VkPhysicalDeviceMultiviewFeatures physicalDeviceMultiviewFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES };
+    VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext = &physicalDeviceMultiviewFeatures
+    };
+    isVulkanDeviceExtensionsAvailable(
+        requiredVulkanDeviceExtensions,
+        physicalDeviceFeatures,
+        physicalDeviceMultiviewFeatures,
+        physicalDeviceFeatures2);
+
+    std::vector<VkDeviceQueueCreateInfo> deviceQueueCis;
+    createQueues(deviceQueueCis);
+
+    createLogicalDevice(
+        requiredVulkanDeviceExtensions,
+        physicalDeviceFeatures,
+        physicalDeviceMultiviewFeatures,
+        deviceQueueCis);
 }
 
 void Context::loadXrExtensions()
@@ -358,15 +380,14 @@ void Context::getPresentQueue(VkSurfaceKHR pMirrorSurface)
     }
 }
 
-void Context::isVulkanDeviceExtensionsAvailable()
+void Context::isVulkanDeviceExtensionsAvailable(
+    std::vector<std::string>& requiredVulkanDeviceExtensions,
+    VkPhysicalDeviceFeatures& physicalDeviceFeatures,
+    VkPhysicalDeviceMultiviewFeatures& physicalDeviceMultiviewFeatures,
+    VkPhysicalDeviceFeatures2& physicalDeviceFeatures2)
 {
     std::vector<VkExtensionProperties> supportedVulkanDeviceExtensions;
     getSupportedVulkanDeviceExtensions(supportedVulkanDeviceExtensions);
-
-    std::vector<std::string> requiredVulkanDeviceExtensions;
-    getRequiredVulkanDeviceExtensions(requiredVulkanDeviceExtensions);
-
-    requiredVulkanDeviceExtensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
     for (auto requiredExtension : requiredVulkanDeviceExtensions)
     {
@@ -384,6 +405,14 @@ void Context::isVulkanDeviceExtensionsAvailable()
         {
             LOGGER_ERR((requiredExtension + " extension isn't supported").c_str());
         }
+    }
+
+    vkGetPhysicalDeviceFeatures(mpPhysicalDevice, &physicalDeviceFeatures);
+
+    vkGetPhysicalDeviceFeatures2(mpPhysicalDevice, &physicalDeviceFeatures2);
+    if (!physicalDeviceMultiviewFeatures.multiview)
+    {
+        LOGGER_ERR("multview extension isn't available");
     }
 }
 
@@ -404,7 +433,7 @@ void Context::getSupportedVulkanDeviceExtensions(std::vector<VkExtensionProperti
         vulkanDeviceExtensions.data());
 }
 
-void Context::getRequiredVulkanDeviceExtensions(std::vector<std::string>& vulkanDeviceExtensions)
+void Context::getRequiredVulkanDeviceExtensions(std::vector<std::string>& requiredVulkanDeviceExtensions)
 {
     uint32_t count;
     LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mpXrInstance, mXrSystemId, 0u, &count, nullptr);
@@ -413,7 +442,54 @@ void Context::getRequiredVulkanDeviceExtensions(std::vector<std::string>& vulkan
     buffer.resize(count);
     LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mpXrInstance, mXrSystemId, count, &count, buffer.data());
 
-    utils::unpackXrExtensionString(buffer, vulkanDeviceExtensions);
+    utils::unpackXrExtensionString(buffer, requiredVulkanDeviceExtensions);
+
+    requiredVulkanDeviceExtensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+}
+
+void Context::createLogicalDevice(
+    const std::vector<std::string>& requiredVulkanDeviceExtensions,
+    const VkPhysicalDeviceFeatures& physicalDeviceFeatures,
+    const VkPhysicalDeviceMultiviewFeatures& physicalDeviceMultiviewFeatures,
+    std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
+{
+    std::vector<const char*> requiredVulkanDeviceExtensionsPtrs(requiredVulkanDeviceExtensions.size());
+    for (auto& str : requiredVulkanDeviceExtensions)
+    {
+        requiredVulkanDeviceExtensionsPtrs.emplace_back(str.c_str());
+    }
+
+    VkDeviceCreateInfo deviceCi{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = &physicalDeviceMultiviewFeatures,
+        .queueCreateInfoCount = static_cast<uint32_t>(deviceQueueCis.size()),
+        .pQueueCreateInfos = deviceQueueCis.data(),
+        .enabledExtensionCount = static_cast<uint32_t>(requiredVulkanDeviceExtensions.size()),
+        .ppEnabledExtensionNames = requiredVulkanDeviceExtensionsPtrs.data(),
+        .pEnabledFeatures = &physicalDeviceFeatures,
+    };
+
+    LOGGER_VK(vkCreateDevice, mpPhysicalDevice, &deviceCi, nullptr, &mpDevice);
+}
+
+void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
+{
+    constexpr float queuePriority = 1.0f;
+
+    VkDeviceQueueCreateInfo deviceQueueCi {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .queueFamilyIndex = *mpGraphicsQueueFamilyIndex,
+        .queueCount = 1u,
+        .pQueuePriorities = &queuePriority
+    };
+
+    deviceQueueCis.push_back(deviceQueueCi);
+
+    if (mpGraphicsQueueFamilyIndex != mpPresentQueueFamilyIndex)
+    {
+        deviceQueueCi.queueFamilyIndex = *mpPresentQueueFamilyIndex;
+        deviceQueueCis.push_back(deviceQueueCi);
+    }
 }
 
 #ifdef DEBUG

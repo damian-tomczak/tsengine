@@ -33,6 +33,7 @@ namespace
             std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::system_clock::now()));
     }
 
+#ifdef DEBUG
     inline auto debugInfo(std::string fileName, std::string functionName, int lineNumber)
     {
         std::ostringstream ss;
@@ -58,6 +59,7 @@ namespace
 
         return ss.str();
     }
+#endif // DEBUG
 }
 
 namespace ts::logger
@@ -69,6 +71,7 @@ void log(
     int lineNumber)
 {
     std::lock_guard<std::mutex> lock(loggerMutex);
+
     std::cout
         << colorToString(Color::GREEN)
         << "LOG [" + currentDateTimeToString()
@@ -87,6 +90,7 @@ void warning(
     int lineNumber)
 {
     std::lock_guard<std::mutex> lock(loggerMutex);
+
     std::cout
         << colorToString(Color::YELLOW)
         << "LOG [" + currentDateTimeToString()
@@ -123,8 +127,6 @@ void error(
 #error not implemented
 #endif // _WIN32
 #endif // DEBUG
-
-    throw std::terminate;
 }
 
 #ifdef TSENGINE_BULDING
@@ -270,6 +272,8 @@ std::string xrResultToString(XrResult result)
         const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
         void*)
     {
+        std::lock_guard<std::mutex> lock(loggerMutex);
+
         if (severity >= XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
             warning(callbackData->message, "", "", NOT_PRINT_LINE_NUMBER);
@@ -284,6 +288,8 @@ std::string xrResultToString(XrResult result)
         const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
         void*)
     {
+        std::lock_guard<std::mutex> lock(loggerMutex);
+
         if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
             warning(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER);
