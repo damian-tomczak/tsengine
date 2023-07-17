@@ -89,7 +89,7 @@ namespace logger
     std::string vkResultToString(VkResult result);
     std::string xrResultToString(XrResult result);
 
-#ifdef DEBUG
+#ifndef NDEBUG
     constexpr XrDebugUtilsMessageSeverityFlagsEXT xrDebugMessageSeverityFlags =
         XR_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
         XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;

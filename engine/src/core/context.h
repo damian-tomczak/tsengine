@@ -25,7 +25,7 @@ private:
     Context() = default;
     ~Context();
 
-#ifdef DEBUG
+#ifndef NDEBUG
     void createXrDebugMessenger();
     void createVkDebugMessenger(const VkInstance instance);
 

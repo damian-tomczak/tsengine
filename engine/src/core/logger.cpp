@@ -33,7 +33,7 @@ namespace
             std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::system_clock::now()));
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     inline auto debugInfo(std::string fileName, std::string functionName, int lineNumber)
     {
         std::ostringstream ss;
@@ -75,7 +75,7 @@ void log(
     std::cout
         << colorToString(Color::GREEN)
         << "LOG [" + currentDateTimeToString()
-#ifdef DEBUG
+#ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif // DEBUG
         + "]: "
@@ -94,7 +94,7 @@ void warning(
     std::cout
         << colorToString(Color::YELLOW)
         << "LOG [" + currentDateTimeToString()
-#ifdef DEBUG
+#ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif // DEBUG
         + "]: "
@@ -113,16 +113,16 @@ void error(
     std::cerr <<
         colorToString(Color::RED)
         << "LOG [" << currentDateTimeToString()
-#ifdef DEBUG
+#ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif // DEBUG
         << "]: "
         << message
         << loggerSuffix;
 
-#ifdef DEBUG
+#ifndef NDEBUG
 #ifdef _WIN32
-    //DebugBreak();
+    DebugBreak();
 #else
 #error not implemented
 #endif // _WIN32
@@ -267,7 +267,7 @@ std::string xrResultToString(XrResult result)
         return "XR_RESULT_PARSING_ERROR";
     }
 }
-#ifdef DEBUG
+#ifndef NDEBUG
     XrBool32 xrCallback(
         XrDebugUtilsMessageSeverityFlagsEXT severity,
         XrDebugUtilsMessageTypeFlagsEXT,

@@ -40,7 +40,7 @@ INSTANCE_LEVEL_VULKAN_FUNCTION(vkDestroyInstance)
 
 //
 
-#ifdef DEBUG
+#ifndef NDEBUG
 #ifndef DEBUG_LEVEL_VULKAN_FUNCTION
 #define DEBUG_LEVEL_VULKAN_FUNCTION(function)
 #endif

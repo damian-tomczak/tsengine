@@ -8,7 +8,7 @@ namespace
     PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtensionsKHR{};
     PFN_xrGetVulkanGraphicsRequirementsKHR xrGetVulkanGraphicsRequirementsKHR{};
 
-#ifdef DEBUG
+#ifndef NDEBUG
     PFN_xrCreateDebugUtilsMessengerEXT xrCreateDebugUtilsMessengerEXT{};
     PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
 #endif // DEBUG
@@ -22,7 +22,7 @@ void Context::createContext()
 
     createXrInstance();
     loadXrExtensions();
-#ifdef DEBUG
+#ifndef NDEBUG
     createXrDebugMessenger();
 #endif
     initXrSystemId();
@@ -94,7 +94,7 @@ void Context::loadXrExtensions()
         "xrGetVulkanDeviceExtensionsKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanDeviceExtensionsKHR));
 
-#ifdef DEBUG
+#ifndef NDEBUG
     LOGGER_XR(xrGetInstanceProcAddr,
         mpXrInstance,
         "xrCreateDebugUtilsMessengerEXT",
@@ -107,7 +107,7 @@ void Context::loadXrExtensions()
 #endif // DEBUG
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 void Context::createXrDebugMessenger()
 {
     const XrDebugUtilsMessengerCreateInfoEXT ci{
@@ -196,7 +196,7 @@ void Context::getRequiredVulkanInstanceExtensions(std::vector<std::string>& vulk
     vulkanInstanceExtensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
     vulkanInstanceExtensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 
-#ifdef DEBUG
+#ifndef NDEBUG
     vulkanInstanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif // DEBUG
 }
@@ -268,7 +268,7 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
         .ppEnabledExtensionNames = rawVulkanInstanceExtensions.data()
     };
 
-#ifdef DEBUG
+#ifndef NDEBUG
     std::vector<VkLayerProperties> supportedInstanceLayers;
     uint32_t instanceLayerCount;
     LOGGER_VK(vkEnumerateInstanceLayerProperties, &instanceLayerCount, nullptr);
@@ -492,7 +492,7 @@ void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
     }
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 void Context::createVkDebugMessenger(const VkInstance instance)
 {
     const VkDebugUtilsMessengerCreateInfoEXT ci {
@@ -508,7 +508,7 @@ void Context::createVkDebugMessenger(const VkInstance instance)
 
 Context::~Context()
 {
-#ifdef DEBUG
+#ifndef NDEBUG
     if (mpXrDebugMessenger != nullptr)
     {
         xrDestroyDebugUtilsMessengerEXT(mpXrDebugMessenger);
@@ -520,7 +520,7 @@ Context::~Context()
         xrDestroyInstance(mpXrInstance);
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     if (mpVkDebugMessenger != nullptr)
     {
         vkDestroyDebugUtilsMessengerEXT(mpVkInstance, mpVkDebugMessenger, nullptr);
@@ -548,7 +548,7 @@ void Context::createXrInstance()
 
     std::vector<const char*> extensions{ XR_KHR_VULKAN_ENABLE_EXTENSION_NAME };
 
-#ifdef DEBUG
+#ifndef NDEBUG
     extensions.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif // DEBUG
 
