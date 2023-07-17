@@ -122,11 +122,13 @@ void error(
 
 #ifdef DEBUG
 #ifdef _WIN32
-    DebugBreak();
+    //DebugBreak();
 #else
 #error not implemented
 #endif // _WIN32
 #endif // DEBUG
+
+    throw TSException();
 }
 
 #ifdef TSENGINE_BULDING

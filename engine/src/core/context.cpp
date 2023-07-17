@@ -261,7 +261,7 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
         rawVulkanInstanceExtensions.emplace_back(str.c_str());
     }
 
-    VkInstanceCreateInfo ci{
+    VkInstanceCreateInfo ci {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pApplicationInfo = &applicationInfo,
         .enabledExtensionCount = static_cast<uint32_t>(vulkanInstanceExtensions.size()),

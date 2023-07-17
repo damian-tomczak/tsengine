@@ -3,6 +3,13 @@
 #ifdef TSENGINE_BULDING
 #include "vulkan/vulkan_functions.h"
 #include "openxr/openxr_platform.h"
+
+class TSException : public std::exception
+{
+public:
+    TSException() {}
+};
+
 #endif // TSENGINE_BULDING
 
 #ifdef _WIN32
@@ -47,7 +54,17 @@
     }
 #endif // TSENGINE_BULDING
 
-namespace ts::logger
+namespace ts
+{
+    enum
+    {
+        SUCCESS,
+        TS_FAILURE,
+        STL_FAILURE,
+        UNKNOWN_FAILURE
+    };
+
+namespace logger
 {
     void log(
         const char* message,
@@ -102,4 +119,5 @@ namespace ts::logger
         void* userData);
 #endif // DEBUG
 #endif // TSENGINE_BUILDING
-} // namespace ts::logger
+} // namespace logger
+} // namespace ts

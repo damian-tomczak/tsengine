@@ -76,13 +76,17 @@ int run(Engine* const pEngine) try
 
     return EXIT_SUCCESS;
 }
+catch (const TSException&)
+{
+    return TS_FAILURE;
+}
 catch (const std::exception& e)
 {
     LOGGER_ERR(e.what());
-    return EXIT_FAILURE;
+    return STL_FAILURE;
 }
 catch (...)
 {
-    return EXIT_FAILURE;
+    return UNKNOWN_FAILURE;
 }
 } // namespace ts
