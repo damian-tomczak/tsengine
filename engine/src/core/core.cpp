@@ -8,6 +8,8 @@
 unsigned tickCount{};
 bool isAlreadyInitiated{};
 
+std::mutex engineInit;
+
 namespace ts
 {
 unsigned getTickCount()
@@ -17,6 +19,8 @@ unsigned getTickCount()
 
 int run(Engine* const pEngine) try
 {
+    std::lock_guard<std::mutex> _{engineInit};
+
     if (!pEngine)
     {
         LOGGER_ERR("game is unallocated");
@@ -35,8 +39,12 @@ int run(Engine* const pEngine) try
         LOGGER_ERR("assets can not be found");
     }
 
-    auto& ctx{Context::getInstance()};
-    ctx.createContext();
+    compileShaders("assets/shaders");
+
+    Context ctx;
+    ctx.createOpenXrContext();
+    ctx.createVulkanContext();
+
     auto pWindow{ Window::createWindow(width, height) };
     pWindow->show();
     MirrorView mirrorView{ctx, pWindow};
@@ -82,7 +90,7 @@ catch (const TSException&)
 }
 catch (const std::exception& e)
 {
-    LOGGER_ERR(e.what());
+    LOGGER_ERR_WO_EXC(e.what());
     return STL_FAILURE;
 }
 catch (...)

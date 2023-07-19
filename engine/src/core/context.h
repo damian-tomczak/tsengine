@@ -10,21 +10,21 @@
 
 namespace ts
 {
-class Context final : public Singleton<Context>
+class Context final
 {
-    SINGLETON(Context);
-    NOT_MOVEABLE(Context);
+    NOT_COPYABLE_AND_MOVEABLE(Context);
 
 public:
-    void createContext();
+    Context() = default;
+    ~Context();
+
+    void createOpenXrContext();
+    void createVulkanContext();
     void createDevice(VkSurfaceKHR pMirrorSurface);
 
     VkInstance getVkInstance() { return mpVkInstance; }
 
 private:
-    Context() = default;
-    ~Context();
-
 #ifndef NDEBUG
     void createXrDebugMessenger();
     void createVkDebugMessenger(const VkInstance instance);

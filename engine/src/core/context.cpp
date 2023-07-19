@@ -16,36 +16,6 @@ namespace
 
 namespace ts
 {
-void Context::createContext()
-{
-    compileShaders("assets/shaders");
-
-    createXrInstance();
-    loadXrExtensions();
-#ifndef NDEBUG
-    createXrDebugMessenger();
-#endif
-    initXrSystemId();
-    isXrBlendModeAvailable();
-
-    vulkanloader::connectWithLoader();
-    vulkanloader::loadExportFunction();
-    vulkanloader::loadGlobalLevelFunctions();
-
-    std::vector<std::string> vulkanInstanceExtensions;
-    getRequiredVulkanInstanceExtensions(vulkanInstanceExtensions);
-    isVulkanInstanceExtensionsAvailable(vulkanInstanceExtensions);
-
-    createVulkanInstance(vulkanInstanceExtensions);
-
-    vulkanloader::loadInstanceLevelFunctions(mpVkInstance, vulkanInstanceExtensions);
-
-#ifdef _DEBUG
-    vulkanloader::loadDebugLevelFunctions(mpVkInstance);
-    createVkDebugMessenger(mpVkInstance);
-#endif
-}
-
 void Context::createDevice(VkSurfaceKHR pMirrorSurface)
 {
     createPhysicalDevice();
@@ -132,6 +102,7 @@ void Context::initXrSystemId()
     };
 
     auto result{ xrGetSystem(mpXrInstance, &ci, &mXrSystemId) };
+
     if (XR_FAILED(result))
     {
         LOGGER_ERR("no headset detected");
@@ -527,7 +498,41 @@ Context::~Context()
     }
 #endif // DEBUG
 
-    vkDestroyInstance(mpVkInstance, nullptr);
+    if (mpVkInstance != nullptr)
+    {
+        vkDestroyInstance(mpVkInstance, nullptr);
+    }
+}
+
+void Context::createOpenXrContext()
+{
+    createXrInstance();
+    loadXrExtensions();
+#ifndef NDEBUG
+    createXrDebugMessenger();
+#endif
+    initXrSystemId();
+    isXrBlendModeAvailable();
+}
+
+void Context::createVulkanContext()
+{
+    vulkanloader::connectWithLoader();
+    vulkanloader::loadExportFunction();
+    vulkanloader::loadGlobalLevelFunctions();
+
+    std::vector<std::string> vulkanInstanceExtensions;
+    getRequiredVulkanInstanceExtensions(vulkanInstanceExtensions);
+    isVulkanInstanceExtensionsAvailable(vulkanInstanceExtensions);
+
+    createVulkanInstance(vulkanInstanceExtensions);
+
+    vulkanloader::loadInstanceLevelFunctions(mpVkInstance, vulkanInstanceExtensions);
+
+#ifdef _DEBUG
+    vulkanloader::loadDebugLevelFunctions(mpVkInstance);
+    createVkDebugMessenger(mpVkInstance);
+#endif
 }
 
 void Context::createXrInstance()

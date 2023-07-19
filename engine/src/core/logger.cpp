@@ -106,7 +106,8 @@ void error(
     const char* message,
     const char* fileName,
     const char* functionName,
-    int lineNumber)
+    int lineNumber,
+    bool isThrowingExc)
 {
     std::lock_guard<std::mutex> lock(loggerMutex);
 
@@ -122,13 +123,16 @@ void error(
 
 #ifndef NDEBUG
 #ifdef _WIN32
-    DebugBreak();
+    //DebugBreak();
 #else
 #error not implemented
 #endif // _WIN32
 #endif // DEBUG
 
-    throw TSException();
+    if (isThrowingExc)
+    {
+        throw TSException();
+    }
 }
 
 #ifdef TSENGINE_BULDING

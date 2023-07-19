@@ -23,6 +23,7 @@ public:
 #define LOGGER_LOG(message) ts::logger::log(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
 #define LOGGER_WARN(message) ts::logger::warning(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
 #define LOGGER_ERR(message) ts::logger::error(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
+#define LOGGER_ERR_WO_EXC(message) ts::logger::error(message, __FILE__, FUNCTION_SIGNATURE, __LINE__, false)
 
 #ifdef TSENGINE_BULDING
 #define LOGGER_VK(function, ...)                                                                \
@@ -82,7 +83,8 @@ namespace logger
         const char* message,
         const char* fileName,
         const char* functionName,
-        int lineNumber);
+        int lineNumber,
+        bool isThrowingExc = true);
 
 #ifdef TSENGINE_BULDING
     // TODO: vkResultToString doesn't cover every VkResult
