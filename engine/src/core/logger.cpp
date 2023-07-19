@@ -278,8 +278,6 @@ std::string xrResultToString(XrResult result)
         const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
         void*)
     {
-        std::lock_guard<std::mutex> lock(loggerMutex);
-
         if (severity >= XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
             warning(callbackData->message, "", "", NOT_PRINT_LINE_NUMBER);
@@ -294,8 +292,6 @@ std::string xrResultToString(XrResult result)
         const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
         void*)
     {
-        std::lock_guard<std::mutex> lock(loggerMutex);
-
         if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
             warning(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER);
