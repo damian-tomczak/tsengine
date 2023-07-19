@@ -33,19 +33,36 @@ namespace
             std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::system_clock::now()));
     }
 
+#ifndef NDEBUG
     inline auto debugInfo(std::string fileName, std::string functionName, int lineNumber)
     {
         std::ostringstream ss;
-        ss << " at " << fileName << " " << functionName <<
-            ((lineNumber >= 0) ? (":" + std::to_string(lineNumber)) : "");
+        if (fileName.length() || functionName.length())
+        {
+            ss << " at";
+        }
+
+        if (fileName.length())
+        {
+            ss << " " << fileName;
+        }
+
+        if (functionName.length())
+        {
+            ss << " " << functionName;
+        }
+
+        if (lineNumber != NOT_PRINT_LINE_NUMBER)
+        {
+            ss << ":" + std::to_string(lineNumber);
+        }
 
         return ss.str();
     }
+#endif // DEBUG
 }
 
-namespace ts
-{
-namespace logger
+namespace ts::logger
 {
 void log(
     const char* message,
@@ -54,12 +71,13 @@ void log(
     int lineNumber)
 {
     std::lock_guard<std::mutex> lock(loggerMutex);
+
     std::cout
         << colorToString(Color::GREEN)
         << "LOG [" + currentDateTimeToString()
-#ifdef DEBUG
+#ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
-#endif
+#endif // DEBUG
         + "]: "
         << message
         << loggerSuffix;
@@ -72,12 +90,13 @@ void warning(
     int lineNumber)
 {
     std::lock_guard<std::mutex> lock(loggerMutex);
+
     std::cout
         << colorToString(Color::YELLOW)
         << "LOG [" + currentDateTimeToString()
-#ifdef DEBUG
+#ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
-#endif
+#endif // DEBUG
         + "]: "
         << message
         << loggerSuffix;
@@ -87,29 +106,33 @@ void error(
     const char* message,
     const char* fileName,
     const char* functionName,
-    int lineNumber)
+    int lineNumber,
+    bool isThrowingExc)
 {
     std::lock_guard<std::mutex> lock(loggerMutex);
 
     std::cerr <<
         colorToString(Color::RED)
         << "LOG [" << currentDateTimeToString()
-#ifdef DEBUG
+#ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
-#endif
+#endif // DEBUG
         << "]: "
         << message
         << loggerSuffix;
 
-#ifdef DEBUG
-#ifdef WIN32
-    DebugBreak();
+#ifndef NDEBUG
+#ifdef _WIN32
+    //DebugBreak();
 #else
-    #error not implemented
-#endif
-#endif
+#error not implemented
+#endif // _WIN32
+#endif // DEBUG
 
-    throw std::exception{};
+    if (isThrowingExc)
+    {
+        throw TSException();
+    }
 }
 
 #ifdef TSENGINE_BULDING
@@ -248,20 +271,38 @@ std::string xrResultToString(XrResult result)
         return "XR_RESULT_PARSING_ERROR";
     }
 }
-#ifdef DEBUG
-    XrBool32 xrCallback(XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
-        XrDebugUtilsMessageTypeFlagsEXT messageTypes,
+#ifndef NDEBUG
+    XrBool32 xrCallback(
+        XrDebugUtilsMessageSeverityFlagsEXT severity,
+        XrDebugUtilsMessageTypeFlagsEXT,
         const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
-        void* userData)
+        void*)
     {
-        if (messageSeverity >= XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        std::lock_guard<std::mutex> lock(loggerMutex);
+
+        if (severity >= XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
-            warning(callbackData->message, "", "", -1);
+            warning(callbackData->message, "", "", NOT_PRINT_LINE_NUMBER);
         }
 
         return XR_FALSE;
     }
+
+    VkBool32 vkCallback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+        VkDebugUtilsMessageTypeFlagsEXT,
+        const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+        void*)
+    {
+        std::lock_guard<std::mutex> lock(loggerMutex);
+
+        if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        {
+            warning(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER);
+        }
+
+        return VK_FALSE;
+    }
 #endif // DEBUG
 #endif // TSENGINE_BUILDING
-} // namespace logger
-} // namespace ts
+} // namespace ts::logger

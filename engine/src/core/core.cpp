@@ -1,11 +1,14 @@
 #include "tsengine/core.h"
 #include "context.h"
-#include "core/window.h"
+#include "window.h"
 #include "vulkan/vulkan_functions.h"
 #include "tsengine/logger.h"
+#include "mirror_view.h"
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
+
+std::mutex engineInit;
 
 namespace ts
 {
@@ -16,6 +19,8 @@ unsigned getTickCount()
 
 int run(Engine* const pEngine) try
 {
+    std::lock_guard<std::mutex> _{engineInit};
+
     if (!pEngine)
     {
         LOGGER_ERR("game is unallocated");
@@ -26,19 +31,24 @@ int run(Engine* const pEngine) try
         LOGGER_ERR("game is already initiated");
     }
 
-    std::unique_ptr<uint32_t> width{ std::make_unique<uint32_t>(1280) };
-    std::unique_ptr<uint32_t> height{ std::make_unique<uint32_t>(720) };
-    pEngine->init(width.get(), height.get());
+    unsigned width{ 1280 }, height{ 720 };
+    pEngine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
     {
         LOGGER_ERR("assets can not be found");
     }
 
-    auto pWindow{ Window::createWindow(*width, *height) };
+    compileShaders("assets/shaders");
+
+    Context ctx;
+    ctx.createOpenXrContext();
+    ctx.createVulkanContext();
+
+    auto pWindow{ Window::createWindow(width, height) };
     pWindow->show();
-    auto& ctx{Context::getInstance()};
-    ctx.createContext();
+    MirrorView mirrorView{ctx, pWindow};
+    ctx.createDevice(mirrorView.getSurface());
 
     isAlreadyInitiated = true;
 
@@ -74,8 +84,17 @@ int run(Engine* const pEngine) try
 
     return EXIT_SUCCESS;
 }
+catch (const TSException&)
+{
+    return TS_FAILURE;
+}
+catch (const std::exception& e)
+{
+    LOGGER_ERR_WO_EXC(e.what());
+    return STL_FAILURE;
+}
 catch (...)
 {
-    return EXIT_FAILURE;
+    return UNKNOWN_FAILURE;
 }
-}
+} // namespace ts

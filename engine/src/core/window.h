@@ -1,6 +1,5 @@
 #pragma once
 
-#include "pch.h"
 #include "utils.hpp"
 
 #ifdef _WIN32
@@ -8,7 +7,7 @@
     #include <Windows.h>
 #else
     #error not implemented
-#endif
+#endif // _WIN32
 
 namespace ts
 {
@@ -28,7 +27,7 @@ public:
         RESIZE = WM_USER + 1,
 #else
         RESIZE,
-#endif
+#endif // _WIN32
         QUIT
     };
 
@@ -41,4 +40,4 @@ private:
     uint32_t mWidth;
     uint32_t mHeight;
 };
-}
+} // namespace ts

@@ -42,6 +42,7 @@ Win32Window::Win32Window(uint32_t width, uint32_t height) : Window{width, height
 
 Win32Window::~Win32Window()
 {
+    puts("tomczak");
     if (mpHwnd)
     {
         DestroyWindow(mpHwnd);

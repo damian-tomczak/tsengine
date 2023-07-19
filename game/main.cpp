@@ -8,7 +8,7 @@ int main()
     try
     {
         auto result{ ts::run(new Game) };
-        if (result)
+        if (result != ts::SUCCESS)
         {
             return result;
         }

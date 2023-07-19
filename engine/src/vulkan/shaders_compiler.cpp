@@ -127,7 +127,7 @@ void saveSPIRV(const std::filesystem::path& outputFileName, const std::vector<ui
 
 namespace ts
 {
-void compileShaders(const std::string_view& shadersPath)
+void compileShaders(std::string_view shadersPath)
 {
     if (!glslang_initialize_process())
     {
