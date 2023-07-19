@@ -1,11 +1,11 @@
 #pragma once
 
-#define NOT_COPYABLE(TypeName)              \
-    TypeName(const TypeName&) = delete;     \
+#define NOT_COPYABLE(TypeName)               \
+    TypeName(const TypeName&) = delete;      \
     TypeName& operator=(TypeName&) = delete;
 
-#define NOT_MOVEABLE(TypeName)               \
-    TypeName(TypeName&&) = delete;           \
+#define NOT_MOVEABLE(TypeName)                \
+    TypeName(TypeName&&) = delete;            \
     TypeName& operator=(TypeName&&) = delete;
 
 #define NOT_COPYABLE_AND_MOVEABLE(TypeName) \

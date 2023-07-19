@@ -27,7 +27,7 @@ public:
 private:
 #ifndef NDEBUG
     void createXrDebugMessenger();
-    void createVkDebugMessenger(const VkInstance instance);
+    void createVkDebugMessenger();
 
     XrDebugUtilsMessengerEXT mpXrDebugMessenger{};
     static constexpr std::array vkLayers = { "VK_LAYER_KHRONOS_validation" };
