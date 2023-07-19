@@ -31,6 +31,7 @@ void Context::createDevice(VkSurfaceKHR pMirrorSurface)
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
         .pNext = &physicalDeviceMultiviewFeatures
     };
+
     isVulkanDeviceExtensionsAvailable(
         requiredVulkanDeviceExtensions,
         physicalDeviceFeatures,
@@ -45,6 +46,8 @@ void Context::createDevice(VkSurfaceKHR pMirrorSurface)
         physicalDeviceFeatures,
         physicalDeviceMultiviewFeatures,
         deviceQueueCis);
+
+    vulkanloader::loadDeviceLevelFunctions(mpDevice, requiredVulkanDeviceExtensions);
 }
 
 void Context::loadXrExtensions()
@@ -424,7 +427,8 @@ void Context::createLogicalDevice(
     const VkPhysicalDeviceMultiviewFeatures& physicalDeviceMultiviewFeatures,
     std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
 {
-    std::vector<const char*> requiredVulkanDeviceExtensionsPtrs(requiredVulkanDeviceExtensions.size());
+    std::vector<const char*> requiredVulkanDeviceExtensionsPtrs;
+    requiredVulkanDeviceExtensionsPtrs.reserve(requiredVulkanDeviceExtensionsPtrs.size());
     for (auto& str : requiredVulkanDeviceExtensions)
     {
         requiredVulkanDeviceExtensionsPtrs.emplace_back(str.c_str());
@@ -445,7 +449,7 @@ void Context::createLogicalDevice(
 
 void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
 {
-    constexpr float queuePriority = 1.0f;
+    static constexpr float queuePriority = 1.f;
 
     VkDeviceQueueCreateInfo deviceQueueCi {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -464,7 +468,7 @@ void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
 }
 
 #ifndef NDEBUG
-void Context::createVkDebugMessenger(const VkInstance instance)
+void Context::createVkDebugMessenger()
 {
     const VkDebugUtilsMessengerCreateInfoEXT ci {
         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
@@ -473,7 +477,7 @@ void Context::createVkDebugMessenger(const VkInstance instance)
         .pfnUserCallback = &logger::vkCallback
     };
 
-    LOGGER_VK(vkCreateDebugUtilsMessengerEXT, instance, &ci, nullptr, &mpVkDebugMessenger);
+    LOGGER_VK(vkCreateDebugUtilsMessengerEXT, mpVkInstance, &ci, nullptr, &mpVkDebugMessenger);
 }
 #endif
 
@@ -531,7 +535,7 @@ void Context::createVulkanContext()
 
 #ifdef _DEBUG
     vulkanloader::loadDebugLevelFunctions(mpVkInstance);
-    createVkDebugMessenger(mpVkInstance);
+    createVkDebugMessenger();
 #endif
 }
 

@@ -26,7 +26,7 @@ void loadExportFunction()
     name = reinterpret_cast<PFN_##name>(LoadFunction(vulkanLibrary, #name)); \
     if(name == nullptr)                                                      \
     {                                                                        \
-        LOGGER_ERR("unable to load vk export function: " #name);             \
+        LOGGER_ERR("unable to load vulkan export function: " #name);         \
     }
 
 #include "vulkan_functions.inl"
@@ -38,48 +38,73 @@ void loadGlobalLevelFunctions()
     name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(nullptr, #name)); \
     if (name == nullptr)                                                        \
     {                                                                           \
-        LOGGER_ERR("unable to load vk global level function: " #name);          \
+        LOGGER_ERR("unable to load vulkan global level function: " #name);      \
     }
 
 #include "vulkan_functions.inl"
 }
 
-void loadInstanceLevelFunctions(const VkInstance instance, const std::vector<std::string>& vulkanInstanceExtensions)
+void loadInstanceLevelFunctions(const VkInstance pInstance, const std::vector<std::string>& enabledVulkanInstanceExtensions)
 {
-#define INSTANCE_LEVEL_VULKAN_FUNCTION(name)                                         \
-        name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(instance, #name)); \
-        if(name == nullptr)                                                          \
-        {                                                                            \
-            LOGGER_ERR("unable to load vk instance level function: " #name);         \
+#define INSTANCE_LEVEL_VULKAN_FUNCTION(name)                                          \
+        name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(pInstance, #name)); \
+        if(name == nullptr)                                                           \
+        {                                                                             \
+            LOGGER_ERR("unable to load vulkan instance level function: " #name);      \
         }
 
-#define INSTANCE_LEVEL_VULKAN_FUNCTION_FROM_EXTENSION(name, extension)                              \
-        for (const auto& enabledExtension : vulkanInstanceExtensions)                               \
-        {                                                                                           \
-            if (strcmp(enabledExtension.c_str(), extension) == 0)                                   \
-            {                                                                                       \
-                name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(instance, #name));        \
-                if (name == nullptr)                                                                \
-                {                                                                                   \
-                    LOGGER_ERR("unable to load vk instance extension level function: " #extension); \
-                }                                                                                   \
-            }                                                                                       \
+#define INSTANCE_LEVEL_VULKAN_FUNCTION_FROM_EXTENSION(name, extension)                                  \
+        for (const auto& enabledExtension : enabledVulkanInstanceExtensions)                            \
+        {                                                                                               \
+            if (strcmp(enabledExtension.c_str(), extension) == 0)                                       \
+            {                                                                                           \
+                name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(pInstance, #name));           \
+                if (name == nullptr)                                                                    \
+                {                                                                                       \
+                    LOGGER_ERR("unable to load vulkan instance extension level function: " #extension); \
+                }                                                                                       \
+            }                                                                                           \
         }
 
 #include "vulkan_functions.inl"
 }
 
 #ifdef _DEBUG
-void loadDebugLevelFunctions(const VkInstance instance)
+void loadDebugLevelFunctions(const VkInstance pInstance)
 {
-#define DEBUG_LEVEL_VULKAN_FUNCTION(name)                                               \
-    name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(instance, #name));        \
-    if(name == nullptr)                                                                 \
-    {                                                                                   \
-        LOGGER_ERR("unable to load vk instance extension level function: " #name);      \
+#define DEBUG_LEVEL_VULKAN_FUNCTION(name)                                              \
+    name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(pInstance, #name));      \
+    if(name == nullptr)                                                                \
+    {                                                                                  \
+        LOGGER_ERR("unable to load vulkan instance extension level function: " #name); \
     }
 
 #include "vulkan_functions.inl"
 }
 #endif
+
+void loadDeviceLevelFunctions(const VkDevice pDevice, const std::vector<std::string>& enabledVulkanDeviceExtensions)
+{
+#define DEVICE_LEVEL_VULKAN_FUNCTION(name)                                    \
+    name = reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr(pDevice, #name)); \
+    if(name == nullptr)                                                       \
+    {                                                                         \
+        LOGGER_ERR("unable to load vulkan device level function: " #name);    \
+    }
+
+#define DEVICE_LEVEL_VULKAN_FUNCTION_FROM_EXTENSION(name, extension)                         \
+    for(const auto& enabledExtension : enabledVulkanDeviceExtensions)                        \
+    {                                                                                        \
+        if(strcmp(enabledExtension.c_str(), extension))                                      \
+        {                                                                                    \
+            name = reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr(pDevice, #name));        \
+            if(name == nullptr)                                                              \
+            {                                                                                \
+                LOGGER_ERR("unable to load vulkan device extension level function: " #name); \
+            }                                                                                \
+        }                                                                                    \
+    }
+
+#include "vulkan_functions.inl"
+}
 }

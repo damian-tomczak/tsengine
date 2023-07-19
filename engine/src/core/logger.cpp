@@ -93,7 +93,7 @@ void warning(
 
     std::cout
         << colorToString(Color::YELLOW)
-        << "LOG [" + currentDateTimeToString()
+        << "WARN [" + currentDateTimeToString()
 #ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif // DEBUG
