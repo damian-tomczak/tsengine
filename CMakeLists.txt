@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.26)
 
 project(ts VERSION 0.0.1 LANGUAGES CXX)
 
+set(GAME_NAME "Awesome game" CACHE STRING "Game name")
+message("The name of the game is: ${GAME_NAME}")
+
 if(NOT WIN32 AND NOT CMAKE_COMPILER_IS_MSVC)
     message(WARNING "Config was tested only on a environment with Windows system and MVSC compiler!")
     if(CMAKE_CXX_COMPILER_VERSION NOT VERSION_EQUAL 19.35.32216.1)
@@ -11,7 +14,7 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(CMAKE_CONFIGURATION_TYPES "Release;Debug" CACHE STRING "Limited Configs" FORCE)
+set(CMAKE_CONFIGURATION_TYPES "Debug;RelWithDebInfo;Release" CACHE STRING "Available configs" FORCE)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
