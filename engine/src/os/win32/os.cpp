@@ -3,61 +3,60 @@
 
 namespace ts
 {
-Win32Window::Win32Window(uint32_t width, uint32_t height) : Window{width, height}
-{
-    const WNDCLASSEX wc
+    void Win32Window::createWindow()
     {
-        .cbSize{ sizeof(WNDCLASSEX) },
-        .style{ CS_HREDRAW | CS_VREDRAW },
-        .lpfnWndProc{ windowProcedure },
-        .hInstance{ mpHInstance },
-        .hCursor{ LoadCursor(nullptr, IDC_ARROW) },
-        .hbrBackground{ reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1) },
-        .lpszClassName{ ENGINE_NAME },
-    };
+        const WNDCLASSEX wc
+        {
+            .cbSize = sizeof(WNDCLASSEX),
+            .style = CS_HREDRAW | CS_VREDRAW,
+            .lpfnWndProc = windowProcedure,
+            .hInstance = mHInstance,
+            .hCursor = LoadCursor(nullptr, IDC_ARROW),
+            .hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1),
+            .lpszClassName = ENGINE_NAME,
+        };
 
-    if (!RegisterClassEx(&wc))
-    {
-        LOGGER_ERR("WNDCLASSEX registration failure");
+        if (!RegisterClassEx(&wc))
+        {
+            LOGGER_ERR("WNDCLASSEX registration failure");
+        }
+
+        mHwnd = CreateWindow(
+            ENGINE_NAME,
+            GAME_NAME,
+            WS_OVERLAPPEDWINDOW,
+            (GetSystemMetrics(SM_CXSCREEN) - mWidth) / 2,
+            (GetSystemMetrics(SM_CYSCREEN) - mHeight) / 2,
+            mWidth,
+            mHeight,
+            nullptr,
+            nullptr,
+            mHInstance,
+            nullptr);
+
+        if (mHwnd == nullptr)
+        {
+            LOGGER_ERR("Window creation failure");
+        }
     }
-
-    mpHwnd = CreateWindow(
-        ENGINE_NAME,
-        GAME_NAME,
-        WS_OVERLAPPEDWINDOW,
-        (GetSystemMetrics(SM_CXSCREEN) - mWidth) / 2,
-        (GetSystemMetrics(SM_CYSCREEN) - mHeight) / 2,
-        mWidth,
-        mHeight,
-        nullptr,
-        nullptr,
-        mpHInstance,
-        nullptr);
-
-    if (mpHwnd == nullptr)
-    {
-        LOGGER_ERR("Window creation failure");
-    }
-}
 
 Win32Window::~Win32Window()
 {
-    puts("tomczak");
-    if (mpHwnd)
+    if (mHwnd)
     {
-        DestroyWindow(mpHwnd);
+        DestroyWindow(mHwnd);
     }
 
-    if (mpHInstance)
+    if (mHInstance)
     {
-        UnregisterClass("tsengine", mpHInstance);
+        UnregisterClass("tsengine", mHInstance);
     }
 }
 
 void Win32Window::show()
 {
-    ShowWindow(mpHwnd, SW_SHOWDEFAULT);
-    UpdateWindow(mpHwnd);
+    ShowWindow(mHwnd, SW_SHOWDEFAULT);
+    UpdateWindow(mHwnd);
 }
 
 Window::Message Win32Window::peekMessage()

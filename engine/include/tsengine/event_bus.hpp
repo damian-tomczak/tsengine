@@ -35,19 +35,19 @@ class EventCallback : public IEventCallback
     using TCallback = void (TOwner::*)(TEvent&);
 
 public:
-    EventCallback(TOwner* pOwner, TCallback callback) : mpOwner{ pOwner }, mCallback{ callback }
+    EventCallback(TOwner* pOwner, TCallback callback) : mOwner{ pOwner }, mCallback{ callback }
     {
     }
 
     virtual ~EventCallback() override = default;
 
 private:
-    TOwner* mpOwner;
+    TOwner* mOwner;
     TCallback mCallback;
 
     virtual void call(Event& e) override
     {
-        std::invoke(mCallback, mpOwner, static_cast<TEvent&>(e));
+        std::invoke(mCallback, mOwner, static_cast<TEvent&>(e));
     }
 };
 

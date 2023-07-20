@@ -22,17 +22,25 @@ public:
     void createVulkanContext();
     void createDevice(VkSurfaceKHR pMirrorSurface);
 
-    VkInstance getVkInstance() { return mpVkInstance; }
+    XrInstance getXrInstance() const { return mpXrInstance; }
+    VkInstance getVkInstance() const { return mpVkInstance; }
+    VkPhysicalDevice getVkPhysicalDevice() const { return mpPhysicalDevice; }
+    VkDevice getVkDevice() const { return mpVkDevice; }
+    VkSampleCountFlagBits getMultisampleCount() const { return mMultisampleCount; }
+    uint32_t getGraphicsQueueFamilyIndex() const;
+    uint32_t getPresentQueueFamilyIndex() const;
+    XrSystemId getXrSystemId() const { return mpXrSystemId;  }
+
 
 private:
 #ifndef NDEBUG
     void createXrDebugMessenger();
     void createVkDebugMessenger();
 
-    XrDebugUtilsMessengerEXT mpXrDebugMessenger{};
-    static constexpr std::array vkLayers = { "VK_LAYER_KHRONOS_validation" };
+    XrDebugUtilsMessengerEXT mXrDebugMessenger{};
+    static constexpr std::array vkLayers = {"VK_LAYER_KHRONOS_validation"};
 
-    VkDebugUtilsMessengerEXT mpVkDebugMessenger{};
+    VkDebugUtilsMessengerEXT mVkDebugMessenger{};
 #endif // DEBUG
 
     void createXrInstance();
@@ -46,7 +54,7 @@ private:
     void createVulkanInstance(const std::vector<std::string>& vulkanInstanceExtensions);
     void createPhysicalDevice();
     void getGraphicsQueue();
-    void getPresentQueue(VkSurfaceKHR pMirrorSurface);
+    void getPresentQueue(const VkSurfaceKHR pMirrorSurface);
     void isVulkanDeviceExtensionsAvailable(
         std::vector<std::string>& requiredVulkanDeviceExtensions,
         VkPhysicalDeviceFeatures& physicalDeviceFeatures,
@@ -65,11 +73,14 @@ private:
     static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 
     XrInstance mpXrInstance{};
-    XrSystemId mXrSystemId{};
+    XrSystemId mpXrSystemId{};
 
     VkInstance mpVkInstance{};
     VkPhysicalDevice mpPhysicalDevice{};
     std::optional<uint32_t> mpGraphicsQueueFamilyIndex, mpPresentQueueFamilyIndex;
-    VkDevice mpDevice{};
+    VkDevice mpVkDevice{};
+    VkQueue mpVkGraphicsQueue{}, mpVkPresentQueue{};
+    VkSampleCountFlagBits mMultisampleCount{};
+    VkDeviceSize mUniformBufferOffsetAlignment{};
 };
 } // namespace ts

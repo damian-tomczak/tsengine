@@ -31,6 +31,8 @@ glslang_stage_t getShaderStage(const std::filesystem::path& file)
         return GLSLANG_STAGE_FRAGMENT;
     }
 
+    LOGGER_ERR((file.string() + "isn't supported").c_str());
+
     return GLSLANG_STAGE_COUNT;
 }
 
@@ -38,17 +40,17 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::stri
 {
     const glslang_input_t input
     {
-        .language{ GLSLANG_SOURCE_GLSL },
-        .stage{ stage },
-        .client{ GLSLANG_CLIENT_VULKAN },
-        .client_version{ GLSLANG_TARGET_VULKAN_1_1 },
-        .target_language{ GLSLANG_TARGET_SPV },
-        .target_language_version{ GLSLANG_TARGET_SPV_1_3 },
-        .code{ src.c_str() },
-        .default_version{ 100 },
-        .default_profile{ GLSLANG_NO_PROFILE },
-        .messages{ GLSLANG_MSG_DEFAULT_BIT },
-        .resource{ glslang_default_resource() }
+        .language = GLSLANG_SOURCE_GLSL,
+        .stage = stage,
+        .client = GLSLANG_CLIENT_VULKAN,
+        .client_version = GLSLANG_TARGET_VULKAN_1_1,
+        .target_language = GLSLANG_TARGET_SPV,
+        .target_language_version = GLSLANG_TARGET_SPV_1_3,
+        .code = src.c_str(),
+        .default_version = 100,
+        .default_profile = GLSLANG_NO_PROFILE,
+        .messages = GLSLANG_MSG_DEFAULT_BIT,
+        .resource = glslang_default_resource()
     };
 
     auto shader{ glslang_shader_create(&input) };
@@ -70,7 +72,7 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::stri
         loggerWrapper("Shader parsing failed");
     }
 
-    auto program{ glslang_program_create() };
+    auto program{glslang_program_create()};
     glslang_program_add_shader(program, shader);
 
     if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT))
@@ -83,11 +85,11 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::stri
     std::vector<uint32_t> spirv(glslang_program_SPIRV_get_size(program));
     glslang_program_SPIRV_get(program, spirv.data());
 
-    auto spirvMessages{ glslang_program_SPIRV_get_messages(program) };
+    auto spirvMessages{glslang_program_SPIRV_get_messages(program)};
 
     if (spirvMessages != nullptr)
     {
-        LOGGER_ERR((std::string{ "glslang program spriv message: " } + spirvMessages).c_str());
+        LOGGER_ERR((std::string{"glslang program spriv message: "} + spirvMessages).c_str());
     }
 
     glslang_program_delete(program);
@@ -98,18 +100,14 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::stri
 
 std::vector<uint32_t> compileShaderFile(const std::filesystem::path& file)
 {
-    auto src{ readShader(file) };
+    auto src{readShader(file)};
     if (src.empty())
     {
         LOGGER_ERR((file.string() + " is empty").c_str());
     }
 
-    auto shaderStage{ getShaderStage(file) };
+    const auto shaderStage{getShaderStage(file)};
 
-    if (shaderStage == GLSLANG_STAGE_COUNT)
-    {
-        LOGGER_ERR((file.string() + "isn't supported").c_str());
-    }
     return processShader(shaderStage, src.c_str());
 }
 
@@ -136,10 +134,10 @@ void compileShaders(std::string_view shadersPath)
 
     if (!std::filesystem::is_directory(shadersPath))
     {
-        LOGGER_ERR((std::string{ shadersPath } + " path couldn't be found").c_str());
+        LOGGER_ERR((std::string{shadersPath} + " path couldn't be found").c_str());
     }
 
-    auto compiledShadersNumber{ 0 };
+    uint32_t compiledShadersNumber{};
 
     for (const auto& file : std::filesystem::recursive_directory_iterator(shadersPath))
     {
@@ -148,9 +146,9 @@ void compileShaders(std::string_view shadersPath)
             continue;
         }
 
-        auto spriv{ compileShaderFile(file.path()) };
+        auto spriv{compileShaderFile(file.path())};
 
-        auto outputFileName{ std::string{ shadersPath } + "/" + file.path().filename().string() + ".spirv" };
+        auto outputFileName{std::string{shadersPath} + "/" + file.path().filename().string() + ".spirv"};
         saveSPIRV(outputFileName, spriv);
 
         compiledShadersNumber++;

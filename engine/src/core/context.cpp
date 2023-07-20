@@ -26,7 +26,7 @@ void Context::createDevice(VkSurfaceKHR pMirrorSurface)
     getRequiredVulkanDeviceExtensions(requiredVulkanDeviceExtensions);
 
     VkPhysicalDeviceFeatures physicalDeviceFeatures;
-    VkPhysicalDeviceMultiviewFeatures physicalDeviceMultiviewFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES };
+    VkPhysicalDeviceMultiviewFeatures physicalDeviceMultiviewFeatures{.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES};
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
         .pNext = &physicalDeviceMultiviewFeatures
@@ -47,7 +47,34 @@ void Context::createDevice(VkSurfaceKHR pMirrorSurface)
         physicalDeviceMultiviewFeatures,
         deviceQueueCis);
 
-    vulkanloader::loadDeviceLevelFunctions(mpDevice, requiredVulkanDeviceExtensions);
+    vulkanloader::loadDeviceLevelFunctions(mpVkDevice, requiredVulkanDeviceExtensions);
+
+    vkGetDeviceQueue(mpVkDevice, *mpGraphicsQueueFamilyIndex, 0u, &mpVkGraphicsQueue);
+    vkGetDeviceQueue(mpVkDevice, *mpPresentQueueFamilyIndex, 0u, &mpVkPresentQueue);
+}
+
+uint32_t Context::getGraphicsQueueFamilyIndex() const
+{
+    if (mpGraphicsQueueFamilyIndex != std::nullopt)
+    {
+        return *mpGraphicsQueueFamilyIndex;
+    }
+
+    LOGGER_ERR("graphics queue family index isn't initialized");
+
+    return std::numeric_limits<decltype(mpGraphicsQueueFamilyIndex)::value_type>::max();
+}
+
+uint32_t Context::getPresentQueueFamilyIndex() const
+{
+    if (mpPresentQueueFamilyIndex != std::nullopt)
+    {
+        return *mpPresentQueueFamilyIndex;
+    }
+
+    LOGGER_ERR("present queue family index isn't initialized");
+
+    return std::numeric_limits<decltype(mpPresentQueueFamilyIndex)::value_type>::max();
 }
 
 void Context::loadXrExtensions()
@@ -93,18 +120,18 @@ void Context::createXrDebugMessenger()
     LOGGER_XR(xrCreateDebugUtilsMessengerEXT,
         mpXrInstance,
         &ci,
-        &mpXrDebugMessenger);
+        &mXrDebugMessenger);
 }
 #endif // DEBUG
 
 void Context::initXrSystemId()
 {
-    const XrSystemGetInfo ci {
+    const XrSystemGetInfo ci{
         .type = XR_TYPE_SYSTEM_GET_INFO,
         .formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
     };
 
-    auto result{ xrGetSystem(mpXrInstance, &ci, &mXrSystemId) };
+    auto result{xrGetSystem(mpXrInstance, &ci, &mpXrSystemId)};
 
     if (XR_FAILED(result))
     {
@@ -117,7 +144,7 @@ void Context::isXrBlendModeAvailable()
     uint32_t environmentBlendModeCount;
     LOGGER_XR(xrEnumerateEnvironmentBlendModes,
         mpXrInstance,
-        mXrSystemId,
+        mpXrSystemId,
         xrViewType,
         0u,
         &environmentBlendModeCount, nullptr);
@@ -125,7 +152,7 @@ void Context::isXrBlendModeAvailable()
     std::vector<XrEnvironmentBlendMode> supportedEnvironmentBlendModes(environmentBlendModeCount);
     LOGGER_XR(xrEnumerateEnvironmentBlendModes,
         mpXrInstance,
-        mXrSystemId,
+        mpXrSystemId,
         xrViewType,
         environmentBlendModeCount,
         &environmentBlendModeCount,
@@ -152,7 +179,7 @@ void Context::getRequiredVulkanInstanceExtensions(std::vector<std::string>& vulk
     uint32_t count;
     LOGGER_XR(xrGetVulkanInstanceExtensionsKHR,
         mpXrInstance,
-        mXrSystemId,
+        mpXrSystemId,
         0u,
         &count,
         nullptr);
@@ -160,7 +187,7 @@ void Context::getRequiredVulkanInstanceExtensions(std::vector<std::string>& vulk
     std::string xrVulkanExtensionsStr(count, ' ');
     LOGGER_XR(xrGetVulkanInstanceExtensionsKHR,
         mpXrInstance,
-        mXrSystemId,
+        mpXrSystemId,
         count,
         &count,
         xrVulkanExtensionsStr.data());
@@ -220,7 +247,7 @@ void Context::getSupportedVulkanInstanceExtensions(std::vector<VkExtensionProper
 
 void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanceExtensions)
 {
-    const VkApplicationInfo applicationInfo {
+    const VkApplicationInfo applicationInfo{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pApplicationName = GAME_NAME,
         .applicationVersion = VK_MAKE_API_VERSION(0, 0, 1, 0),
@@ -264,7 +291,7 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
 
         if (!isLayerSupported)
         {
-            LOGGER_WARN((std::string{ layer } + " vulkan layer isn't supported").c_str());
+            LOGGER_WARN((std::string{layer} + " vulkan layer isn't supported").c_str());
         }
     }
 
@@ -277,7 +304,7 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
 
 void Context::createPhysicalDevice()
 {
-    LOGGER_XR(xrGetVulkanGraphicsDeviceKHR, mpXrInstance, mXrSystemId, mpVkInstance, &mpPhysicalDevice);
+    LOGGER_XR(xrGetVulkanGraphicsDeviceKHR, mpXrInstance, mpXrSystemId, mpVkInstance, &mpPhysicalDevice);
 }
 
 void Context::getGraphicsQueue()
@@ -294,7 +321,7 @@ void Context::getGraphicsQueue()
         queueFamilyIndexCandidate < queueFamilies.size();
         ++queueFamilyIndexCandidate)
     {
-        const auto& queueFamilyCandidate{ queueFamilies.at(queueFamilyIndexCandidate) };
+        const auto& queueFamilyCandidate{queueFamilies.at(queueFamilyIndexCandidate)};
 
         if (queueFamilyCandidate.queueCount == 0u)
         {
@@ -315,7 +342,7 @@ void Context::getGraphicsQueue()
     }
 }
 
-void Context::getPresentQueue(VkSurfaceKHR pMirrorSurface)
+void Context::getPresentQueue(const VkSurfaceKHR pMirrorSurface)
 {
     std::vector<VkQueueFamilyProperties> queueFamilies;
     uint32_t queueFamilyCount;
@@ -328,7 +355,7 @@ void Context::getPresentQueue(VkSurfaceKHR pMirrorSurface)
         queueFamilyIndexCandidate < queueFamilies.size();
         ++queueFamilyIndexCandidate)
     {
-        const auto& queueFamilyCandidate{ queueFamilies.at(queueFamilyIndexCandidate) };
+        const auto& queueFamilyCandidate{queueFamilies.at(queueFamilyIndexCandidate)};
 
         if (queueFamilyCandidate.queueCount == 0u)
         {
@@ -381,12 +408,33 @@ void Context::isVulkanDeviceExtensionsAvailable(
         }
     }
 
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(mpPhysicalDevice, &physicalDeviceProperties);
+    mUniformBufferOffsetAlignment = physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
+
+    const VkSampleCountFlags sampleCountFlags{
+        physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts};
+    if (sampleCountFlags & VK_SAMPLE_COUNT_4_BIT)
+    {
+        mMultisampleCount = VK_SAMPLE_COUNT_4_BIT;
+    }
+    else if (sampleCountFlags & VK_SAMPLE_COUNT_2_BIT)
+    {
+        mMultisampleCount = VK_SAMPLE_COUNT_2_BIT;
+    }
+
+    vkGetPhysicalDeviceFeatures(mpPhysicalDevice, &physicalDeviceFeatures);
+    if (!physicalDeviceFeatures.shaderStorageImageMultisample)
+    {
+        LOGGER_ERR("multisampling feature isn't available");
+    }
+
     vkGetPhysicalDeviceFeatures(mpPhysicalDevice, &physicalDeviceFeatures);
 
     vkGetPhysicalDeviceFeatures2(mpPhysicalDevice, &physicalDeviceFeatures2);
     if (!physicalDeviceMultiviewFeatures.multiview)
     {
-        LOGGER_ERR("multview extension isn't available");
+        LOGGER_ERR("multview feature isn't available");
     }
 }
 
@@ -410,11 +458,11 @@ void Context::getSupportedVulkanDeviceExtensions(std::vector<VkExtensionProperti
 void Context::getRequiredVulkanDeviceExtensions(std::vector<std::string>& requiredVulkanDeviceExtensions)
 {
     uint32_t count;
-    LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mpXrInstance, mXrSystemId, 0u, &count, nullptr);
+    LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mpXrInstance, mpXrSystemId, 0u, &count, nullptr);
 
     std::string buffer;
     buffer.resize(count);
-    LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mpXrInstance, mXrSystemId, count, &count, buffer.data());
+    LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mpXrInstance, mpXrSystemId, count, &count, buffer.data());
 
     utils::unpackXrExtensionString(buffer, requiredVulkanDeviceExtensions);
 
@@ -444,7 +492,7 @@ void Context::createLogicalDevice(
         .pEnabledFeatures = &physicalDeviceFeatures,
     };
 
-    LOGGER_VK(vkCreateDevice, mpPhysicalDevice, &deviceCi, nullptr, &mpDevice);
+    LOGGER_VK(vkCreateDevice, mpPhysicalDevice, &deviceCi, nullptr, &mpVkDevice);
 }
 
 void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
@@ -470,23 +518,23 @@ void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
 #ifndef NDEBUG
 void Context::createVkDebugMessenger()
 {
-    const VkDebugUtilsMessengerCreateInfoEXT ci {
+    const VkDebugUtilsMessengerCreateInfoEXT ci{
         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
         .messageSeverity = logger::vkDebugMessageSeverityFlags,
         .messageType = logger::vkDebugMessageTypeFlags,
         .pfnUserCallback = &logger::vkCallback
     };
 
-    LOGGER_VK(vkCreateDebugUtilsMessengerEXT, mpVkInstance, &ci, nullptr, &mpVkDebugMessenger);
+    LOGGER_VK(vkCreateDebugUtilsMessengerEXT, mpVkInstance, &ci, nullptr, &mVkDebugMessenger);
 }
 #endif
 
 Context::~Context()
 {
 #ifndef NDEBUG
-    if (mpXrDebugMessenger != nullptr)
+    if (mXrDebugMessenger != nullptr)
     {
-        xrDestroyDebugUtilsMessengerEXT(mpXrDebugMessenger);
+        xrDestroyDebugUtilsMessengerEXT(mXrDebugMessenger);
     }
 #endif // DEBUG
 
@@ -496,9 +544,9 @@ Context::~Context()
     }
 
 #ifndef NDEBUG
-    if (mpVkDebugMessenger != nullptr)
+    if (mVkDebugMessenger != nullptr)
     {
-        vkDestroyDebugUtilsMessengerEXT(mpVkInstance, mpVkDebugMessenger, nullptr);
+        vkDestroyDebugUtilsMessengerEXT(mpVkInstance, mVkDebugMessenger, nullptr);
     }
 #endif // DEBUG
 
@@ -593,7 +641,7 @@ void Context::createXrInstance()
 
         if (!isExtensionSupported)
         {
-            LOGGER_WARN((extension + std::string{ " xr extension isn't supported" }).c_str());
+            LOGGER_WARN((extension + std::string{" xr extension isn't supported"}).c_str());
         }
     }
 

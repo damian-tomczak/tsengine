@@ -4,6 +4,7 @@
 #include "vulkan/vulkan_functions.h"
 #include "tsengine/logger.h"
 #include "mirror_view.h"
+#include "headset.h"
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
@@ -31,7 +32,7 @@ int run(Engine* const pEngine) try
         LOGGER_ERR("game is already initiated");
     }
 
-    unsigned width{ 1280 }, height{ 720 };
+    unsigned width{1280}, height{720};
     pEngine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
@@ -45,18 +46,20 @@ int run(Engine* const pEngine) try
     ctx.createOpenXrContext();
     ctx.createVulkanContext();
 
-    auto pWindow{ Window::createWindow(width, height) };
-    pWindow->show();
+    auto pWindow{Window::createWindowInstance(width, height)};
     MirrorView mirrorView{ctx, pWindow};
     ctx.createDevice(mirrorView.getSurface());
+    Headset headset(ctx);
+    headset.createRenderPass();
 
     isAlreadyInitiated = true;
 
     LOGGER_LOG("tsengine initialization completed successfully");
 
-    while (!pEngine->tick())
+    pWindow->show();
+    while (true /*!pEngine->tick()*/)
     {
-        auto message{ pWindow->peekMessage() };
+        auto message{pWindow->peekMessage()};
         (void)message;
         if (false)
         {
