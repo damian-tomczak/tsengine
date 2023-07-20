@@ -16,6 +16,37 @@ namespace
 
 namespace ts
 {
+void Context::createOpenXrContext()
+    {
+        createXrInstance();
+        loadXrExtensions();
+#ifndef NDEBUG
+        createXrDebugMessenger();
+#endif
+        initXrSystemId();
+        isXrBlendModeAvailable();
+    }
+
+void Context::createVulkanContext()
+    {
+        vulkanloader::connectWithLoader();
+        vulkanloader::loadExportFunction();
+        vulkanloader::loadGlobalLevelFunctions();
+
+        std::vector<std::string> vulkanInstanceExtensions;
+        getRequiredVulkanInstanceExtensions(vulkanInstanceExtensions);
+        isVulkanInstanceExtensionsAvailable(vulkanInstanceExtensions);
+
+        createVulkanInstance(vulkanInstanceExtensions);
+
+        vulkanloader::loadInstanceLevelFunctions(mpVkInstance, vulkanInstanceExtensions);
+
+#ifdef _DEBUG
+        vulkanloader::loadDebugLevelFunctions(mpVkInstance);
+        createVkDebugMessenger();
+#endif
+    }
+
 void Context::createDevice(VkSurfaceKHR pMirrorSurface)
 {
     createPhysicalDevice();
@@ -50,6 +81,103 @@ void Context::createDevice(VkSurfaceKHR pMirrorSurface)
     vulkanloader::loadDeviceLevelFunctions(mpDevice, requiredVulkanDeviceExtensions);
 }
 
+#ifndef NDEBUG
+void Context::createXrDebugMessenger()
+{
+    const XrDebugUtilsMessengerCreateInfoEXT ci{
+        .type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .messageSeverities = logger::xrDebugMessageSeverityFlags,
+        .messageTypes = logger::xrDebugMessageTypeFlags,
+        .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(logger::xrCallback)
+    };
+
+    LOGGER_XR(xrCreateDebugUtilsMessengerEXT,
+        mpXrInstance,
+        &ci,
+        &mpXrDebugMessenger);
+}
+
+void Context::createVkDebugMessenger()
+{
+    const VkDebugUtilsMessengerCreateInfoEXT ci{
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .messageSeverity = logger::vkDebugMessageSeverityFlags,
+        .messageType = logger::vkDebugMessageTypeFlags,
+        .pfnUserCallback = &logger::vkCallback
+    };
+
+    LOGGER_VK(vkCreateDebugUtilsMessengerEXT, mpVkInstance, &ci, nullptr, &mpVkDebugMessenger);
+}
+#endif // DEBUG
+
+void Context::createXrInstance()
+{
+    XrApplicationInfo appInfo {
+        .applicationName = GAME_NAME,
+        .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
+        .engineName = ENGINE_NAME,
+        .engineVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
+        .apiVersion = XR_CURRENT_API_VERSION,
+    };
+
+    if (strlen(GAME_NAME) > XR_MAX_APPLICATION_NAME_SIZE - 1)
+    {
+        LOGGER_WARN("length of the game name has been reduced to the sie of XR_MAX_APPLICATION_NAME_SIZE,"
+            "which is " STR(XR_MAX_APPLICATION_NAME_SIZE));
+    }
+
+    std::vector<const char*> extensions{ XR_KHR_VULKAN_ENABLE_EXTENSION_NAME };
+
+#ifndef NDEBUG
+    extensions.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif // DEBUG
+
+    std::vector<XrExtensionProperties> supportedXrInstanceExtensions;
+
+    uint32_t instanceExtensionCount;
+    LOGGER_XR(xrEnumerateInstanceExtensionProperties, nullptr, 0u, &instanceExtensionCount, nullptr)
+
+        supportedXrInstanceExtensions.resize(instanceExtensionCount);
+    for (XrExtensionProperties& extensionProperty : supportedXrInstanceExtensions)
+    {
+        extensionProperty.type = XR_TYPE_EXTENSION_PROPERTIES;
+        extensionProperty.next = nullptr;
+    }
+
+    LOGGER_XR(xrEnumerateInstanceExtensionProperties,
+        nullptr,
+        instanceExtensionCount,
+        &instanceExtensionCount,
+        supportedXrInstanceExtensions.data());
+
+    for (const auto& extension : extensions)
+    {
+        bool isExtensionSupported{};
+        for (const auto& supportedExtension : supportedXrInstanceExtensions)
+        {
+            if (strcmp(extension, supportedExtension.extensionName) == 0)
+            {
+                isExtensionSupported = true;
+                break;
+            }
+        }
+
+        if (!isExtensionSupported)
+        {
+            LOGGER_WARN((extension + std::string{ " xr extension isn't supported" }).c_str());
+        }
+    }
+
+    const XrInstanceCreateInfo instanceCi{
+        .type = XR_TYPE_INSTANCE_CREATE_INFO,
+        .applicationInfo = appInfo,
+        .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+        .enabledExtensionNames = extensions.data(),
+    };
+
+    LOGGER_XR(xrCreateInstance, &instanceCi, &mpXrInstance);
+}
+
 void Context::loadXrExtensions()
 {
     LOGGER_XR(xrGetInstanceProcAddr,
@@ -79,23 +207,6 @@ void Context::loadXrExtensions()
         reinterpret_cast<PFN_xrVoidFunction*>(&xrDestroyDebugUtilsMessengerEXT));
 #endif // DEBUG
 }
-
-#ifndef NDEBUG
-void Context::createXrDebugMessenger()
-{
-    const XrDebugUtilsMessengerCreateInfoEXT ci{
-        .type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverities = logger::xrDebugMessageSeverityFlags,
-        .messageTypes = logger::xrDebugMessageTypeFlags,
-        .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(logger::xrCallback)
-    };
-
-    LOGGER_XR(xrCreateDebugUtilsMessengerEXT,
-        mpXrInstance,
-        &ci,
-        &mpXrDebugMessenger);
-}
-#endif // DEBUG
 
 void Context::initXrSystemId()
 {
@@ -434,7 +545,7 @@ void Context::createLogicalDevice(
         requiredVulkanDeviceExtensionsPtrs.emplace_back(str.c_str());
     }
 
-    VkDeviceCreateInfo deviceCi{
+    VkDeviceCreateInfo deviceCi {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = &physicalDeviceMultiviewFeatures,
         .queueCreateInfoCount = static_cast<uint32_t>(deviceQueueCis.size()),
@@ -467,20 +578,6 @@ void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
     }
 }
 
-#ifndef NDEBUG
-void Context::createVkDebugMessenger()
-{
-    const VkDebugUtilsMessengerCreateInfoEXT ci {
-        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverity = logger::vkDebugMessageSeverityFlags,
-        .messageType = logger::vkDebugMessageTypeFlags,
-        .pfnUserCallback = &logger::vkCallback
-    };
-
-    LOGGER_VK(vkCreateDebugUtilsMessengerEXT, mpVkInstance, &ci, nullptr, &mpVkDebugMessenger);
-}
-#endif
-
 Context::~Context()
 {
 #ifndef NDEBUG
@@ -508,102 +605,4 @@ Context::~Context()
     }
 }
 
-void Context::createOpenXrContext()
-{
-    createXrInstance();
-    loadXrExtensions();
-#ifndef NDEBUG
-    createXrDebugMessenger();
-#endif
-    initXrSystemId();
-    isXrBlendModeAvailable();
-}
-
-void Context::createVulkanContext()
-{
-    vulkanloader::connectWithLoader();
-    vulkanloader::loadExportFunction();
-    vulkanloader::loadGlobalLevelFunctions();
-
-    std::vector<std::string> vulkanInstanceExtensions;
-    getRequiredVulkanInstanceExtensions(vulkanInstanceExtensions);
-    isVulkanInstanceExtensionsAvailable(vulkanInstanceExtensions);
-
-    createVulkanInstance(vulkanInstanceExtensions);
-
-    vulkanloader::loadInstanceLevelFunctions(mpVkInstance, vulkanInstanceExtensions);
-
-#ifdef _DEBUG
-    vulkanloader::loadDebugLevelFunctions(mpVkInstance);
-    createVkDebugMessenger();
-#endif
-}
-
-void Context::createXrInstance()
-{
-    XrApplicationInfo appInfo {
-        .applicationName = GAME_NAME,
-        .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
-        .engineName = ENGINE_NAME,
-        .engineVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
-        .apiVersion = XR_CURRENT_API_VERSION,
-    };
-
-    if (strlen(GAME_NAME) > XR_MAX_APPLICATION_NAME_SIZE - 1)
-    {
-        LOGGER_WARN("length of the game name has been reduced to the sie of XR_MAX_APPLICATION_NAME_SIZE,"
-            "which is " STR(XR_MAX_APPLICATION_NAME_SIZE) );
-    }
-
-    std::vector<const char*> extensions{ XR_KHR_VULKAN_ENABLE_EXTENSION_NAME };
-
-#ifndef NDEBUG
-    extensions.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif // DEBUG
-
-    std::vector<XrExtensionProperties> supportedXrInstanceExtensions;
-
-    uint32_t instanceExtensionCount;
-    LOGGER_XR(xrEnumerateInstanceExtensionProperties, nullptr, 0u, &instanceExtensionCount, nullptr)
-
-    supportedXrInstanceExtensions.resize(instanceExtensionCount);
-    for (XrExtensionProperties& extensionProperty : supportedXrInstanceExtensions)
-    {
-        extensionProperty.type = XR_TYPE_EXTENSION_PROPERTIES;
-        extensionProperty.next = nullptr;
-    }
-
-    LOGGER_XR(xrEnumerateInstanceExtensionProperties,
-        nullptr,
-        instanceExtensionCount,
-        &instanceExtensionCount,
-        supportedXrInstanceExtensions.data());
-
-    for (const auto& extension : extensions)
-    {
-        bool isExtensionSupported{};
-        for (const auto& supportedExtension : supportedXrInstanceExtensions)
-        {
-            if (strcmp(extension, supportedExtension.extensionName) == 0)
-            {
-                isExtensionSupported = true;
-                break;
-            }
-        }
-
-        if (!isExtensionSupported)
-        {
-            LOGGER_WARN((extension + std::string{ " xr extension isn't supported" }).c_str());
-        }
-    }
-
-    const XrInstanceCreateInfo instanceCi {
-        .type = XR_TYPE_INSTANCE_CREATE_INFO,
-        .applicationInfo = appInfo,
-        .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
-        .enabledExtensionNames = extensions.data(),
-    };
-
-    LOGGER_XR(xrCreateInstance, &instanceCi, &mpXrInstance);
-}
 } // namespace ts
