@@ -18,19 +18,21 @@ public:
     Context() = default;
     ~Context();
 
+    static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+
     void createOpenXrContext();
     void createVulkanContext();
-    void createDevice(VkSurfaceKHR pMirrorSurface);
+    void createVkDevice(VkSurfaceKHR pMirrorSurface);
 
     XrInstance getXrInstance() const { return mpXrInstance; }
     VkInstance getVkInstance() const { return mpVkInstance; }
     VkPhysicalDevice getVkPhysicalDevice() const { return mpPhysicalDevice; }
     VkDevice getVkDevice() const { return mpVkDevice; }
     VkSampleCountFlagBits getMultisampleCount() const { return mMultisampleCount; }
-    uint32_t getGraphicsQueueFamilyIndex() const;
-    uint32_t getPresentQueueFamilyIndex() const;
+    uint32_t getGraphicsQueueFamilyIndex() const { return *mGraphicsQueueFamilyIndex; };
+    uint32_t getPresentQueueFamilyIndex() const { return *mPresentQueueFamilyIndex; };
     XrSystemId getXrSystemId() const { return mpXrSystemId;  }
-
 
 private:
 #ifndef NDEBUG
@@ -69,17 +71,14 @@ private:
         std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
     void createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
 
-    static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-
     XrInstance mpXrInstance{};
     XrSystemId mpXrSystemId{};
 
     VkInstance mpVkInstance{};
     VkPhysicalDevice mpPhysicalDevice{};
-    std::optional<uint32_t> mpGraphicsQueueFamilyIndex, mpPresentQueueFamilyIndex;
+    std::optional<uint32_t> mGraphicsQueueFamilyIndex, mPresentQueueFamilyIndex;
     VkDevice mpVkDevice{};
-    VkQueue mpVkGraphicsQueue{}, mpVkPresentQueue{};
+    VkQueue mpVkGraphicsQueue{}, mpPresentQueue{};
     VkSampleCountFlagBits mMultisampleCount{};
     VkDeviceSize mUniformBufferOffsetAlignment{};
 };

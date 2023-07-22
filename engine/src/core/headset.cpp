@@ -1,14 +1,26 @@
 #include "headset.h"
 
-namespace
-{
-    constexpr XrReferenceSpaceType spaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
-    constexpr VkFormat colorFormat = VK_FORMAT_R8G8B8A8_SRGB;
-    constexpr VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
-} // namespace
-
 namespace ts
 {
+Headset::~Headset()
+{
+    if (mpXrSession)
+    {
+        xrEndSession(mpXrSession);
+    }
+
+    if (mpXrSession != nullptr)
+    {
+        xrDestroySession(mpXrSession);
+    }
+
+    const VkDevice pVkDevice{ mCtx.getVkDevice() };
+    if (pVkDevice && mpVkRenderPass)
+    {
+        vkDestroyRenderPass(pVkDevice, mpVkRenderPass, nullptr);
+    }
+}
+
 void Headset::createRenderPass()
 {
     constexpr uint32_t viewMask = 0b11;
@@ -22,9 +34,10 @@ void Headset::createRenderPass()
         .pCorrelationMasks = &correlationMask
     };
 
+    const auto multisampleCount{mCtx.getMultisampleCount()};
     VkAttachmentDescription colorAttachmentDescription {
         .format = colorFormat,
-        .samples = mCtx.getMultisampleCount(),
+        .samples = multisampleCount,
         .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -40,7 +53,7 @@ void Headset::createRenderPass()
 
     VkAttachmentDescription depthAttachmentDescription{
         .format = depthFormat,
-        .samples = mCtx.getMultisampleCount(),
+        .samples = multisampleCount,
         .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -97,19 +110,19 @@ void Headset::createRenderPass()
     LOGGER_VK(vkCreateRenderPass, pVkDevice, &renderPassCreateInfo, nullptr, &mpVkRenderPass);
 }
 
-void Headset::createSession()
+void Headset::createXrSession()
 {
     const auto mpVkInstance{mCtx.getVkInstance()};
-    const auto mVkPhysicalDevice{mCtx.getVkPhysicalDevice()};
-    const auto mVkLogicalDevice{mCtx.getVkDevice()};
-    const auto mpVkGraphicsQueueFamilyIndex{mCtx.getGraphicsQueueFamilyIndex()};
+    const auto mpVkPhysicalDevice{mCtx.getVkPhysicalDevice()};
+    const auto mpVkDevice{mCtx.getVkDevice()};
+    const auto mVkGraphicsQueueFamilyIndex{mCtx.getGraphicsQueueFamilyIndex()};
 
     XrGraphicsBindingVulkanKHR graphicsBinding{
         .type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR,
         .instance = mpVkInstance,
-        .physicalDevice = mVkPhysicalDevice,
-        .device = mVkLogicalDevice,
-        .queueFamilyIndex = mpVkGraphicsQueueFamilyIndex,
+        .physicalDevice = mpVkPhysicalDevice,
+        .device = mpVkDevice,
+        .queueFamilyIndex = mVkGraphicsQueueFamilyIndex,
         .queueIndex = 0u
     };
 
@@ -120,20 +133,51 @@ void Headset::createSession()
         .systemId = pXrSystemId
     };
 
-    LOGGER_XR(xrCreateSession, mCtx.getXrInstance(), &sessionCreateInfo, &mpXrSession);
+    const auto pXrInstance{mCtx.getXrInstance()};
+    LOGGER_XR(xrCreateSession, pXrInstance, &sessionCreateInfo, &mpXrSession);
 }
 
-Headset::~Headset()
+void Headset::createXrSpace()
 {
-    if (mpXrSession != nullptr)
+    const auto identity{ utils::makeIdentity() };
+    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo{
+        .type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO,
+        .referenceSpaceType = spaceType,
+        .poseInReferenceSpace = identity
+    };
+
+    LOGGER_XR(xrCreateReferenceSpace, mpXrSession, &referenceSpaceCreateInfo, &mpXrSpace);
+}
+
+void Headset::createViews()
+{
+    LOGGER_XR(xrEnumerateViewConfigurationViews,
+        mCtx.getXrInstance(),
+        mCtx.getXrSystemId(),
+        mCtx.xrViewType,
+        0u,
+        reinterpret_cast<uint32_t*>(&mEyeCount), nullptr);
+
+    mEyeViewInfos.resize(mEyeCount);
+    for (auto& eyeInfo : mEyeViewInfos)
     {
-        xrDestroySession(mpXrSession);
+        eyeInfo.type = XR_TYPE_VIEW_CONFIGURATION_VIEW;
+        eyeInfo.next = nullptr;
     }
 
-    const VkDevice vkDevice{mCtx.getVkDevice()};
-    if (vkDevice && mpVkRenderPass)
+    LOGGER_XR(xrEnumerateViewConfigurationViews,
+        mCtx.getXrInstance(),
+        mCtx.getXrSystemId(),
+        mCtx.xrViewType,
+        static_cast<uint32_t>(mEyeViewInfos.size()),
+        reinterpret_cast<uint32_t*>(&mEyeCount),
+        mEyeViewInfos.data());
+
+    mEyePoses.resize(mEyeCount);
+    for (auto& eyePose : mEyePoses)
     {
-        vkDestroyRenderPass(vkDevice, mpVkRenderPass, nullptr);
+        eyePose.type = XR_TYPE_VIEW;
+        eyePose.next = nullptr;
     }
 }
 } // namespace ts

@@ -16,7 +16,7 @@ namespace
 
 namespace ts
 {
-void Context::createDevice(VkSurfaceKHR pMirrorSurface)
+void Context::createVkDevice(VkSurfaceKHR pMirrorSurface)
 {
     createPhysicalDevice();
     getGraphicsQueue();
@@ -49,32 +49,8 @@ void Context::createDevice(VkSurfaceKHR pMirrorSurface)
 
     vulkanloader::loadDeviceLevelFunctions(mpVkDevice, requiredVulkanDeviceExtensions);
 
-    vkGetDeviceQueue(mpVkDevice, *mpGraphicsQueueFamilyIndex, 0u, &mpVkGraphicsQueue);
-    vkGetDeviceQueue(mpVkDevice, *mpPresentQueueFamilyIndex, 0u, &mpVkPresentQueue);
-}
-
-uint32_t Context::getGraphicsQueueFamilyIndex() const
-{
-    if (mpGraphicsQueueFamilyIndex != std::nullopt)
-    {
-        return *mpGraphicsQueueFamilyIndex;
-    }
-
-    LOGGER_ERR("graphics queue family index isn't initialized");
-
-    return std::numeric_limits<decltype(mpGraphicsQueueFamilyIndex)::value_type>::max();
-}
-
-uint32_t Context::getPresentQueueFamilyIndex() const
-{
-    if (mpPresentQueueFamilyIndex != std::nullopt)
-    {
-        return *mpPresentQueueFamilyIndex;
-    }
-
-    LOGGER_ERR("present queue family index isn't initialized");
-
-    return std::numeric_limits<decltype(mpPresentQueueFamilyIndex)::value_type>::max();
+    vkGetDeviceQueue(mpVkDevice, *mGraphicsQueueFamilyIndex, 0u, &mpVkGraphicsQueue);
+    vkGetDeviceQueue(mpVkDevice, *mPresentQueueFamilyIndex, 0u, &mpPresentQueue);
 }
 
 void Context::loadXrExtensions()
@@ -93,6 +69,11 @@ void Context::loadXrExtensions()
         mpXrInstance,
         "xrGetVulkanDeviceExtensionsKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanDeviceExtensionsKHR));
+
+    LOGGER_XR(xrGetInstanceProcAddr,
+        mpXrInstance,
+        "xrGetVulkanGraphicsRequirementsKHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsRequirementsKHR));
 
 #ifndef NDEBUG
     LOGGER_XR(xrGetInstanceProcAddr,
@@ -330,13 +311,13 @@ void Context::getGraphicsQueue()
 
         if (queueFamilyCandidate.queueFlags & VK_QUEUE_GRAPHICS_BIT)
         {
-            mpGraphicsQueueFamilyIndex = static_cast<uint32_t>(queueFamilyIndexCandidate);
+            mGraphicsQueueFamilyIndex = static_cast<uint32_t>(queueFamilyIndexCandidate);
             drawQueueFamilyIndexFound = true;
             break;
         }
     }
 
-    if (mpGraphicsQueueFamilyIndex == std::nullopt)
+    if (mGraphicsQueueFamilyIndex == std::nullopt)
     {
         LOGGER_ERR("graphics queue couldn't be found");
     }
@@ -370,12 +351,12 @@ void Context::getPresentQueue(const VkSurfaceKHR pMirrorSurface)
 
         if (presentSupport)
         {
-            mpPresentQueueFamilyIndex = static_cast<uint32_t>(queueFamilyIndexCandidate);
+            mPresentQueueFamilyIndex = static_cast<uint32_t>(queueFamilyIndexCandidate);
             break;
         }
     }
 
-    if (mpPresentQueueFamilyIndex == std::nullopt)
+    if (mPresentQueueFamilyIndex == std::nullopt)
     {
         LOGGER_ERR("presentation queue couldn't be found");
     }
@@ -493,6 +474,9 @@ void Context::createLogicalDevice(
     };
 
     LOGGER_VK(vkCreateDevice, mpPhysicalDevice, &deviceCi, nullptr, &mpVkDevice);
+
+    XrGraphicsRequirementsVulkanKHR graphicsRequirements{ XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR };
+    LOGGER_XR(xrGetVulkanGraphicsRequirementsKHR, mpXrInstance, mpXrSystemId, &graphicsRequirements);
 }
 
 void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
@@ -501,16 +485,16 @@ void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
 
     VkDeviceQueueCreateInfo deviceQueueCi {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = *mpGraphicsQueueFamilyIndex,
+        .queueFamilyIndex = *mGraphicsQueueFamilyIndex,
         .queueCount = 1u,
         .pQueuePriorities = &queuePriority
     };
 
     deviceQueueCis.push_back(deviceQueueCi);
 
-    if (mpGraphicsQueueFamilyIndex != mpPresentQueueFamilyIndex)
+    if (mGraphicsQueueFamilyIndex != mPresentQueueFamilyIndex)
     {
-        deviceQueueCi.queueFamilyIndex = *mpPresentQueueFamilyIndex;
+        deviceQueueCi.queueFamilyIndex = *mPresentQueueFamilyIndex;
         deviceQueueCis.push_back(deviceQueueCi);
     }
 }

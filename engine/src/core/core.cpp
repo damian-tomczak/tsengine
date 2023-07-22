@@ -48,9 +48,11 @@ int run(Engine* const pEngine) try
 
     auto pWindow{Window::createWindowInstance(width, height)};
     MirrorView mirrorView{ctx, pWindow};
-    ctx.createDevice(mirrorView.getSurface());
+    ctx.createVkDevice(mirrorView.getSurface());
     Headset headset(ctx);
     headset.createRenderPass();
+    headset.createXrSession();
+    headset.createViews();
 
     isAlreadyInitiated = true;
 
@@ -87,17 +89,5 @@ int run(Engine* const pEngine) try
 
     return EXIT_SUCCESS;
 }
-catch (const TSException&)
-{
-    return TS_FAILURE;
-}
-catch (const std::exception& e)
-{
-    LOGGER_ERR_WO_EXC(e.what());
-    return STL_FAILURE;
-}
-catch (...)
-{
-    return UNKNOWN_FAILURE;
-}
+TS_CATCH_FALLBACK
 } // namespace ts
