@@ -19,7 +19,7 @@ std::string readShader(const std::filesystem::path& path)
 
 glslang_stage_t getShaderStage(const std::filesystem::path& file)
 {
-    auto extension{ file.extension() };
+    auto extension{file.extension()};
 
     if (extension == ".vert")
     {
@@ -38,8 +38,7 @@ glslang_stage_t getShaderStage(const std::filesystem::path& file)
 
 std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::string& src)
 {
-    const glslang_input_t input
-    {
+    const glslang_input_t input{
         .language = GLSLANG_SOURCE_GLSL,
         .stage = stage,
         .client = GLSLANG_CLIENT_VULKAN,

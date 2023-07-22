@@ -1,6 +1,7 @@
 #pragma once
 
 #include "openxr/openxr.h"
+#include "vulkan/vulkan_loader.h"
 
 #define NOT_COPYABLE(TypeName)               \
     TypeName(const TypeName&) = delete;      \
@@ -54,5 +55,28 @@ inline XrPosef makeIdentity()
     };
 
     return identity2;
+}
+
+inline bool findSuitableMemoryTypeIndex(
+    VkPhysicalDevice pPhysicalDevice,
+    VkMemoryRequirements pRequirements,
+    VkMemoryPropertyFlags pProperties,
+    uint32_t& typeIndex)
+{
+    VkPhysicalDeviceMemoryProperties supportedMemoryProperties;
+    vkGetPhysicalDeviceMemoryProperties(pPhysicalDevice, &supportedMemoryProperties);
+
+    const VkMemoryPropertyFlags typeFilter{pRequirements.memoryTypeBits};
+    for (uint32_t memoryTypeIndex{}; memoryTypeIndex < supportedMemoryProperties.memoryTypeCount; ++memoryTypeIndex)
+    {
+        const VkMemoryPropertyFlags propertyFlags{supportedMemoryProperties.memoryTypes[memoryTypeIndex].propertyFlags};
+        if ((typeFilter & (1u << memoryTypeIndex)) && ((propertyFlags & pProperties) == pProperties))
+        {
+            typeIndex = memoryTypeIndex;
+            return true;
+        }
+    }
+
+    return false;
 }
 } // namespace ts::utils

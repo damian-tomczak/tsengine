@@ -4,20 +4,30 @@ namespace ts
 {
 Headset::~Headset()
 {
-    if (mpXrSession)
+    if (mXrSession)
     {
-        xrEndSession(mpXrSession);
+        xrEndSession(mXrSession);
     }
 
-    if (mpXrSession != nullptr)
+    if (mXrSwapchain)
     {
-        xrDestroySession(mpXrSession);
+        xrDestroySwapchain(mXrSwapchain);
     }
 
-    const VkDevice pVkDevice{ mCtx.getVkDevice() };
-    if (pVkDevice && mpVkRenderPass)
+    if (mXrSpace)
     {
-        vkDestroyRenderPass(pVkDevice, mpVkRenderPass, nullptr);
+        xrDestroySpace(mXrSpace);
+    }
+
+    if (mXrSession != nullptr)
+    {
+        xrDestroySession(mXrSession);
+    }
+
+    const VkDevice vkDevice{mCtx.getVkDevice()};
+    if (vkDevice && mVkRenderPass)
+    {
+        vkDestroyRenderPass(vkDevice, mVkRenderPass, nullptr);
     }
 }
 
@@ -26,7 +36,7 @@ void Headset::createRenderPass()
     constexpr uint32_t viewMask = 0b11;
     constexpr uint32_t correlationMask = 0b11;
 
-    VkRenderPassMultiviewCreateInfo renderPassMultiviewCreateInfo {
+    const VkRenderPassMultiviewCreateInfo renderPassMultiviewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
         .subpassCount = 1u,
         .pViewMasks = &viewMask,
@@ -35,7 +45,7 @@ void Headset::createRenderPass()
     };
 
     const auto multisampleCount{mCtx.getMultisampleCount()};
-    VkAttachmentDescription colorAttachmentDescription {
+    const VkAttachmentDescription colorAttachmentDescription{
         .format = colorFormat,
         .samples = multisampleCount,
         .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -46,12 +56,12 @@ void Headset::createRenderPass()
         .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
     };
 
-    VkAttachmentReference colorAttachmentReference {
+    const VkAttachmentReference colorAttachmentReference{
         .attachment = 0u,
         .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     };
 
-    VkAttachmentDescription depthAttachmentDescription{
+    const VkAttachmentDescription depthAttachmentDescription{
         .format = depthFormat,
         .samples = multisampleCount,
         .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -62,12 +72,12 @@ void Headset::createRenderPass()
         .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
     };
 
-    VkAttachmentReference depthAttachmentReference {
+    const VkAttachmentReference depthAttachmentReference{
         .attachment = 1u,
         .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
     };
 
-    VkAttachmentDescription resolveAttachmentDescription{
+    const VkAttachmentDescription resolveAttachmentDescription{
         .format = colorFormat,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -78,12 +88,12 @@ void Headset::createRenderPass()
         .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
     };
 
-    VkAttachmentReference resolveAttachmentReference{
+    const VkAttachmentReference resolveAttachmentReference{
         .attachment = 2u,
         .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
     };
 
-    VkSubpassDescription subpassDescription {
+    const VkSubpassDescription subpassDescription{
         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
         .colorAttachmentCount = 1u,
         .pColorAttachments = &colorAttachmentReference,
@@ -97,7 +107,7 @@ void Headset::createRenderPass()
         resolveAttachmentDescription
     };
 
-    VkRenderPassCreateInfo renderPassCreateInfo {
+    const VkRenderPassCreateInfo renderPassCreateInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .pNext = &renderPassMultiviewCreateInfo,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
@@ -106,35 +116,29 @@ void Headset::createRenderPass()
         .pSubpasses = &subpassDescription
     };
 
-    const auto pVkDevice{mCtx.getVkDevice()};
-    LOGGER_VK(vkCreateRenderPass, pVkDevice, &renderPassCreateInfo, nullptr, &mpVkRenderPass);
+    const auto vkDevice{mCtx.getVkDevice()};
+    LOGGER_VK(vkCreateRenderPass, vkDevice, &renderPassCreateInfo, nullptr, &mVkRenderPass);
 }
 
 void Headset::createXrSession()
 {
-    const auto mpVkInstance{mCtx.getVkInstance()};
-    const auto mpVkPhysicalDevice{mCtx.getVkPhysicalDevice()};
-    const auto mpVkDevice{mCtx.getVkDevice()};
-    const auto mVkGraphicsQueueFamilyIndex{mCtx.getGraphicsQueueFamilyIndex()};
-
-    XrGraphicsBindingVulkanKHR graphicsBinding{
+    const XrGraphicsBindingVulkanKHR graphicsBinding{
         .type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR,
-        .instance = mpVkInstance,
-        .physicalDevice = mpVkPhysicalDevice,
-        .device = mpVkDevice,
-        .queueFamilyIndex = mVkGraphicsQueueFamilyIndex,
+        .instance = mCtx.getVkInstance(),
+        .physicalDevice = mCtx.getVkPhysicalDevice(),
+        .device = mCtx.getVkDevice(),
+        .queueFamilyIndex = mCtx.getGraphicsQueueFamilyIndex(),
         .queueIndex = 0u
     };
 
-    const auto pXrSystemId{mCtx.getXrSystemId()};
-    XrSessionCreateInfo sessionCreateInfo{
+    const XrSessionCreateInfo sessionCreateInfo{
         .type = XR_TYPE_SESSION_CREATE_INFO,
         .next = &graphicsBinding,
-        .systemId = pXrSystemId
+        .systemId = mCtx.getXrSystemId()
     };
 
     const auto pXrInstance{mCtx.getXrInstance()};
-    LOGGER_XR(xrCreateSession, pXrInstance, &sessionCreateInfo, &mpXrSession);
+    LOGGER_XR(xrCreateSession, pXrInstance, &sessionCreateInfo, &mXrSession);
 }
 
 void Headset::createXrSpace()
@@ -146,7 +150,7 @@ void Headset::createXrSpace()
         .poseInReferenceSpace = identity
     };
 
-    LOGGER_XR(xrCreateReferenceSpace, mpXrSession, &referenceSpaceCreateInfo, &mpXrSpace);
+    LOGGER_XR(xrCreateReferenceSpace, mXrSession, &referenceSpaceCreateInfo, &mXrSpace);
 }
 
 void Headset::createViews()
@@ -178,6 +182,98 @@ void Headset::createViews()
     {
         eyePose.type = XR_TYPE_VIEW;
         eyePose.next = nullptr;
+    }
+}
+
+void Headset::createSwapchain()
+{
+    createViews();
+
+    uint32_t formatCount{};
+    LOGGER_XR(xrEnumerateSwapchainFormats, mXrSession, 0u, &formatCount, nullptr);
+
+    std::vector<int64_t> formats(formatCount);
+    LOGGER_XR(xrEnumerateSwapchainFormats, mXrSession, formatCount, &formatCount, formats.data());
+
+    bool isFormatFound{};
+    for (const auto& format : formats)
+    {
+        if (format == static_cast<int64_t>(colorFormat))
+        {
+            isFormatFound = true;
+            break;
+        }
+    }
+
+    if (!isFormatFound)
+    {
+        LOGGER_ERR("openxr color doesn't support color format");
+    }
+
+    const auto eyeResolution{getEyeResolution(0u)};
+
+    mColorBuffer = std::make_unique<ImageBuffer>(mCtx);
+    mColorBuffer->createImage(
+        eyeResolution,
+        colorFormat,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        mCtx.getMultisampleCount(),
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        2u);
+
+    // Create a depth buffer
+    mDepthBuffer = std::make_unique<ImageBuffer>(mCtx);
+    mDepthBuffer->createImage(
+        eyeResolution,
+        depthFormat,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        mCtx.getMultisampleCount(),
+        VK_IMAGE_ASPECT_DEPTH_BIT,
+        2u);
+
+    const XrViewConfigurationView& eyeImageInfo{mEyeViewInfos.at(0u)};
+
+    const XrSwapchainCreateInfo swapchainCreateInfo{
+        .type = XR_TYPE_SWAPCHAIN_CREATE_INFO,
+        .format = colorFormat,
+        .sampleCount = eyeImageInfo.recommendedSwapchainSampleCount,
+        .width = eyeImageInfo.recommendedImageRectWidth,
+        .height = eyeImageInfo.recommendedImageRectHeight,
+        .faceCount = 1u,
+        .arraySize = static_cast<uint32_t>(mEyeCount),
+        .mipCount = 1u
+    };
+
+    LOGGER_XR(xrCreateSwapchain, mXrSession, &swapchainCreateInfo, &mXrSwapchain);
+
+    uint32_t swapchainImageCount;
+    LOGGER_XR(xrEnumerateSwapchainImages, mXrSwapchain, 0u, &swapchainImageCount, nullptr);
+
+    std::vector<XrSwapchainImageVulkanKHR> swapchainImages;
+    swapchainImages.resize(swapchainImageCount);
+    for (auto& swapchainImage : swapchainImages)
+    {
+        swapchainImage.type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR;
+    }
+
+    auto pXrSwapchainImageBaseHeader{reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchainImages.data())};
+    LOGGER_XR(xrEnumerateSwapchainImages,
+        mXrSwapchain,
+        static_cast<uint32_t>(swapchainImages.size()),
+        &swapchainImageCount,
+        pXrSwapchainImageBaseHeader);
+
+    mSwapchainRenderTargets.resize(swapchainImages.size());
+    for (size_t renderTargetIndex{}; renderTargetIndex < mSwapchainRenderTargets.size(); ++renderTargetIndex)
+    {
+        auto& pRenderTarget = mSwapchainRenderTargets.at(renderTargetIndex);
+
+        const auto vkSwapchainImage = swapchainImages.at(renderTargetIndex).image;
+        pRenderTarget = std::make_unique<RenderTarget>(mCtx.getVkDevice(), vkSwapchainImage);
+        pRenderTarget->createRenderTarget(
+            mColorBuffer->getVkImageView(),
+            mDepthBuffer->getVkImageView(),
+            eyeResolution, colorFormat, mVkRenderPass, 2u);
     }
 }
 } // namespace ts

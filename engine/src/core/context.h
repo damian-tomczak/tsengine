@@ -23,16 +23,16 @@ public:
 
     void createOpenXrContext();
     void createVulkanContext();
-    void createVkDevice(VkSurfaceKHR pMirrorSurface);
+    void createVkDevice(VkSurfaceKHR vkMirrorSurface);
 
-    XrInstance getXrInstance() const { return mpXrInstance; }
-    VkInstance getVkInstance() const { return mpVkInstance; }
-    VkPhysicalDevice getVkPhysicalDevice() const { return mpPhysicalDevice; }
-    VkDevice getVkDevice() const { return mpVkDevice; }
-    VkSampleCountFlagBits getMultisampleCount() const { return mMultisampleCount; }
+    XrInstance getXrInstance() const { return mXrInstance; }
+    VkInstance getVkInstance() const { return mVkInstance; }
+    VkPhysicalDevice getVkPhysicalDevice() const { return mPhysicalDevice; }
+    VkDevice getVkDevice() const { return mVkDevice; }
+    VkSampleCountFlagBits getMultisampleCount() const { return mVkMultisampleCount; }
     uint32_t getGraphicsQueueFamilyIndex() const { return *mGraphicsQueueFamilyIndex; };
-    uint32_t getPresentQueueFamilyIndex() const { return *mPresentQueueFamilyIndex; };
-    XrSystemId getXrSystemId() const { return mpXrSystemId;  }
+    uint32_t getPresentQueueFamilyIndex() const { return *mVkPresentQueueFamilyIndex; };
+    XrSystemId getXrSystemId() const { return mXrSystemId;  }
 
 private:
 #ifndef NDEBUG
@@ -40,9 +40,9 @@ private:
     void createVkDebugMessenger();
 
     XrDebugUtilsMessengerEXT mXrDebugMessenger{};
+    VkDebugUtilsMessengerEXT mVkDebugMessenger{};
     static constexpr std::array vkLayers = {"VK_LAYER_KHRONOS_validation"};
 
-    VkDebugUtilsMessengerEXT mVkDebugMessenger{};
 #endif // DEBUG
 
     void createXrInstance();
@@ -71,15 +71,15 @@ private:
         std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
     void createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
 
-    XrInstance mpXrInstance{};
-    XrSystemId mpXrSystemId{};
+    XrInstance mXrInstance{};
+    XrSystemId mXrSystemId{};
 
-    VkInstance mpVkInstance{};
-    VkPhysicalDevice mpPhysicalDevice{};
-    std::optional<uint32_t> mGraphicsQueueFamilyIndex, mPresentQueueFamilyIndex;
-    VkDevice mpVkDevice{};
-    VkQueue mpVkGraphicsQueue{}, mpPresentQueue{};
-    VkSampleCountFlagBits mMultisampleCount{};
-    VkDeviceSize mUniformBufferOffsetAlignment{};
+    VkInstance mVkInstance{};
+    VkPhysicalDevice mPhysicalDevice{};
+    std::optional<uint32_t> mGraphicsQueueFamilyIndex, mVkPresentQueueFamilyIndex;
+    VkDevice mVkDevice{};
+    VkQueue mVkGraphicsQueue{}, mVkPresentQueue{};
+    VkSampleCountFlagBits mVkMultisampleCount{};
+    VkDeviceSize mVkUniformBufferOffsetAlignment{};
 };
 } // namespace ts

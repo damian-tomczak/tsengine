@@ -1,7 +1,8 @@
 #pragma once
 
 #include "context.h"
-#include "tsengine/logger.h"
+#include "image_buffer.h"
+#include "render_target.h"
 
 namespace ts
 {
@@ -21,15 +22,26 @@ public:
     void createRenderPass();
     void createXrSession();
     void createXrSpace();
-    void createViews();
+    void createSwapchain();
 
 private:
+    void createViews();
+    VkExtent2D getEyeResolution(int32_t eyeIndex) const
+    {
+        const XrViewConfigurationView& eyeInfo = mEyeViewInfos.at(eyeIndex);
+        return {eyeInfo.recommendedImageRectWidth, eyeInfo.recommendedImageRectHeight};
+    }
+
     Context& mCtx;
-    VkRenderPass mpVkRenderPass;
-    XrSession mpXrSession{};
-    XrSpace mpXrSpace{};
-    uint32_t mEyeCount;
+    VkRenderPass mVkRenderPass{};
+    XrSession mXrSession{};
+    XrSpace mXrSpace{};
+    uint32_t mEyeCount{};
     std::vector<XrViewConfigurationView> mEyeViewInfos;
     std::vector<XrView> mEyePoses;
+    std::unique_ptr<ImageBuffer> mColorBuffer;
+    std::unique_ptr<ImageBuffer> mDepthBuffer;
+    XrSwapchain mXrSwapchain{};
+    std::vector<std::unique_ptr<RenderTarget>> mSwapchainRenderTargets;
 };
 } // namespace ts

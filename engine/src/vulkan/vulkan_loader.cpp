@@ -83,10 +83,10 @@ void loadDebugLevelFunctions(const VkInstance pInstance)
 }
 #endif
 
-void loadDeviceLevelFunctions(const VkDevice pDevice, const std::vector<std::string>& enabledVulkanDeviceExtensions)
+void loadDeviceLevelFunctions(const VkDevice vkDevice, const std::vector<std::string>& enabledVulkanDeviceExtensions)
 {
 #define DEVICE_LEVEL_VULKAN_FUNCTION(name)                                    \
-    name = reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr(pDevice, #name)); \
+    name = reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr(vkDevice, #name)); \
     if(name == nullptr)                                                       \
     {                                                                         \
         LOGGER_ERR("unable to load vulkan device level function: " #name);    \
@@ -97,7 +97,7 @@ void loadDeviceLevelFunctions(const VkDevice pDevice, const std::vector<std::str
     {                                                                                        \
         if(strcmp(enabledExtension.c_str(), extension))                                      \
         {                                                                                    \
-            name = reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr(pDevice, #name));        \
+            name = reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr(vkDevice, #name));        \
             if(name == nullptr)                                                              \
             {                                                                                \
                 LOGGER_ERR("unable to load vulkan device extension level function: " #name); \

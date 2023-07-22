@@ -52,7 +52,7 @@ int run(Engine* const pEngine) try
     Headset headset(ctx);
     headset.createRenderPass();
     headset.createXrSession();
-    headset.createViews();
+    headset.createSwapchain();
 
     isAlreadyInitiated = true;
 
