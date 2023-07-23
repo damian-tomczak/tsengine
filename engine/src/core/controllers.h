@@ -12,7 +12,6 @@ class Controllers final
     NOT_COPYABLE_AND_MOVEABLE(Controllers);
 
     static constexpr size_t controllerCount = 2;
-
     static constexpr std::string_view actionSetName = "actionset";
     static constexpr std::string_view localizedActionSetName = "Actions";
 
@@ -33,10 +32,6 @@ private:
     std::array<Matrix4x4, controllerCount> mPoses;
     std::array<float, controllerCount> mFlySpeeds;
 
-    void createAction(
-        std::string_view actionName,
-        std::string_view localizedActionName,
-        XrActionType type,
-        XrAction& action);
+    void createAction(std::string_view actionName, std::string_view localizedActionName, XrActionType type, XrAction& action);
 };
 }
