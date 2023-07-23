@@ -143,7 +143,7 @@ void Headset::createXrSession()
 
 void Headset::createXrSpace()
 {
-    const auto identity{ utils::makeIdentity() };
+    const auto identity{ utils::makeXrIdentity() };
     XrReferenceSpaceCreateInfo referenceSpaceCreateInfo{
         .type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO,
         .referenceSpaceType = spaceType,

@@ -4,54 +4,55 @@ namespace ts
 {
 ImageBuffer::~ImageBuffer()
 {
-    const auto vkDevice{mCtx.getVkDevice()};
-    if (mVkImageView)
+    const auto device{mCtx.getVkDevice()};
+    if (mImageView)
     {
-        vkDestroyImageView(vkDevice, mVkImageView, nullptr);
+        vkDestroyImageView(device, mImageView, nullptr);
     }
 
-    if (mVkDeviceMemory)
+    if (mDeviceMemory)
     {
-        vkFreeMemory(vkDevice, mVkDeviceMemory, nullptr);
+        vkFreeMemory(device, mDeviceMemory, nullptr);
     }
 
-    if (mVkImage)
+    if (mImage)
     {
-        vkDestroyImage(vkDevice, mVkImage, nullptr);
+        vkDestroyImage(device, mImage, nullptr);
     }
 }
 
-void ImageBuffer::createImage(VkExtent2D vkSize,
-    VkFormat vkFormat,
-    VkImageUsageFlagBits vkUsage,
-    VkSampleCountFlagBits vkSamples,
-    VkImageAspectFlags vkAspect,
+void ImageBuffer::createImage(
+    VkExtent2D size,
+    VkFormat format,
+    VkImageUsageFlagBits usage,
+    VkSampleCountFlagBits samples,
+    VkImageAspectFlags aspect,
     size_t layerCount)
 {
     const VkImageCreateInfo imageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .imageType = VK_IMAGE_TYPE_2D,
-        .format = vkFormat,
+        .format = format,
         .extent = {
-            .width = vkSize.width,
-            .height = vkSize.height,
+            .width = size.width,
+            .height = size.height,
             .depth = 1,
         },
         .mipLevels = 1,
         .arrayLayers = static_cast<uint32_t>(layerCount),
-        .samples = vkSamples,
+        .samples = samples,
         .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = static_cast<VkImageUsageFlags>(vkUsage),
+        .usage = static_cast<VkImageUsageFlags>(usage),
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    const VkDevice vkDevice{ mCtx.getVkDevice() };
+    const VkDevice device{mCtx.getVkDevice()};
 
-    LOGGER_VK(vkCreateImage, vkDevice, &imageCreateInfo, nullptr, &mVkImage);
+    LOGGER_VK(vkCreateImage, device, &imageCreateInfo, nullptr, &mImage);
 
     VkMemoryRequirements memoryRequirements;
-    vkGetImageMemoryRequirements(vkDevice, mVkImage, &memoryRequirements);
+    vkGetImageMemoryRequirements(device, mImage, &memoryRequirements);
 
     uint32_t suitableMemoryTypeIndex{};
     if (!utils::findSuitableMemoryTypeIndex(
@@ -68,14 +69,14 @@ void ImageBuffer::createImage(VkExtent2D vkSize,
         .allocationSize = memoryRequirements.size,
         .memoryTypeIndex = suitableMemoryTypeIndex
     };
-    LOGGER_VK(vkAllocateMemory, vkDevice, &memoryAllocateInfo, nullptr, &mVkDeviceMemory);
-    LOGGER_VK(vkBindImageMemory, vkDevice, mVkImage, mVkDeviceMemory, 0);
+    LOGGER_VK(vkAllocateMemory, device, &memoryAllocateInfo, nullptr, &mDeviceMemory);
+    LOGGER_VK(vkBindImageMemory, device, mImage, mDeviceMemory, 0);
 
     VkImageViewCreateInfo imageViewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .image = mVkImage,
+        .image = mImage,
         .viewType = (layerCount == 1 ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_2D_ARRAY),
-        .format = vkFormat,
+        .format = format,
         .components = {
             VK_COMPONENT_SWIZZLE_IDENTITY,
             VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -83,7 +84,7 @@ void ImageBuffer::createImage(VkExtent2D vkSize,
             VK_COMPONENT_SWIZZLE_IDENTITY
         },
         .subresourceRange = {
-            .aspectMask = vkAspect,
+            .aspectMask = aspect,
             .baseMipLevel = 0,
             .levelCount = 1,
             .baseArrayLayer = 0,
@@ -91,6 +92,6 @@ void ImageBuffer::createImage(VkExtent2D vkSize,
         }
     };
 
-    LOGGER_VK(vkCreateImageView, vkDevice, &imageViewCreateInfo, nullptr, &mVkImageView);
+    LOGGER_VK(vkCreateImageView, device, &imageViewCreateInfo, nullptr, &mImageView);
 }
 }

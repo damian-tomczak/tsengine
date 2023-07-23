@@ -14,19 +14,19 @@ public:
     ~ImageBuffer();
 
     void createImage(
-        VkExtent2D vkSize,
-        VkFormat vkFormat,
-        VkImageUsageFlagBits vkUsage,
-        VkSampleCountFlagBits vkSamples,
-        VkImageAspectFlags vkAspect,
+        VkExtent2D size,
+        VkFormat format,
+        VkImageUsageFlagBits usage,
+        VkSampleCountFlagBits samples,
+        VkImageAspectFlags aspect,
         size_t layerCount);
 
-    VkImageView getVkImageView() const { return mVkImageView; }
+    VkImageView getVkImageView() const { return mImageView; }
 
 private:
     const Context& mCtx;
-    VkImage mVkImage{};
-    VkDeviceMemory mVkDeviceMemory{};
-    VkImageView mVkImageView{};
+    VkImage mImage{};
+    VkDeviceMemory mDeviceMemory{};
+    VkImageView mImageView{};
 };
 }

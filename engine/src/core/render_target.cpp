@@ -4,30 +4,30 @@ namespace ts
 {
 RenderTarget::~RenderTarget()
 {
-    if (mVkFramebuffer)
+    if (mFramebuffer)
     {
-        vkDestroyFramebuffer(mVkDevice, mVkFramebuffer, nullptr);
+        vkDestroyFramebuffer(mDevice, mFramebuffer, nullptr);
     }
 
-    if (mVkImageView)
+    if (mImageView)
     {
-        vkDestroyImageView(mVkDevice, mVkImageView, nullptr);
+        vkDestroyImageView(mDevice, mImageView, nullptr);
     }
 }
 
 void RenderTarget::createRenderTarget(
-    VkImageView vkColorImageView,
-    VkImageView vkDepthImageView,
-    VkExtent2D vkSize,
-    VkFormat vkFormat,
-    VkRenderPass vkRenderPass,
+    VkImageView colorImageView,
+    VkImageView depthImageView,
+    VkExtent2D size,
+    VkFormat format,
+    VkRenderPass renderPass,
     uint32_t layerCount)
 {
     const VkImageViewCreateInfo imageViewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .image = mVkImage,
+        .image = mImage,
         .viewType = ((layerCount == 1) ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_2D_ARRAY),
-        .format = vkFormat,
+        .format = format,
         .components = {
             VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
             VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY
@@ -41,20 +41,20 @@ void RenderTarget::createRenderTarget(
         }
     };
 
-    LOGGER_VK(vkCreateImageView, mVkDevice, &imageViewCreateInfo, nullptr, &mVkImageView);
+    LOGGER_VK(vkCreateImageView, mDevice, &imageViewCreateInfo, nullptr, &mImageView);
 
-    const std::array attachments = { vkColorImageView, vkDepthImageView, mVkImageView };
+    const std::array attachments{colorImageView, depthImageView, mImageView};
 
     const VkFramebufferCreateInfo framebufferCreateInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = vkRenderPass,
+        .renderPass = renderPass,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
-        .width = vkSize.width,
-        .height = vkSize.height,
+        .width = size.width,
+        .height = size.height,
         .layers = 1
     };
 
-    LOGGER_VK(vkCreateFramebuffer, mVkDevice, &framebufferCreateInfo, nullptr, &mVkFramebuffer);
+    LOGGER_VK(vkCreateFramebuffer, mDevice, &framebufferCreateInfo, nullptr, &mFramebuffer);
 }
 }

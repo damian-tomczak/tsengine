@@ -27,6 +27,7 @@ public:
         RESIZE = WM_USER + 1,
 #else
         RESIZE,
+#error not implemented
 #endif // _WIN32
         QUIT
     };

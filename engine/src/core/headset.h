@@ -47,7 +47,7 @@ private:
     XrSwapchain mXrSwapchain{};
     std::vector<std::unique_ptr<RenderTarget>> mSwapchainRenderTargets;
     std::vector<XrCompositionLayerProjectionView> mEyeRenderInfos;
-    std::vector<Matrix4x4> mEyeViewMatrices;
-    std::vector<Matrix4x4> mEyeProjectionMatrices;
+    std::vector<math::Matrix4x4<>> mEyeViewMatrices;
+    std::vector<math::Matrix4x4<>> mEyeProjectionMatrices;
 };
 } // namespace ts

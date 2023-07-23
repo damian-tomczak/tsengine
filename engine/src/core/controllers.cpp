@@ -57,7 +57,7 @@ void Controllers::setupControllers()
             .type = XR_TYPE_ACTION_SPACE_CREATE_INFO,
             .action = mPoseAction,
             .subactionPath = mPaths.at(controllerIndex),
-            .poseInActionSpace = utils::makeIdentity()
+            .poseInActionSpace = utils::makeXrIdentity()
         };
 
         LOGGER_XR(xrCreateActionSpace, mSession, &actionSpaceCreateInfo, &mSpaces.at(controllerIndex));

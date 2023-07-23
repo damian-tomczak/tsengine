@@ -29,7 +29,7 @@ private:
     XrActionSet mActionSet{};
     XrAction mPoseAction{}, mFlyAction{};
     std::array<XrPath, controllerCount> mPaths;
-    std::array<Matrix4x4, controllerCount> mPoses;
+    std::array<math::Matrix4x4<>, controllerCount> mPoses;
     std::array<float, controllerCount> mFlySpeeds;
 
     void createAction(std::string_view actionName, std::string_view localizedActionName, XrActionType type, XrAction& action);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tsengine/logger.h"
+
 #include "openxr/openxr.h"
 #include "vulkan/vulkan_loader.h"
 
@@ -15,19 +17,19 @@
     NOT_COPYABLE(TypeName)                  \
     NOT_MOVEABLE(TypeName)
 
-#define TS_CATCH_FALLBACK            \
-    catch (const TSException&)       \
-    {                                \
-        return TS_FAILURE;           \
-    }                                \
-    catch (const std::exception& e)  \
-    {                                \
-        LOGGER_ERR_WO_EXC(e.what()); \
-        return STL_FAILURE;          \
-    }                                \
-    catch (...)                      \
-    {                                \
-        return UNKNOWN_FAILURE;      \
+#define TS_CATCH_FALLBACK                                                           \
+    catch (const TSException&)                                                      \
+    {                                                                               \
+        return TS_FAILURE;                                                          \
+    }                                                                               \
+    catch (const std::exception& e)                                                 \
+    {                                                                               \
+        ts::logger::error(e.what(), __FILE__, FUNCTION_SIGNATURE, __LINE__, false); \
+        return STL_FAILURE;                                                         \
+    }                                                                               \
+    catch (...)                                                                     \
+    {                                                                               \
+        return UNKNOWN_FAILURE;                                                     \
     }
 
 #define XSTR(x) #x
@@ -47,7 +49,7 @@ inline void unpackXrExtensionString(const std::string& str, std::vector<std::str
     }
 }
 
-inline XrPosef makeIdentity()
+inline XrPosef makeXrIdentity()
 {
     const XrPosef identity2{
         .orientation = {0.0f, 0.0f, 0.0f, 1.0f},

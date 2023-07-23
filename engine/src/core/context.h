@@ -24,6 +24,7 @@ public:
     void createOpenXrContext();
     void createVulkanContext();
     void createVkDevice(VkSurfaceKHR vkMirrorSurface);
+    void sync() const { vkDeviceWaitIdle(mVkDevice); }
 
     XrInstance getXrInstance() const { return mXrInstance; }
     VkInstance getVkInstance() const { return mVkInstance; }
