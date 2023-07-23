@@ -275,5 +275,24 @@ void Headset::createSwapchain()
             mDepthBuffer->getVkImageView(),
             eyeResolution, colorFormat, mVkRenderPass, 2u);
     }
+
+    mEyeRenderInfos.resize(mEyeCount);
+    for (size_t eyeIndex{}; eyeIndex < mEyeRenderInfos.size(); ++eyeIndex)
+    {
+        const XrViewConfigurationView& eyeImageInfo{mEyeViewInfos.at(eyeIndex)};
+
+        XrCompositionLayerProjectionView& eyeRenderInfo = mEyeRenderInfos.at(eyeIndex);
+        eyeRenderInfo.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+        eyeRenderInfo.subImage.swapchain = mXrSwapchain;
+        eyeRenderInfo.subImage.imageArrayIndex = static_cast<uint32_t>(eyeIndex);
+        eyeRenderInfo.subImage.imageRect.offset = {0, 0};
+        eyeRenderInfo.subImage.imageRect.extent = {
+            static_cast<int32_t>(eyeImageInfo.recommendedImageRectWidth),
+            static_cast<int32_t>(eyeImageInfo.recommendedImageRectHeight)
+        };
+    }
+
+    mEyeViewMatrices.resize(mEyeCount);
+    mEyeProjectionMatrices.resize(mEyeCount);
 }
 } // namespace ts

@@ -5,6 +5,7 @@
 #include "tsengine/logger.h"
 #include "mirror_view.h"
 #include "headset.h"
+#include "controllers.h"
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
@@ -53,6 +54,8 @@ int run(Engine* const pEngine) try
     headset.createRenderPass();
     headset.createXrSession();
     headset.createSwapchain();
+    Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
+    controllers.setupControllers();
 
     isAlreadyInitiated = true;
 

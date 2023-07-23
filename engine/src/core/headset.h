@@ -3,6 +3,7 @@
 #include "context.h"
 #include "image_buffer.h"
 #include "render_target.h"
+#include "tsengine/math.hpp"
 
 namespace ts
 {
@@ -24,6 +25,8 @@ public:
     void createXrSpace();
     void createSwapchain();
 
+    XrSession getXrSession() const { return mXrSession; }
+
 private:
     void createViews();
     VkExtent2D getEyeResolution(int32_t eyeIndex) const
@@ -43,5 +46,8 @@ private:
     std::unique_ptr<ImageBuffer> mDepthBuffer;
     XrSwapchain mXrSwapchain{};
     std::vector<std::unique_ptr<RenderTarget>> mSwapchainRenderTargets;
+    std::vector<XrCompositionLayerProjectionView> mEyeRenderInfos;
+    std::vector<Matrix4x4> mEyeViewMatrices;
+    std::vector<Matrix4x4> mEyeProjectionMatrices;
 };
 } // namespace ts

@@ -26,32 +26,32 @@ public:
 #define LOGGER_ERR_WO_EXC(message) ts::logger::error(message, __FILE__, FUNCTION_SIGNATURE, __LINE__, false)
 
 #ifdef TSENGINE_BULDING
-#define LOGGER_VK(function, ...)                                                                \
-    {                                                                                           \
-        VkResult result{function(__VA_ARGS__)};                                                 \
-        if (result != VK_SUCCESS)                                                               \
-        {                                                                                       \
-            ts::logger::error(                                                                  \
-                (#function " failed with status: " + logger::vkResultToString(result)).c_str(), \
-                __FILE__,                                                                       \
-                FUNCTION_SIGNATURE,                                                             \
-                __LINE__);                                                                      \
-        }                                                                                       \
-                                                                                                \
+#define LOGGER_VK(function, ...)                                                                    \
+    {                                                                                               \
+        VkResult result{function(__VA_ARGS__)};                                                     \
+        if (result != VK_SUCCESS)                                                                   \
+        {                                                                                           \
+            ::ts::logger::error(                                                                    \
+                (#function " failed with status: " + ts::logger::vkResultToString(result)).c_str(), \
+                __FILE__,                                                                           \
+                FUNCTION_SIGNATURE,                                                                 \
+                __LINE__);                                                                          \
+        }                                                                                           \
+                                                                                                    \
     }
 
-#define LOGGER_XR(function, ...)                                                                \
-    {                                                                                           \
-        XrResult result{function(__VA_ARGS__)};                                                 \
-        if (result != XR_SUCCESS)                                                               \
-        {                                                                                       \
-            ts::logger::error(                                                                  \
-                (#function " failed with status: " + logger::xrResultToString(result)).c_str(), \
-                __FILE__,                                                                       \
-                FUNCTION_SIGNATURE,                                                             \
-                __LINE__);                                                                      \
-        }                                                                                       \
-                                                                                                \
+#define LOGGER_XR(function, ...)                                                                    \
+    {                                                                                               \
+        XrResult result{function(__VA_ARGS__)};                                                     \
+        if (result != XR_SUCCESS)                                                                   \
+        {                                                                                           \
+            ts::logger::error(                                                                      \
+                (#function " failed with status: " + ts::logger::xrResultToString(result)).c_str(), \
+                __FILE__,                                                                           \
+                FUNCTION_SIGNATURE,                                                                 \
+                __LINE__);                                                                          \
+        }                                                                                           \
+                                                                                                    \
     }
 #endif // TSENGINE_BULDING
 
