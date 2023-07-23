@@ -11,7 +11,7 @@ class Controllers final
 {
     NOT_COPYABLE_AND_MOVEABLE(Controllers);
 
-    static constexpr size_t controllerCount = 2u;
+    static constexpr size_t controllerCount = 2;
 
     static constexpr std::string_view actionSetName = "actionset";
     static constexpr std::string_view localizedActionSetName = "Actions";

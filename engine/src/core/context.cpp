@@ -49,8 +49,8 @@ void Context::createVkDevice(VkSurfaceKHR vkMirrorSurface)
 
     vulkanloader::loadDeviceLevelFunctions(mVkDevice, requiredVulkanDeviceExtensions);
 
-    vkGetDeviceQueue(mVkDevice, *mGraphicsQueueFamilyIndex, 0u, &mVkGraphicsQueue);
-    vkGetDeviceQueue(mVkDevice, *mVkPresentQueueFamilyIndex, 0u, &mVkPresentQueue);
+    vkGetDeviceQueue(mVkDevice, *mGraphicsQueueFamilyIndex, 0, &mVkGraphicsQueue);
+    vkGetDeviceQueue(mVkDevice, *mVkPresentQueueFamilyIndex, 0, &mVkPresentQueue);
 }
 
 void Context::loadXrExtensions()
@@ -127,7 +127,7 @@ void Context::isXrBlendModeAvailable()
         mXrInstance,
         mXrSystemId,
         xrViewType,
-        0u,
+        0,
         &environmentBlendModeCount, nullptr);
 
     std::vector<XrEnvironmentBlendMode> supportedEnvironmentBlendModes(environmentBlendModeCount);
@@ -161,7 +161,7 @@ void Context::getRequiredVulkanInstanceExtensions(std::vector<std::string>& vulk
     LOGGER_XR(xrGetVulkanInstanceExtensionsKHR,
         mXrInstance,
         mXrSystemId,
-        0u,
+        0,
         &count,
         nullptr);
 
@@ -304,7 +304,7 @@ void Context::getGraphicsQueue()
     {
         const auto& queueFamilyCandidate{queueFamilies.at(queueFamilyIndexCandidate)};
 
-        if (queueFamilyCandidate.queueCount == 0u)
+        if (queueFamilyCandidate.queueCount == 0)
         {
             continue;
         }
@@ -338,7 +338,7 @@ void Context::getPresentQueue(const VkSurfaceKHR pMirrorSurface)
     {
         const auto& queueFamilyCandidate{queueFamilies.at(queueFamilyIndexCandidate)};
 
-        if (queueFamilyCandidate.queueCount == 0u)
+        if (queueFamilyCandidate.queueCount == 0)
         {
             continue;
         }
@@ -439,7 +439,7 @@ void Context::getSupportedVulkanDeviceExtensions(std::vector<VkExtensionProperti
 void Context::getRequiredVulkanDeviceExtensions(std::vector<std::string>& requiredVulkanDeviceExtensions)
 {
     uint32_t count;
-    LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mXrInstance, mXrSystemId, 0u, &count, nullptr);
+    LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mXrInstance, mXrSystemId, 0, &count, nullptr);
 
     std::string buffer;
     buffer.resize(count);
@@ -475,7 +475,7 @@ void Context::createLogicalDevice(
 
     LOGGER_VK(vkCreateDevice, mPhysicalDevice, &deviceCi, nullptr, &mVkDevice);
 
-    XrGraphicsRequirementsVulkanKHR graphicsRequirements{ XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR };
+    XrGraphicsRequirementsVulkanKHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR};
     LOGGER_XR(xrGetVulkanGraphicsRequirementsKHR, mXrInstance, mXrSystemId, &graphicsRequirements);
 }
 
@@ -486,7 +486,7 @@ void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
     VkDeviceQueueCreateInfo deviceQueueCi {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .queueFamilyIndex = *mGraphicsQueueFamilyIndex,
-        .queueCount = 1u,
+        .queueCount = 1,
         .pQueuePriorities = &queuePriority
     };
 
@@ -587,7 +587,7 @@ void Context::createXrInstance()
             "which is " STR(XR_MAX_APPLICATION_NAME_SIZE) );
     }
 
-    std::vector<const char*> extensions{ XR_KHR_VULKAN_ENABLE_EXTENSION_NAME };
+    std::vector<const char*> extensions{XR_KHR_VULKAN_ENABLE_EXTENSION_NAME};
 
 #ifndef NDEBUG
     extensions.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -596,7 +596,7 @@ void Context::createXrInstance()
     std::vector<XrExtensionProperties> supportedXrInstanceExtensions;
 
     uint32_t instanceExtensionCount;
-    LOGGER_XR(xrEnumerateInstanceExtensionProperties, nullptr, 0u, &instanceExtensionCount, nullptr)
+    LOGGER_XR(xrEnumerateInstanceExtensionProperties, nullptr, 0, &instanceExtensionCount, nullptr)
 
     supportedXrInstanceExtensions.resize(instanceExtensionCount);
     for (XrExtensionProperties& extensionProperty : supportedXrInstanceExtensions)
@@ -629,7 +629,7 @@ void Context::createXrInstance()
         }
     }
 
-    const XrInstanceCreateInfo instanceCi {
+    const XrInstanceCreateInfo instanceCi{
         .type = XR_TYPE_INSTANCE_CREATE_INFO,
         .applicationInfo = appInfo,
         .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),

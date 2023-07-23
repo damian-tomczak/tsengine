@@ -70,7 +70,7 @@ inline bool findSuitableMemoryTypeIndex(
     for (uint32_t memoryTypeIndex{}; memoryTypeIndex < supportedMemoryProperties.memoryTypeCount; ++memoryTypeIndex)
     {
         const VkMemoryPropertyFlags propertyFlags{supportedMemoryProperties.memoryTypes[memoryTypeIndex].propertyFlags};
-        if ((typeFilter & (1u << memoryTypeIndex)) && ((propertyFlags & pProperties) == pProperties))
+        if ((typeFilter & (1 << memoryTypeIndex)) && ((propertyFlags & pProperties) == pProperties))
         {
             typeIndex = memoryTypeIndex;
             return true;

@@ -26,7 +26,7 @@ void RenderTarget::createRenderTarget(
     const VkImageViewCreateInfo imageViewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image = mVkImage,
-        .viewType = ((layerCount == 1u) ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_2D_ARRAY),
+        .viewType = ((layerCount == 1) ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_2D_ARRAY),
         .format = vkFormat,
         .components = {
             VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -34,9 +34,9 @@ void RenderTarget::createRenderTarget(
         },
         .subresourceRange = {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0u,
-            .levelCount = 1u,
-            .baseArrayLayer = 0u,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
             .layerCount = layerCount,
         }
     };
@@ -52,7 +52,7 @@ void RenderTarget::createRenderTarget(
         .pAttachments = attachments.data(),
         .width = vkSize.width,
         .height = vkSize.height,
-        .layers = 1u
+        .layers = 1
     };
 
     LOGGER_VK(vkCreateFramebuffer, mVkDevice, &framebufferCreateInfo, nullptr, &mVkFramebuffer);

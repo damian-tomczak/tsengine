@@ -40,18 +40,18 @@ void Controllers::setupControllers()
 {
     XrActionSetCreateInfo actionSetCreateInfo{ XR_TYPE_ACTION_SET_CREATE_INFO };
 
-    memcpy(actionSetCreateInfo.actionSetName, actionSetName.data(), actionSetName.length() + 1u);
-    memcpy(actionSetCreateInfo.localizedActionSetName, localizedActionSetName.data(), localizedActionSetName.length() + 1u);
+    memcpy(actionSetCreateInfo.actionSetName, actionSetName.data(), actionSetName.length() + 1);
+    memcpy(actionSetCreateInfo.localizedActionSetName, localizedActionSetName.data(), localizedActionSetName.length() + 1);
 
     LOGGER_XR(xrCreateActionSet, mInstance, &actionSetCreateInfo, &mActionSet);
 
-    mPaths.at(0u) = str2xrPath(mInstance, "/user/hand/left");
-    mPaths.at(1u) = str2xrPath(mInstance, "/user/hand/right");
+    mPaths.at(0) = str2xrPath(mInstance, "/user/hand/left");
+    mPaths.at(1) = str2xrPath(mInstance, "/user/hand/right");
 
     createAction("handpose", "Hand Pose", XR_ACTION_TYPE_POSE_INPUT, mPoseAction);
     createAction("fly", "Fly", XR_ACTION_TYPE_FLOAT_INPUT, mFlyAction);
 
-    for (size_t controllerIndex = 0u; controllerIndex < controllerCount; ++controllerIndex)
+    for (size_t controllerIndex = 0; controllerIndex < controllerCount; ++controllerIndex)
     {
         XrActionSpaceCreateInfo actionSpaceCreateInfo{
             .type = XR_TYPE_ACTION_SPACE_CREATE_INFO,
@@ -82,7 +82,7 @@ void Controllers::setupControllers()
 
     XrSessionActionSetsAttachInfo sessionActionSetsAttachInfo{
         .type = XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO,
-        .countActionSets = 1u,
+        .countActionSets = 1,
         .actionSets = &mActionSet
     };
 
@@ -98,8 +98,8 @@ void Controllers::createAction(std::string_view actionName, std::string_view loc
         .subactionPaths = mPaths.data()
     };
 
-    memcpy(actionCreateInfo.actionName, actionName.data(), actionName.length() + 1u);
-    memcpy(actionCreateInfo.localizedActionName, localizedActionName.data(), localizedActionName.length() + 1u);
+    memcpy(actionCreateInfo.actionName, actionName.data(), actionName.length() + 1);
+    memcpy(actionCreateInfo.localizedActionName, localizedActionName.data(), localizedActionName.length() + 1);
 
     LOGGER_XR(xrCreateAction, mActionSet, &actionCreateInfo, &action);
 }

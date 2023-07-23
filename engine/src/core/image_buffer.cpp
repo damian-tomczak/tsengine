@@ -35,9 +35,9 @@ void ImageBuffer::createImage(VkExtent2D vkSize,
         .extent = {
             .width = vkSize.width,
             .height = vkSize.height,
-            .depth = 1u,
+            .depth = 1,
         },
-        .mipLevels = 1u,
+        .mipLevels = 1,
         .arrayLayers = static_cast<uint32_t>(layerCount),
         .samples = vkSamples,
         .tiling = VK_IMAGE_TILING_OPTIMAL,
@@ -69,12 +69,12 @@ void ImageBuffer::createImage(VkExtent2D vkSize,
         .memoryTypeIndex = suitableMemoryTypeIndex
     };
     LOGGER_VK(vkAllocateMemory, vkDevice, &memoryAllocateInfo, nullptr, &mVkDeviceMemory);
-    LOGGER_VK(vkBindImageMemory, vkDevice, mVkImage, mVkDeviceMemory, 0u);
+    LOGGER_VK(vkBindImageMemory, vkDevice, mVkImage, mVkDeviceMemory, 0);
 
     VkImageViewCreateInfo imageViewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image = mVkImage,
-        .viewType = (layerCount == 1u ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_2D_ARRAY),
+        .viewType = (layerCount == 1 ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_2D_ARRAY),
         .format = vkFormat,
         .components = {
             VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -84,9 +84,9 @@ void ImageBuffer::createImage(VkExtent2D vkSize,
         },
         .subresourceRange = {
             .aspectMask = vkAspect,
-            .baseMipLevel = 0u,
-            .levelCount = 1u,
-            .baseArrayLayer = 0u,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
             .layerCount = static_cast<uint32_t>(layerCount),
         }
     };

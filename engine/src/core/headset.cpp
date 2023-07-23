@@ -38,9 +38,9 @@ void Headset::createRenderPass()
 
     const VkRenderPassMultiviewCreateInfo renderPassMultiviewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
-        .subpassCount = 1u,
+        .subpassCount = 1,
         .pViewMasks = &viewMask,
-        .correlationMaskCount = 1u,
+        .correlationMaskCount = 1,
         .pCorrelationMasks = &correlationMask
     };
 
@@ -57,7 +57,7 @@ void Headset::createRenderPass()
     };
 
     const VkAttachmentReference colorAttachmentReference{
-        .attachment = 0u,
+        .attachment = 0,
         .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     };
 
@@ -73,7 +73,7 @@ void Headset::createRenderPass()
     };
 
     const VkAttachmentReference depthAttachmentReference{
-        .attachment = 1u,
+        .attachment = 1,
         .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
     };
 
@@ -89,13 +89,13 @@ void Headset::createRenderPass()
     };
 
     const VkAttachmentReference resolveAttachmentReference{
-        .attachment = 2u,
+        .attachment = 2,
         .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
     };
 
     const VkSubpassDescription subpassDescription{
         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .colorAttachmentCount = 1u,
+        .colorAttachmentCount = 1,
         .pColorAttachments = &colorAttachmentReference,
         .pResolveAttachments = &resolveAttachmentReference,
         .pDepthStencilAttachment = &depthAttachmentReference,
@@ -112,7 +112,7 @@ void Headset::createRenderPass()
         .pNext = &renderPassMultiviewCreateInfo,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
-        .subpassCount = 1u,
+        .subpassCount = 1,
         .pSubpasses = &subpassDescription
     };
 
@@ -128,7 +128,7 @@ void Headset::createXrSession()
         .physicalDevice = mCtx.getVkPhysicalDevice(),
         .device = mCtx.getVkDevice(),
         .queueFamilyIndex = mCtx.getGraphicsQueueFamilyIndex(),
-        .queueIndex = 0u
+        .queueIndex = 0
     };
 
     const XrSessionCreateInfo sessionCreateInfo{
@@ -159,7 +159,7 @@ void Headset::createViews()
         mCtx.getXrInstance(),
         mCtx.getXrSystemId(),
         mCtx.xrViewType,
-        0u,
+        0,
         reinterpret_cast<uint32_t*>(&mEyeCount), nullptr);
 
     mEyeViewInfos.resize(mEyeCount);
@@ -190,7 +190,7 @@ void Headset::createSwapchain()
     createViews();
 
     uint32_t formatCount{};
-    LOGGER_XR(xrEnumerateSwapchainFormats, mXrSession, 0u, &formatCount, nullptr);
+    LOGGER_XR(xrEnumerateSwapchainFormats, mXrSession, 0, &formatCount, nullptr);
 
     std::vector<int64_t> formats(formatCount);
     LOGGER_XR(xrEnumerateSwapchainFormats, mXrSession, formatCount, &formatCount, formats.data());
@@ -210,7 +210,7 @@ void Headset::createSwapchain()
         LOGGER_ERR("openxr color doesn't support color format");
     }
 
-    const auto eyeResolution{getEyeResolution(0u)};
+    const auto eyeResolution{getEyeResolution(0)};
 
     mColorBuffer = std::make_unique<ImageBuffer>(mCtx);
     mColorBuffer->createImage(
@@ -219,7 +219,7 @@ void Headset::createSwapchain()
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
         mCtx.getMultisampleCount(),
         VK_IMAGE_ASPECT_COLOR_BIT,
-        2u);
+        2);
 
     // Create a depth buffer
     mDepthBuffer = std::make_unique<ImageBuffer>(mCtx);
@@ -229,9 +229,9 @@ void Headset::createSwapchain()
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
         mCtx.getMultisampleCount(),
         VK_IMAGE_ASPECT_DEPTH_BIT,
-        2u);
+        2);
 
-    const XrViewConfigurationView& eyeImageInfo{mEyeViewInfos.at(0u)};
+    const XrViewConfigurationView& eyeImageInfo{mEyeViewInfos.at(0)};
 
     const XrSwapchainCreateInfo swapchainCreateInfo{
         .type = XR_TYPE_SWAPCHAIN_CREATE_INFO,
@@ -239,15 +239,15 @@ void Headset::createSwapchain()
         .sampleCount = eyeImageInfo.recommendedSwapchainSampleCount,
         .width = eyeImageInfo.recommendedImageRectWidth,
         .height = eyeImageInfo.recommendedImageRectHeight,
-        .faceCount = 1u,
+        .faceCount = 1,
         .arraySize = static_cast<uint32_t>(mEyeCount),
-        .mipCount = 1u
+        .mipCount = 1
     };
 
     LOGGER_XR(xrCreateSwapchain, mXrSession, &swapchainCreateInfo, &mXrSwapchain);
 
     uint32_t swapchainImageCount;
-    LOGGER_XR(xrEnumerateSwapchainImages, mXrSwapchain, 0u, &swapchainImageCount, nullptr);
+    LOGGER_XR(xrEnumerateSwapchainImages, mXrSwapchain, 0, &swapchainImageCount, nullptr);
 
     std::vector<XrSwapchainImageVulkanKHR> swapchainImages;
     swapchainImages.resize(swapchainImageCount);
@@ -273,7 +273,7 @@ void Headset::createSwapchain()
         pRenderTarget->createRenderTarget(
             mColorBuffer->getVkImageView(),
             mDepthBuffer->getVkImageView(),
-            eyeResolution, colorFormat, mVkRenderPass, 2u);
+            eyeResolution, colorFormat, mVkRenderPass, 2);
     }
 
     mEyeRenderInfos.resize(mEyeCount);
