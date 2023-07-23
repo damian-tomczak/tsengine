@@ -13,3 +13,6 @@
 [submodule "external/openxr"]
 	path = external/openxr
 	url = https://github.com/KhronosGroup/OpenXR-SDK.git
+[submodule "external/tinyobjloader"]
+	path = external/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader.git

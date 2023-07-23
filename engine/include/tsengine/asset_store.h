@@ -11,10 +11,7 @@ class AssetStore
 {
 public:
     AssetStore() = default;
-    virtual ~AssetStore()
-    {
-        clearAssets();
-    };
+    virtual ~AssetStore() { clearAssets(); };
 
     void clearAssets();
     void addTexture(const char* pAssetId, const char* pFilePath);

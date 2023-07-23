@@ -10,11 +10,14 @@ namespace ts
 class Win32Window final : public Window
 {
 public:
-    Win32Window(uint32_t width, uint32_t height);
+    Win32Window(uint32_t width, uint32_t height) : Window{ width, height }
+    {}
     ~Win32Window();
 
-    HINSTANCE getHInstance() const { return mpHInstance; }
-    HWND getHwnd() const { return mpHwnd; }
+    void createWindow() override;
+
+    HINSTANCE getHInstance() const { return mHInstance; }
+    HWND getHwnd() const { return mHwnd; }
 
 private:
     virtual void show() override;
@@ -22,8 +25,8 @@ private:
 
     static LRESULT windowProcedure(HWND pHwnd, UINT msg, WPARAM pWParam, LPARAM wLParam);
 
-    HINSTANCE mpHInstance{ GetModuleHandle(nullptr) };
-    HWND mpHwnd{};
+    HINSTANCE mHInstance{ GetModuleHandle(nullptr) };
+    HWND mHwnd{};
     uint32_t mWidth;
     uint32_t mHeight;
 };

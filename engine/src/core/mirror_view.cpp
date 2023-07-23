@@ -3,14 +3,14 @@
 namespace ts
 {
 MirrorView::MirrorView(Context& pContext, const std::unique_ptr<Window>& pWindow) :
-    mpContext{ pContext },
-    mpWindow{ pWindow }
+    mContext{pContext},
+    mWindow{pWindow}
 {
     createSurface();
 }
 void MirrorView::createSurface()
 {
-    auto pWindow{ dynamic_cast<Win32Window*>(mpWindow.get()) };
+    auto pWindow{dynamic_cast<Win32Window*>(mWindow.get())};
 
     if (pWindow == nullptr)
     {
@@ -26,7 +26,7 @@ void MirrorView::createSurface()
         .hwnd = pWindow->getHwnd()
     };
 
-    LOGGER_VK(vkCreateWin32SurfaceKHR, mpContext.getVkInstance(), &ci, nullptr, &mpSurface);
+    LOGGER_VK(vkCreateWin32SurfaceKHR, mContext.getVkInstance(), &ci, nullptr, &mSurface);
 #else
 #error not implemented
 #endif

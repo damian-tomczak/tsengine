@@ -18,21 +18,31 @@ public:
     Context() = default;
     ~Context();
 
+    static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+
     void createOpenXrContext();
     void createVulkanContext();
-    void createDevice(VkSurfaceKHR pMirrorSurface);
+    void createVkDevice(VkSurfaceKHR vkMirrorSurface);
 
-    VkInstance getVkInstance() { return mpVkInstance; }
+    XrInstance getXrInstance() const { return mXrInstance; }
+    VkInstance getVkInstance() const { return mVkInstance; }
+    VkPhysicalDevice getVkPhysicalDevice() const { return mPhysicalDevice; }
+    VkDevice getVkDevice() const { return mVkDevice; }
+    VkSampleCountFlagBits getMultisampleCount() const { return mVkMultisampleCount; }
+    uint32_t getGraphicsQueueFamilyIndex() const { return *mGraphicsQueueFamilyIndex; };
+    uint32_t getPresentQueueFamilyIndex() const { return *mVkPresentQueueFamilyIndex; };
+    XrSystemId getXrSystemId() const { return mXrSystemId;  }
 
 private:
 #ifndef NDEBUG
     void createXrDebugMessenger();
     void createVkDebugMessenger();
 
-    XrDebugUtilsMessengerEXT mpXrDebugMessenger{};
-    static constexpr std::array vkLayers = { "VK_LAYER_KHRONOS_validation" };
+    XrDebugUtilsMessengerEXT mXrDebugMessenger{};
+    VkDebugUtilsMessengerEXT mVkDebugMessenger{};
+    static constexpr std::array vkLayers = {"VK_LAYER_KHRONOS_validation"};
 
-    VkDebugUtilsMessengerEXT mpVkDebugMessenger{};
 #endif // DEBUG
 
     void createXrInstance();
@@ -46,7 +56,7 @@ private:
     void createVulkanInstance(const std::vector<std::string>& vulkanInstanceExtensions);
     void createPhysicalDevice();
     void getGraphicsQueue();
-    void getPresentQueue(VkSurfaceKHR pMirrorSurface);
+    void getPresentQueue(const VkSurfaceKHR pMirrorSurface);
     void isVulkanDeviceExtensionsAvailable(
         std::vector<std::string>& requiredVulkanDeviceExtensions,
         VkPhysicalDeviceFeatures& physicalDeviceFeatures,
@@ -61,15 +71,15 @@ private:
         std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
     void createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
 
-    static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-
-    XrInstance mpXrInstance{};
+    XrInstance mXrInstance{};
     XrSystemId mXrSystemId{};
 
-    VkInstance mpVkInstance{};
-    VkPhysicalDevice mpPhysicalDevice{};
-    std::optional<uint32_t> mpGraphicsQueueFamilyIndex, mpPresentQueueFamilyIndex;
-    VkDevice mpDevice{};
+    VkInstance mVkInstance{};
+    VkPhysicalDevice mPhysicalDevice{};
+    std::optional<uint32_t> mGraphicsQueueFamilyIndex, mVkPresentQueueFamilyIndex;
+    VkDevice mVkDevice{};
+    VkQueue mVkGraphicsQueue{}, mVkPresentQueue{};
+    VkSampleCountFlagBits mVkMultisampleCount{};
+    VkDeviceSize mVkUniformBufferOffsetAlignment{};
 };
 } // namespace ts

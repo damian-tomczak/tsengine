@@ -2,7 +2,7 @@
 
 namespace
 {
-    constexpr auto loggerSuffix{ "\033[0m\n" };
+    constexpr auto loggerSuffix{"\033[0m\n"};
     std::mutex loggerMutex;
 
     enum class Color

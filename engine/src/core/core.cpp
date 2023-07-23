@@ -4,6 +4,8 @@
 #include "vulkan/vulkan_functions.h"
 #include "tsengine/logger.h"
 #include "mirror_view.h"
+#include "headset.h"
+#include "controllers.h"
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
@@ -31,7 +33,7 @@ int run(Engine* const pEngine) try
         LOGGER_ERR("game is already initiated");
     }
 
-    unsigned width{ 1280 }, height{ 720 };
+    unsigned width{1280}, height{720};
     pEngine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
@@ -45,18 +47,24 @@ int run(Engine* const pEngine) try
     ctx.createOpenXrContext();
     ctx.createVulkanContext();
 
-    auto pWindow{ Window::createWindow(width, height) };
-    pWindow->show();
+    auto pWindow{Window::createWindowInstance(width, height)};
     MirrorView mirrorView{ctx, pWindow};
-    ctx.createDevice(mirrorView.getSurface());
+    ctx.createVkDevice(mirrorView.getSurface());
+    Headset headset(ctx);
+    headset.createRenderPass();
+    headset.createXrSession();
+    headset.createSwapchain();
+    Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
+    controllers.setupControllers();
 
     isAlreadyInitiated = true;
 
     LOGGER_LOG("tsengine initialization completed successfully");
 
-    while (!pEngine->tick())
+    pWindow->show();
+    while (true /*!pEngine->tick()*/)
     {
-        auto message{ pWindow->peekMessage() };
+        auto message{pWindow->peekMessage()};
         (void)message;
         if (false)
         {
@@ -84,17 +92,5 @@ int run(Engine* const pEngine) try
 
     return EXIT_SUCCESS;
 }
-catch (const TSException&)
-{
-    return TS_FAILURE;
-}
-catch (const std::exception& e)
-{
-    LOGGER_ERR_WO_EXC(e.what());
-    return STL_FAILURE;
-}
-catch (...)
-{
-    return UNKNOWN_FAILURE;
-}
+TS_CATCH_FALLBACK
 } // namespace ts

@@ -33,8 +33,10 @@ public:
 
     virtual void show() = 0;
     virtual Message peekMessage() = 0;
+    virtual void createWindow() = 0;
 
-    static std::unique_ptr<Window> createWindow(uint32_t width, uint32_t height);
+    static std::unique_ptr<Window> createWindowInstance(uint32_t width, uint32_t height);
+
 
 private:
     uint32_t mWidth;
