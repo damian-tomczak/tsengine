@@ -81,6 +81,14 @@ int run(Engine* const pEngine) try
         &logoModel
     };
 
+    math::Matrix4x4<> var{{{
+        {1,2,3,4},
+        {1,2,3,4},
+        {1,2,3,4},
+        {1,2,3,4}
+        }}};
+
+    std::cout << var[0][1];
     gridModel.worldMatrix = math::Matrix4x4<>::makeScalarMat(1.f);
     //carModelLeft.worldMatrix =
     //    math::rotate(math::translate(math::Matrix4x4<>::makeScalarMat(1.f), {-3.5f, 0.0f, -7.0f}), math::radians(75.0f), {0.0f, 1.0f, 0.0f});

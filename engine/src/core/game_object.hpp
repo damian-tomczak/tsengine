@@ -9,8 +9,8 @@ namespace ts
 {
 struct Model final
 {
-    size_t firstIndex{};
-    size_t indexCount{};
+    size_t firstIndex;
+    size_t indexCount;
     math::Matrix4x4<> worldMatrix;
 };
 }
