@@ -31,7 +31,7 @@ glslang_stage_t getShaderStage(const std::filesystem::path& file)
         return GLSLANG_STAGE_FRAGMENT;
     }
 
-    LOGGER_ERR((file.string() + "isn't supported").c_str());
+    LOGGER_ERR((file.string() + " isn't supported").c_str());
 
     return GLSLANG_STAGE_COUNT;
 }
@@ -88,7 +88,7 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::stri
 
     if (spirvMessages != nullptr)
     {
-        LOGGER_ERR((std::string{"glslang program spriv message: "} + spirvMessages).c_str());
+        LOGGER_ERR((std::string("glslang program spriv message: ") + spirvMessages).c_str());
     }
 
     glslang_program_delete(program);
@@ -133,7 +133,7 @@ void compileShaders(std::string_view shadersPath)
 
     if (!std::filesystem::is_directory(shadersPath))
     {
-        LOGGER_ERR((std::string{shadersPath} + " path couldn't be found").c_str());
+        LOGGER_ERR((std::string(shadersPath) + " path couldn't be found").c_str());
     }
 
     uint32_t compiledShadersNumber{};

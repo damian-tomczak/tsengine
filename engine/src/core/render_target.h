@@ -1,8 +1,7 @@
 #pragma once
 
-#include <vulkan/vulkan_loader.h>
+#include "vulkan/vulkan.h"
 #include "utils.hpp"
-#include "tsengine/logger.h"
 
 namespace ts
 {

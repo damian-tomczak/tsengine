@@ -1,11 +1,11 @@
 #include "tsengine/core.h"
 #include "context.h"
 #include "window.h"
-#include "vulkan/vulkan_functions.h"
 #include "tsengine/logger.h"
 #include "mirror_view.h"
 #include "headset.h"
 #include "controllers.h"
+#include "vulkan_tools/shaders_compiler.h"
 #include "game_object.hpp"
 
 unsigned tickCount{};
@@ -49,9 +49,9 @@ int run(Engine* const pEngine) try
     ctx.createVulkanContext();
 
     auto pWindow{Window::createWindowInstance(width, height)};
-    MirrorView mirrorView{ctx, pWindow};
+    MirrorView mirrorView{&ctx, pWindow};
     ctx.createVkDevice(mirrorView.getSurface());
-    Headset headset(ctx);
+    Headset headset{&ctx};
     headset.createRenderPass();
     headset.createXrSession();
     headset.createSwapchain();
@@ -81,22 +81,22 @@ int run(Engine* const pEngine) try
         &logoModel
     };
 
-    math::Matrix4x4<> var{{{
-        {1,2,3,4},
-        {1,2,3,4},
-        {1,2,3,4},
-        {1,2,3,4}
-        }}};
-
-    std::cout << var[0][1];
     gridModel.worldMatrix = math::Matrix4x4<>::makeScalarMat(1.f);
-    //carModelLeft.worldMatrix =
-    //    math::rotate(math::translate(math::Matrix4x4<>::makeScalarMat(1.f), {-3.5f, 0.0f, -7.0f}), math::radians(75.0f), {0.0f, 1.0f, 0.0f});
-    //carModelRight.worldMatrix =
-    //    math::rotate(math::translate(math::Matrix4x4<>::makeScalarMat(1.f), {8.0f, 0.0f, -15.0f}), math::radians(-15.0f), {0.0f, 1.0f, 0.0f});
-    //beetleModel.worldMatrix =
-    //    math::rotate(math::translate(math::Matrix4x4<>::makeScalarMat(1.f), {-3.5f, 0.0f, -0.5f}), math::radians(-125.0f), {0.0f, 1.0f, 0.0f});
+    carModelLeft.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -7.0f});
+    carModelRight.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {8.0f, 0.0f, -15.0f});
+    beetleModel.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -0.5f});
     logoModel.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {0.0f, 3.0f, -10.0f});
+
+    {
+        MeshData pMeshData;
+        pMeshData.loadModel("assets/models/Grid.obj", models, 1u);
+        pMeshData.loadModel("assets/models/Ruins.obj", models, 1u);
+        pMeshData.loadModel("assets/models/Car.obj", models, 2u);
+        pMeshData.loadModel("assets/models/Beetle.obj", models, 1u);
+        pMeshData.loadModel("assets/models/Bike.obj", models, 1u);
+        pMeshData.loadModel("assets/models/Hand.obj", models, 2u);
+        pMeshData.loadModel("assets/models/Logo.obj", models, 1u);
+    }
 
     isAlreadyInitiated = true;
     LOGGER_LOG("tsengine initialization completed successfully");

@@ -10,7 +10,7 @@ namespace ts
 class Win32Window final : public Window
 {
 public:
-    Win32Window(uint32_t width, uint32_t height) : Window{ width, height }
+    Win32Window(size_t width, size_t height) : Window{ width, height }
     {}
     ~Win32Window();
 
@@ -25,7 +25,7 @@ private:
 
     static LRESULT windowProcedure(HWND pHwnd, UINT msg, WPARAM pWParam, LPARAM wLParam);
 
-    HINSTANCE mHInstance{ GetModuleHandle(nullptr) };
+    HINSTANCE mHInstance{GetModuleHandle(nullptr)};
     HWND mHwnd{};
     uint32_t mWidth;
     uint32_t mHeight;

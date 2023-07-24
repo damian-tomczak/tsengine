@@ -1,8 +1,8 @@
 #pragma once
 
 #ifdef TSENGINE_BULDING
-#include "vulkan/vulkan_functions.h"
-#include "openxr/openxr_platform.h"
+#include "vulkan/vulkan.h"
+#include "openxr/openxr.h"
 
 class TSException : public std::exception
 {

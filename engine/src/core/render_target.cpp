@@ -1,4 +1,6 @@
 #include "render_target.h"
+#include "vulkan_tools/vulkan_functions.h"
+#include "tsengine/logger.h"
 
 namespace ts
 {

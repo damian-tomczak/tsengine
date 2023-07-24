@@ -1,4 +1,6 @@
 #include "controllers.h"
+#include "khronos_utils.hpp"
+#include "tsengine/logger.h"
 
 namespace
 {
@@ -57,7 +59,7 @@ void Controllers::setupControllers()
             .type = XR_TYPE_ACTION_SPACE_CREATE_INFO,
             .action = mPoseAction,
             .subactionPath = mPaths.at(controllerIndex),
-            .poseInActionSpace = utils::makeXrIdentity()
+            .poseInActionSpace = khronos_utils::makeXrIdentity()
         };
 
         LOGGER_XR(xrCreateActionSpace, mSession, &actionSpaceCreateInfo, &mSpaces.at(controllerIndex));

@@ -1,15 +1,19 @@
 #pragma once
 
-#include "context.h"
+#include "utils.hpp"
+
+#include "vulkan/vulkan.h"
 
 namespace ts
 {
+class Context;
+
 class ImageBuffer final
 {
     NOT_COPYABLE_AND_MOVEABLE(ImageBuffer);
 
 public:
-    ImageBuffer(const Context& ctx) : mCtx(ctx)
+    ImageBuffer(const Context* pCtx) : mpCtx(pCtx)
     {}
     ~ImageBuffer();
 
@@ -24,7 +28,7 @@ public:
     VkImageView getVkImageView() const { return mImageView; }
 
 private:
-    const Context& mCtx;
+    const Context* mpCtx{};
     VkImage mImage{};
     VkDeviceMemory mDeviceMemory{};
     VkImageView mImageView{};

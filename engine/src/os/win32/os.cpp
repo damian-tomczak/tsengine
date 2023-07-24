@@ -5,8 +5,7 @@ namespace ts
 {
     void Win32Window::createWindow()
     {
-        const WNDCLASSEX wc
-        {
+        const WNDCLASSEX wc{
             .cbSize = sizeof(WNDCLASSEX),
             .style = CS_HREDRAW | CS_VREDRAW,
             .lpfnWndProc = windowProcedure,
