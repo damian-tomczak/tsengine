@@ -22,17 +22,17 @@ Controllers::~Controllers()
         xrDestroySpace(space);
     }
 
-    if (mFlyAction)
+    if (mFlyAction != nullptr)
     {
         xrDestroyAction(mFlyAction);
     }
 
-    if (mPoseAction)
+    if (mPoseAction != nullptr)
     {
         xrDestroyAction(mPoseAction);
     }
 
-    if (mActionSet)
+    if (mActionSet != nullptr)
     {
         xrDestroyActionSet(mActionSet);
     }
@@ -53,7 +53,7 @@ void Controllers::setupControllers()
     createAction("handpose", "Hand Pose", XR_ACTION_TYPE_POSE_INPUT, mPoseAction);
     createAction("fly", "Fly", XR_ACTION_TYPE_FLOAT_INPUT, mFlyAction);
 
-    for (size_t controllerIndex = 0; controllerIndex < controllerCount; ++controllerIndex)
+    for (size_t controllerIndex{}; controllerIndex < controllerCount; ++controllerIndex)
     {
         XrActionSpaceCreateInfo actionSpaceCreateInfo{
             .type = XR_TYPE_ACTION_SPACE_CREATE_INFO,

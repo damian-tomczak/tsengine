@@ -8,18 +8,18 @@ namespace ts
 {
 ImageBuffer::~ImageBuffer()
 {
-    const auto device{mpCtx->getVkDevice()};
-    if (mImageView)
+    const auto device{mCtx->getVkDevice()};
+    if (mImageView != nullptr)
     {
         vkDestroyImageView(device, mImageView, nullptr);
     }
 
-    if (mDeviceMemory)
+    if (mDeviceMemory != nullptr)
     {
         vkFreeMemory(device, mDeviceMemory, nullptr);
     }
 
-    if (mImage)
+    if (mImage != nullptr)
     {
         vkDestroyImage(device, mImage, nullptr);
     }
@@ -51,7 +51,7 @@ void ImageBuffer::createImage(
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    const VkDevice device{mpCtx->getVkDevice()};
+    const VkDevice device{mCtx->getVkDevice()};
 
     LOGGER_VK(vkCreateImage, device, &imageCreateInfo, nullptr, &mImage);
 
@@ -60,7 +60,7 @@ void ImageBuffer::createImage(
 
     uint32_t suitableMemoryTypeIndex{};
     if (!khronos_utils::findSuitableMemoryTypeIndex(
-        mpCtx->getVkPhysicalDevice(),
+        mCtx->getVkPhysicalDevice(),
         memoryRequirements,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         suitableMemoryTypeIndex))

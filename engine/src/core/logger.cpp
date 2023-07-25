@@ -123,7 +123,7 @@ void error(
 
 #ifndef NDEBUG
 #ifdef _WIN32
-    //DebugBreak();
+    DebugBreak();
 #else
 #error not implemented
 #endif // _WIN32

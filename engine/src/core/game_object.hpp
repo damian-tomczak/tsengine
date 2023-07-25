@@ -6,6 +6,7 @@
 #include "tsengine/math.hpp"
 #include "tiny_obj_loader.h"
 #include "utils.hpp"
+#include "tsengine/logger.h"
 
 namespace ts
 {
@@ -71,10 +72,20 @@ public:
         static size_t offset{0};
         for (size_t modelIndex{offset}; modelIndex < (offset + count); ++modelIndex)
         {
-            auto pModel = models.at(modelIndex);
-            pModel->firstIndex = oldIndexCount;
-            pModel->indexCount = mIndices.size() - oldIndexCount;
+            auto model = models.at(modelIndex);
+            model->firstIndex = oldIndexCount;
+            model->indexCount = mIndices.size() - oldIndexCount;
         }
+    }
+
+    size_t getIndexOffset() const { return sizeof(mVertices.at(0)) * mVertices.size(); }
+    size_t getSize() const { return sizeof(mVertices.at(0)) * mVertices.size() + sizeof(mIndices.at(0)) * mIndices.size(); }
+    void writeTo(char* destination) const
+    {
+        const size_t verticesSize = sizeof(mVertices.at(0)) * mVertices.size();
+        const size_t indicesSize = sizeof(mIndices.at(0)) * mIndices.size();
+        memcpy(destination, mVertices.data(), verticesSize);
+        memcpy(destination + verticesSize, mIndices.data(), indicesSize);
     }
 
 private:

@@ -16,18 +16,18 @@ std::shared_ptr<Window> Window::createWindowInstance(size_t width, size_t height
         LOGGER_ERR("window is already created");
     }
 
-    std::shared_ptr<Window> pWindow;
+    std::shared_ptr<Window> window;
 
 #ifdef _WIN32
-    pWindow = std::make_shared<Win32Window>(width, height);
+    window = std::make_shared<Win32Window>(width, height);
 #else
     #error "not implemented"
 #endif // _WIN32
 
-    pWindow->createWindow();
+    window->createWindow();
 
     isWindowAlreadyCreated = true;
 
-    return pWindow;
+    return window;
 }
 } // namespace ts

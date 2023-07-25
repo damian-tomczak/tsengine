@@ -20,7 +20,7 @@ class Headset final
     static constexpr VkFormat depthFormat{VK_FORMAT_D32_SFLOAT};
 
 public:
-    Headset(const Context* pCtx);
+    Headset(const Context* ctx);
     ~Headset();
 
     void createRenderPass();
@@ -29,12 +29,13 @@ public:
     void createSwapchain();
 
     XrSession getXrSession() const { return mXrSession; }
+    VkRenderPass getVkRenderPass() const { return mVkRenderPass; }
 
 private:
     void createViews();
     VkExtent2D getEyeResolution(int32_t eyeIndex) const;
 
-    const Context* mpCtx;
+    const Context* mCtx;
     VkRenderPass mVkRenderPass{};
     XrSession mXrSession{};
     XrSpace mXrSpace{};

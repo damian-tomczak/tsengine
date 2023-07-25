@@ -31,8 +31,6 @@ glslang_stage_t getShaderStage(const std::filesystem::path& file)
         return GLSLANG_STAGE_FRAGMENT;
     }
 
-    LOGGER_ERR((file.string() + " isn't supported").c_str());
-
     return GLSLANG_STAGE_COUNT;
 }
 
@@ -106,6 +104,11 @@ std::vector<uint32_t> compileShaderFile(const std::filesystem::path& file)
     }
 
     const auto shaderStage{getShaderStage(file)};
+
+    if (shaderStage == GLSLANG_STAGE_COUNT)
+    {
+        LOGGER_ERR((file.string() + " isn't supported").c_str());
+    }
 
     return processShader(shaderStage, src.c_str());
 }

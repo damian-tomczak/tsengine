@@ -39,5 +39,5 @@ public:
     virtual void onKeyReleased(Key k) = 0;
 };
 
-int run(Engine* const pEngine);
+int run(Engine* engine);
 } // namespace ts

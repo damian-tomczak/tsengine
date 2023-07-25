@@ -14,7 +14,7 @@ public:
     virtual ~AssetStore() { clearAssets(); };
 
     void clearAssets();
-    void addTexture(const char* pAssetId, const char* pFilePath);
-    void* getTexture(const char* pAssetId);
+    void addTexture(const char* assetId, const char* filePath);
+    void* getTexture(const char* assetId);
 };
 } // namespace ts

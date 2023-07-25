@@ -49,4 +49,14 @@ inline bool findSuitableMemoryTypeIndex(
 
     return false;
 }
+
+inline VkDeviceSize align(VkDeviceSize value, VkDeviceSize alignment)
+{
+    if (value == 0u)
+    {
+        return value;
+    }
+
+    return (value + alignment - 1u) & ~(alignment - 1u);
+}
 } // namespace ts::utils

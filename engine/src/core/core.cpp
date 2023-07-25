@@ -7,6 +7,7 @@
 #include "controllers.h"
 #include "vulkan_tools/shaders_compiler.h"
 #include "game_object.hpp"
+#include "renderer.h"
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
@@ -20,11 +21,11 @@ unsigned getTickCount()
     return tickCount;
 }
 
-int run(Engine* const pEngine) try
+int run(Engine* const engine) try
 {
     std::lock_guard<std::mutex> _{engineInit};
 
-    if (!pEngine)
+    if (!engine)
     {
         LOGGER_ERR("game is unallocated");
     }
@@ -35,7 +36,7 @@ int run(Engine* const pEngine) try
     }
 
     unsigned width{1280}, height{720};
-    pEngine->init(width, height);
+    engine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
     {
@@ -48,8 +49,8 @@ int run(Engine* const pEngine) try
     ctx.createOpenXrContext();
     ctx.createVulkanContext();
 
-    auto pWindow{Window::createWindowInstance(width, height)};
-    MirrorView mirrorView{&ctx, pWindow};
+    auto window{Window::createWindowInstance(width, height)};
+    MirrorView mirrorView{&ctx, window};
     ctx.createVkDevice(mirrorView.getSurface());
     Headset headset{&ctx};
     headset.createRenderPass();
@@ -87,47 +88,49 @@ int run(Engine* const pEngine) try
     beetleModel.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -0.5f});
     logoModel.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {0.0f, 3.0f, -10.0f});
 
-    {
-        MeshData pMeshData;
-        pMeshData.loadModel("assets/models/Grid.obj", models, 1u);
-        pMeshData.loadModel("assets/models/Ruins.obj", models, 1u);
-        pMeshData.loadModel("assets/models/Car.obj", models, 2u);
-        pMeshData.loadModel("assets/models/Beetle.obj", models, 1u);
-        pMeshData.loadModel("assets/models/Bike.obj", models, 1u);
-        pMeshData.loadModel("assets/models/Hand.obj", models, 2u);
-        pMeshData.loadModel("assets/models/Logo.obj", models, 1u);
-    }
+    auto meshData{std::make_unique<MeshData>()};
+    meshData->loadModel("assets/models/Grid.obj", models, 1);
+    meshData->loadModel("assets/models/Ruins.obj", models, 1);
+    meshData->loadModel("assets/models/Car.obj", models, 2);
+    meshData->loadModel("assets/models/Beetle.obj", models, 1);
+    meshData->loadModel("assets/models/Bike.obj", models, 1);
+    meshData->loadModel("assets/models/Hand.obj", models, 2);
+    meshData->loadModel("assets/models/Logo.obj", models, 1);
+
+    Renderer renderer{&ctx, &headset};
+    renderer.createRenderer(std::move(meshData), models);
+    mirrorView.connect(&headset, &renderer);
 
     isAlreadyInitiated = true;
     LOGGER_LOG("tsengine initialization completed successfully");
 
-    pWindow->show();
-    while (true /*!pEngine->tick()*/)
+    window->show();
+    while (true /*!engine->tick()*/)
     {
-        auto message{pWindow->peekMessage()};
+        auto message{window->peekMessage()};
         (void)message;
         if (false)
         {
-            pEngine->onMouseMove(-1, -1, -1, -1);
+            engine->onMouseMove(-1, -1, -1, -1);
         }
 
         if (false)
         {
-            pEngine->onMouseButtonClick({}, false);
+            engine->onMouseButtonClick({}, false);
         }
 
         if (false)
         {
-            pEngine->onKeyPressed({});
+            engine->onKeyPressed({});
         }
 
         if (false)
         {
-            pEngine->onKeyReleased({});
+            engine->onKeyReleased({});
         }
     }
 
-    pEngine->close();
+    engine->close();
     ctx.sync();
     isAlreadyInitiated = false;
 
