@@ -1,26 +1,28 @@
 #pragma once
 
-#include "context.h"
-#include "os.h"
+#include "utils.hpp"
 
-#include <memory>
+#include "vulkan/vulkan.h"
 
 namespace ts
 {
+class Context;
+class Window;
+
 class MirrorView final
 {
     NOT_COPYABLE_AND_MOVEABLE(MirrorView);
 
 public:
-    MirrorView(Context& pContext, const std::unique_ptr<Window>& pWindow);
+    MirrorView(const Context* pCtx, std::shared_ptr<Window> pWindow);
 
     VkSurfaceKHR getSurface() const { return mSurface; }
 
 private:
     void createSurface();
 
-    Context& mContext;
-    const std::unique_ptr<Window>& mWindow;
+    const Context* mpCtx{};
+    const std::weak_ptr<Window> mpWindow;
     VkSurfaceKHR mSurface{};
 };
 }

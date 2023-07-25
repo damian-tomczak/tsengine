@@ -1,5 +1,8 @@
 #include "context.h"
 #include "tsengine/logger.h"
+#include "khronos_utils.hpp"
+#include "openxr/openxr_platform.h"
+#include "vulkan_tools/vulkan_loader.h"
 
 namespace
 {
@@ -51,6 +54,11 @@ void Context::createVkDevice(VkSurfaceKHR vkMirrorSurface)
 
     vkGetDeviceQueue(mVkDevice, *mGraphicsQueueFamilyIndex, 0, &mVkGraphicsQueue);
     vkGetDeviceQueue(mVkDevice, *mVkPresentQueueFamilyIndex, 0, &mVkPresentQueue);
+}
+
+void Context::sync() const
+{
+    vkDeviceWaitIdle(mVkDevice);
 }
 
 void Context::loadXrExtensions()
@@ -173,7 +181,7 @@ void Context::getRequiredVulkanInstanceExtensions(std::vector<std::string>& vulk
         &count,
         xrVulkanExtensionsStr.data());
 
-    utils::unpackXrExtensionString(xrVulkanExtensionsStr, vulkanInstanceExtensions);
+    khronos_utils::unpackXrExtensionString(xrVulkanExtensionsStr, vulkanInstanceExtensions);
 
     vulkanInstanceExtensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
     vulkanInstanceExtensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
@@ -445,7 +453,7 @@ void Context::getRequiredVulkanDeviceExtensions(std::vector<std::string>& requir
     buffer.resize(count);
     LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mXrInstance, mXrSystemId, count, &count, buffer.data());
 
-    utils::unpackXrExtensionString(buffer, requiredVulkanDeviceExtensions);
+    khronos_utils::unpackXrExtensionString(buffer, requiredVulkanDeviceExtensions);
 
     requiredVulkanDeviceExtensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 }
@@ -481,7 +489,7 @@ void Context::createLogicalDevice(
 
 void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
 {
-    static constexpr float queuePriority = 1.f;
+    constexpr float queuePriority{1.f};
 
     VkDeviceQueueCreateInfo deviceQueueCi {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,

@@ -20,7 +20,6 @@ add_executable(${PROJECT_NAME}
     ${SRC_FILES}
     ${H_FILES}
     ${HPP_FILES}
-    ${ASSETS_FILES}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

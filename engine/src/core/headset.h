@@ -1,23 +1,26 @@
 #pragma once
 
-#include "context.h"
-#include "image_buffer.h"
-#include "render_target.h"
 #include "tsengine/math.hpp"
+#include "utils.hpp"
+#include "openxr/openxr.h"
+#include "vulkan/vulkan.h"
 
 namespace ts
 {
+class Context;
+class ImageBuffer;
+class RenderTarget;
+
 class Headset final
 {
     NOT_COPYABLE_AND_MOVEABLE(Headset);
 
-    static constexpr XrReferenceSpaceType spaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
-    static constexpr VkFormat colorFormat = VK_FORMAT_R8G8B8A8_SRGB;
-    static constexpr VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
+    static constexpr XrReferenceSpaceType spaceType{XR_REFERENCE_SPACE_TYPE_STAGE};
+    static constexpr VkFormat colorFormat{VK_FORMAT_R8G8B8A8_SRGB};
+    static constexpr VkFormat depthFormat{VK_FORMAT_D32_SFLOAT};
 
 public:
-    Headset(Context& ctx) : mCtx(ctx)
-    {}
+    Headset(const Context* pCtx);
     ~Headset();
 
     void createRenderPass();
@@ -29,13 +32,9 @@ public:
 
 private:
     void createViews();
-    VkExtent2D getEyeResolution(int32_t eyeIndex) const
-    {
-        const XrViewConfigurationView& eyeInfo = mEyeViewInfos.at(eyeIndex);
-        return {eyeInfo.recommendedImageRectWidth, eyeInfo.recommendedImageRectHeight};
-    }
+    VkExtent2D getEyeResolution(int32_t eyeIndex) const;
 
-    Context& mCtx;
+    const Context* mpCtx;
     VkRenderPass mVkRenderPass{};
     XrSession mXrSession{};
     XrSpace mXrSpace{};
@@ -47,7 +46,7 @@ private:
     XrSwapchain mXrSwapchain{};
     std::vector<std::unique_ptr<RenderTarget>> mSwapchainRenderTargets;
     std::vector<XrCompositionLayerProjectionView> mEyeRenderInfos;
-    std::vector<Matrix4x4> mEyeViewMatrices;
-    std::vector<Matrix4x4> mEyeProjectionMatrices;
+    std::vector<math::Matrix4x4<>> mEyeViewMatrices;
+    std::vector<math::Matrix4x4<>> mEyeProjectionMatrices;
 };
 } // namespace ts

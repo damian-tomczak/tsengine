@@ -32,8 +32,8 @@ void Game::close()
 
 bool Game::tick()
 {
-    auto currentTime{ ts::getTickCount() };
-    auto deltaTime{ ((currentTime - mPreviousTickCount) / 1000.f) };
+    auto currentTime{ts::getTickCount()};
+    auto deltaTime{((currentTime - mPreviousTickCount) / 1000.f)};
     mPreviousTickCount = currentTime;
 
     if (mpPlayer)
@@ -41,7 +41,7 @@ bool Game::tick()
         mpPlayer = mpRegistry->createEntity();
         mpPlayer->setTag("player");
         mpPlayer->addComponent<TransformComponent>(
-          ts::Vec2{ static_cast<float>(mWidth - (mWidth / 2)), static_cast<float>(mHeight - 50) });
+          ts::math::Vec2{ static_cast<float>(mWidth - (mWidth / 2)), static_cast<float>(mHeight - 50) });
         mpPlayer->addComponent<TextureComponent>("player-left");
         mpPlayer->addComponent<RigidBodyComponent>();
     }

@@ -223,12 +223,12 @@ inline void Registry::update()
 
 inline Entity Registry::createEntity()
 {
-    auto entityId{ mNumEntities++ };
+    auto entityId = mNumEntities++;
     if (entityId >= mEntitySignatures.size())
     {
         mEntitySignatures.resize(entityId + 1);
     }
-    Entity entity{ entityId, this };
+    Entity entity(entityId, this);
     mEntitiesToBeAdded.insert(entity);
     return entity;
 }

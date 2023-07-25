@@ -1,8 +1,8 @@
 #pragma once
 
 #ifdef TSENGINE_BULDING
-#include "vulkan/vulkan_functions.h"
-#include "openxr/openxr_platform.h"
+#include "vulkan/vulkan.h"
+#include "openxr/openxr.h"
 
 class TSException : public std::exception
 {
@@ -23,7 +23,6 @@ public:
 #define LOGGER_LOG(message) ts::logger::log(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
 #define LOGGER_WARN(message) ts::logger::warning(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
 #define LOGGER_ERR(message) ts::logger::error(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
-#define LOGGER_ERR_WO_EXC(message) ts::logger::error(message, __FILE__, FUNCTION_SIGNATURE, __LINE__, false)
 
 #ifdef TSENGINE_BULDING
 #define LOGGER_VK(function, ...)                                                                    \

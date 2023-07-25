@@ -1,11 +1,12 @@
 #include "tsengine/core.h"
 #include "context.h"
 #include "window.h"
-#include "vulkan/vulkan_functions.h"
 #include "tsengine/logger.h"
 #include "mirror_view.h"
 #include "headset.h"
 #include "controllers.h"
+#include "vulkan_tools/shaders_compiler.h"
+#include "game_object.hpp"
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
@@ -48,17 +49,56 @@ int run(Engine* const pEngine) try
     ctx.createVulkanContext();
 
     auto pWindow{Window::createWindowInstance(width, height)};
-    MirrorView mirrorView{ctx, pWindow};
+    MirrorView mirrorView{&ctx, pWindow};
     ctx.createVkDevice(mirrorView.getSurface());
-    Headset headset(ctx);
+    Headset headset{&ctx};
     headset.createRenderPass();
     headset.createXrSession();
     headset.createSwapchain();
     Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
     controllers.setupControllers();
 
-    isAlreadyInitiated = true;
+    Model
+        gridModel,
+        ruinsModel,
+        carModelLeft,
+        carModelRight,
+        beetleModel,
+        bikeModel,
+        handModelLeft,
+        handModelRight,
+        logoModel;
 
+    std::vector<Model*> models{
+        &gridModel,
+        &ruinsModel,
+        &carModelLeft,
+        &carModelRight,
+        &beetleModel,
+        &bikeModel,
+        &handModelLeft,
+        &handModelRight,
+        &logoModel
+    };
+
+    gridModel.worldMatrix = math::Matrix4x4<>::makeScalarMat(1.f);
+    carModelLeft.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -7.0f});
+    carModelRight.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {8.0f, 0.0f, -15.0f});
+    beetleModel.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -0.5f});
+    logoModel.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {0.0f, 3.0f, -10.0f});
+
+    {
+        MeshData pMeshData;
+        pMeshData.loadModel("assets/models/Grid.obj", models, 1u);
+        pMeshData.loadModel("assets/models/Ruins.obj", models, 1u);
+        pMeshData.loadModel("assets/models/Car.obj", models, 2u);
+        pMeshData.loadModel("assets/models/Beetle.obj", models, 1u);
+        pMeshData.loadModel("assets/models/Bike.obj", models, 1u);
+        pMeshData.loadModel("assets/models/Hand.obj", models, 2u);
+        pMeshData.loadModel("assets/models/Logo.obj", models, 1u);
+    }
+
+    isAlreadyInitiated = true;
     LOGGER_LOG("tsengine initialization completed successfully");
 
     pWindow->show();
@@ -88,6 +128,7 @@ int run(Engine* const pEngine) try
     }
 
     pEngine->close();
+    ctx.sync();
     isAlreadyInitiated = false;
 
     return EXIT_SUCCESS;

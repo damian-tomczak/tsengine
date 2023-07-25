@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.26)
 
 project(${CMAKE_PROJECT_NAME}engine)
 
+# TODO: engine dll
+
 function(os_files files_list_name regex)
     set(files_list ${${files_list_name}})
     list(FILTER files_list EXCLUDE REGEX "src/os/*")
@@ -49,7 +51,7 @@ file(GLOB_RECURSE HPP_FILES
 )
 
 set(OTHER_FILES
-    src/vulkan/vulkan_functions.inl
+    src/vulkan_tools/vulkan_functions.inl
 )
 
 add_library(${PROJECT_NAME} STATIC
@@ -73,6 +75,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     SPIRV
     openxr_loader
     headers
+    tinyobjloader
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

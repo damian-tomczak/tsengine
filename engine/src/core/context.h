@@ -2,11 +2,8 @@
 
 #include "utils.hpp"
 
-#include "vulkan/shaders_compiler.h"
-#include "vulkan/vulkan_loader.h"
+#include "vulkan/vulkan.h"
 #include "openxr/openxr.h"
-#include "tsengine/logger.h"
-#include "os.h"
 
 namespace ts
 {
@@ -18,12 +15,13 @@ public:
     Context() = default;
     ~Context();
 
-    static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+    static constexpr XrViewConfigurationType xrViewType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
+    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
 
     void createOpenXrContext();
     void createVulkanContext();
     void createVkDevice(VkSurfaceKHR vkMirrorSurface);
+    void sync() const;
 
     XrInstance getXrInstance() const { return mXrInstance; }
     VkInstance getVkInstance() const { return mVkInstance; }
