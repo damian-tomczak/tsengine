@@ -84,12 +84,12 @@ void RenderProcess::createRendererProcess(
     descriptorBufferInfos.at(0).offset = 0u;
     descriptorBufferInfos.at(0).range = sizeof(DynamicVertexUniformData);
 
-    descriptorBufferInfos.at(1).offset = khronos_utils::align(descriptorBufferInfos.at(0u).range, uniformBufferOffsetAlignment) *
-        static_cast<VkDeviceSize>(modelCount);
+    descriptorBufferInfos.at(1).offset =
+        khronos_utils::align(descriptorBufferInfos.at(0u).range, uniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(modelCount);
     descriptorBufferInfos.at(1).range = sizeof(StaticVertexUniformData);
 
     descriptorBufferInfos.at(2).offset =
-        descriptorBufferInfos.at(1u).offset + khronos_utils::align(descriptorBufferInfos.at(1u).range, uniformBufferOffsetAlignment);
+        descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1u).range, uniformBufferOffsetAlignment);
     descriptorBufferInfos.at(2).range = sizeof(StaticFragmentUniformData);
 
     const auto uniformBufferSize{descriptorBufferInfos.at(2).offset + descriptorBufferInfos.at(2).range};
@@ -105,7 +105,7 @@ void RenderProcess::createRendererProcess(
         LOGGER_ERR("invalid mapping memory");
     }
 
-    VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{
+    const VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .descriptorPool = descriptorPool,
         .descriptorSetCount = 1,

@@ -114,8 +114,8 @@ void Renderer::createRenderer(std::unique_ptr<MeshData> meshData, const std::vec
     mGridPipeline->createPipeline(
         mPipelineLayout,
         mHeadset->getVkRenderPass(),
-        "shaders/Grid.vert.spv",
-        "shaders/Grid.frag.spv",
+        "assets/shaders/grid.vert.spirv",
+        "assets/shaders/grid.frag.spirv",
         {vertexInputBindingDescription},
         {vertexInputAttributePosition, vertexInputAttributeColor});
 
@@ -123,8 +123,8 @@ void Renderer::createRenderer(std::unique_ptr<MeshData> meshData, const std::vec
     mDiffusePipeline->createPipeline(
         mPipelineLayout,
         mHeadset->getVkRenderPass(),
-        "shaders/Diffuse.vert.spv",
-        "shaders/Diffuse.frag.spv",
+        "assets/shaders/diffuse.vert.spirv",
+        "assets/shaders/diffuse.frag.spirv",
         {vertexInputBindingDescription},
         {vertexInputAttributePosition, vertexInputAttributeNormal, vertexInputAttributeColor});
 
