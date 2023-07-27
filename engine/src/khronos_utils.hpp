@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tsengine/math.hpp"
+
 #include "openxr/openxr.h"
 #include "vulkan_tools/vulkan_loader.h"
 
@@ -48,5 +50,46 @@ inline bool findSuitableMemoryTypeIndex(
     }
 
     return false;
+}
+
+inline VkDeviceSize align(VkDeviceSize value, VkDeviceSize alignment)
+{
+    if (value == 0u)
+    {
+        return value;
+    }
+
+    return (value + alignment - 1u) & ~(alignment - 1u);
+}
+
+inline math::Mat4<> createXrProjectionMatrix(XrFovf fov, float nearClip, float farClip)
+{
+    const float l = tan(fov.angleLeft);
+    const float r = tan(fov.angleRight);
+    const float d = tan(fov.angleDown);
+    const float u = tan(fov.angleUp);
+
+    const float w = r - l;
+    const float h = d - u;
+
+    math::Mat4<> projectionMatrix{{{
+        2.0f / w   , 0.0f       , 0.0f                                                     , 0.0f ,
+        0.0f       , 2.0f / h   , 0.0f                                                     , 0.0f ,
+        (r + l) / w, (u + d) / h, -(farClip + nearClip) / (farClip - nearClip)             , -1.0f,
+        0.0f       , 0.0f       , -(farClip * (nearClip + nearClip)) / (farClip - nearClip), 0.0f ,
+    }}};
+
+    return projectionMatrix;
+}
+
+inline math::Mat4<> xrPoseToMatrix(const XrPosef& pose)
+{
+    const auto translation =
+        math::translate(math::Mat4<>::makeScalarMat(1.f), math::Vec3<>(pose.position.x, pose.position.y, pose.position.z));
+
+    const auto rotation =
+        math::Mat4<>(math::Quat<>(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z));
+
+    return translation * rotation;
 }
 } // namespace ts::utils

@@ -11,12 +11,13 @@ class Context final
 {
     NOT_COPYABLE_AND_MOVEABLE(Context);
 
+    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
+
 public:
     Context() = default;
     ~Context();
 
     static constexpr XrViewConfigurationType xrViewType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
-    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
 
     void createOpenXrContext();
     void createVulkanContext();
@@ -27,10 +28,12 @@ public:
     VkInstance getVkInstance() const { return mVkInstance; }
     VkPhysicalDevice getVkPhysicalDevice() const { return mPhysicalDevice; }
     VkDevice getVkDevice() const { return mVkDevice; }
-    VkSampleCountFlagBits getMultisampleCount() const { return mVkMultisampleCount; }
-    uint32_t getGraphicsQueueFamilyIndex() const { return *mGraphicsQueueFamilyIndex; };
-    uint32_t getPresentQueueFamilyIndex() const { return *mVkPresentQueueFamilyIndex; };
-    XrSystemId getXrSystemId() const { return mXrSystemId;  }
+    VkSampleCountFlagBits getVkMultisampleCount() const { return mVkMultisampleCount; }
+    uint32_t getVkGraphicsQueueFamilyIndex() const { return *mVkGraphicsQueueFamilyIndex; };
+    uint32_t getVkPresentQueueFamilyIndex() const { return *mVkPresentQueueFamilyIndex; };
+    XrSystemId getXrSystemId() const { return mXrSystemId; }
+    VkQueue getVkGraphicsQueue() const { return mVkGraphicsQueue; }
+    VkDeviceSize getUniformBufferOffsetAlignment() const { return mVkUniformBufferOffsetAlignment; }
 
 private:
 #ifndef NDEBUG
@@ -39,7 +42,7 @@ private:
 
     XrDebugUtilsMessengerEXT mXrDebugMessenger{};
     VkDebugUtilsMessengerEXT mVkDebugMessenger{};
-    static constexpr std::array vkLayers = {"VK_LAYER_KHRONOS_validation"};
+    static constexpr std::array vkLayers{"VK_LAYER_KHRONOS_validation"};
 
 #endif // DEBUG
 
@@ -54,7 +57,7 @@ private:
     void createVulkanInstance(const std::vector<std::string>& vulkanInstanceExtensions);
     void createPhysicalDevice();
     void getGraphicsQueue();
-    void getPresentQueue(const VkSurfaceKHR pMirrorSurface);
+    void getPresentQueue(const VkSurfaceKHR mirrorSurface);
     void isVulkanDeviceExtensionsAvailable(
         std::vector<std::string>& requiredVulkanDeviceExtensions,
         VkPhysicalDeviceFeatures& physicalDeviceFeatures,
@@ -74,7 +77,7 @@ private:
 
     VkInstance mVkInstance{};
     VkPhysicalDevice mPhysicalDevice{};
-    std::optional<uint32_t> mGraphicsQueueFamilyIndex, mVkPresentQueueFamilyIndex;
+    std::optional<uint32_t> mVkGraphicsQueueFamilyIndex, mVkPresentQueueFamilyIndex;
     VkDevice mVkDevice{};
     VkQueue mVkGraphicsQueue{}, mVkPresentQueue{};
     VkSampleCountFlagBits mVkMultisampleCount{};

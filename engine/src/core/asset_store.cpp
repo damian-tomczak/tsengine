@@ -13,10 +13,10 @@ void AssetStore::clearAssets()
     // sprites.clear();
 }
 
-void AssetStore::addTexture(const char* pAssetId, const char* pFilePath)
+void AssetStore::addTexture(const char* assetId, const char* filePath)
 {
-    (void)pAssetId;
-    (void)pFilePath;
+    (void)assetId;
+    (void)filePath;
     // auto sprite{ createSprite((DATA_PATH + filePath).c_str()) };
     // if (sprite == nullptr)
     //{
@@ -26,9 +26,9 @@ void AssetStore::addTexture(const char* pAssetId, const char* pFilePath)
     // sprites.emplace(assetId, sprite);
 }
 
-void* AssetStore::getTexture(const char* pAssetId)
+void* AssetStore::getTexture(const char* assetId)
 {
-    (void)pAssetId;
+    (void)assetId;
     // return sprites.at(assetId);
     return nullptr;
 }

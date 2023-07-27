@@ -29,7 +29,7 @@ void Context::createVkDevice(VkSurfaceKHR vkMirrorSurface)
     getRequiredVulkanDeviceExtensions(requiredVulkanDeviceExtensions);
 
     VkPhysicalDeviceFeatures physicalDeviceFeatures;
-    VkPhysicalDeviceMultiviewFeatures physicalDeviceMultiviewFeatures{.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES};
+    VkPhysicalDeviceMultiviewFeatures physicalDeviceMultiviewFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES};
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
         .pNext = &physicalDeviceMultiviewFeatures
@@ -52,7 +52,7 @@ void Context::createVkDevice(VkSurfaceKHR vkMirrorSurface)
 
     vulkanloader::loadDeviceLevelFunctions(mVkDevice, requiredVulkanDeviceExtensions);
 
-    vkGetDeviceQueue(mVkDevice, *mGraphicsQueueFamilyIndex, 0, &mVkGraphicsQueue);
+    vkGetDeviceQueue(mVkDevice, *mVkGraphicsQueueFamilyIndex, 0, &mVkGraphicsQueue);
     vkGetDeviceQueue(mVkDevice, *mVkPresentQueueFamilyIndex, 0, &mVkPresentQueue);
 }
 
@@ -319,19 +319,19 @@ void Context::getGraphicsQueue()
 
         if (queueFamilyCandidate.queueFlags & VK_QUEUE_GRAPHICS_BIT)
         {
-            mGraphicsQueueFamilyIndex = static_cast<uint32_t>(queueFamilyIndexCandidate);
+            mVkGraphicsQueueFamilyIndex = static_cast<uint32_t>(queueFamilyIndexCandidate);
             drawQueueFamilyIndexFound = true;
             break;
         }
     }
 
-    if (mGraphicsQueueFamilyIndex == std::nullopt)
+    if (mVkGraphicsQueueFamilyIndex == std::nullopt)
     {
         LOGGER_ERR("graphics queue couldn't be found");
     }
 }
 
-void Context::getPresentQueue(const VkSurfaceKHR pMirrorSurface)
+void Context::getPresentQueue(const VkSurfaceKHR mirrorSurface)
 {
     std::vector<VkQueueFamilyProperties> queueFamilies;
     uint32_t queueFamilyCount;
@@ -355,7 +355,7 @@ void Context::getPresentQueue(const VkSurfaceKHR pMirrorSurface)
         LOGGER_VK(vkGetPhysicalDeviceSurfaceSupportKHR,
             mPhysicalDevice,
             static_cast<uint32_t>(queueFamilyIndexCandidate),
-            pMirrorSurface, &presentSupport);
+            mirrorSurface, &presentSupport);
 
         if (presentSupport)
         {
@@ -493,14 +493,14 @@ void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
 
     VkDeviceQueueCreateInfo deviceQueueCi {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = *mGraphicsQueueFamilyIndex,
+        .queueFamilyIndex = *mVkGraphicsQueueFamilyIndex,
         .queueCount = 1,
         .pQueuePriorities = &queuePriority
     };
 
     deviceQueueCis.push_back(deviceQueueCi);
 
-    if (mGraphicsQueueFamilyIndex != mVkPresentQueueFamilyIndex)
+    if (mVkGraphicsQueueFamilyIndex != mVkPresentQueueFamilyIndex)
     {
         deviceQueueCi.queueFamilyIndex = *mVkPresentQueueFamilyIndex;
         deviceQueueCis.push_back(deviceQueueCi);
@@ -581,7 +581,7 @@ void Context::createVulkanContext()
 
 void Context::createXrInstance()
 {
-    const XrApplicationInfo appInfo {
+    const XrApplicationInfo appInfo{
         .applicationName = GAME_NAME,
         .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
         .engineName = ENGINE_NAME,

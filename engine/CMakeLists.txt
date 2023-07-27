@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.26)
 
 project(${CMAKE_PROJECT_NAME}engine)
 
-# TODO: engine dll
-
 function(os_files files_list_name regex)
     set(files_list ${${files_list_name}})
     list(FILTER files_list EXCLUDE REGEX "src/os/*")
