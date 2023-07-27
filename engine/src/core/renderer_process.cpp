@@ -47,12 +47,12 @@ void RenderProcess::createRendererProcess(
     dynamicVertexUniformData.resize(modelCount);
     for (size_t modelIndex{}; modelIndex < modelCount; ++modelIndex)
     {
-        dynamicVertexUniformData.at(modelIndex).worldMatrix = math::Matrix4x4<>::makeScalarMat(1.f);
+        dynamicVertexUniformData.at(modelIndex).worldMatrix = math::Mat4<>::makeScalarMat(1.f);
     }
 
     for (auto& viewProjectionMatrix : staticVertexUniformData.viewProjectionMatrices)
     {
-        viewProjectionMatrix = math::Matrix4x4<>::makeScalarMat(1.f);
+        viewProjectionMatrix = math::Mat4<>::makeScalarMat(1.f);
     }
 
     staticFragmentUniformData.time = 0.0f;

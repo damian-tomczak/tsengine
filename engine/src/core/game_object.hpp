@@ -14,7 +14,7 @@ struct Model final
 {
     size_t firstIndex;
     size_t indexCount;
-    math::Matrix4x4<> worldMatrix;
+    math::Mat4<> worldMatrix;
 };
 
 struct Vertex final

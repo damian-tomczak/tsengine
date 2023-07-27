@@ -23,13 +23,13 @@ public:
 
     struct DynamicVertexUniformData
     {
-        math::Matrix4x4<> worldMatrix;
+        math::Mat4<> worldMatrix;
     };
     std::vector<DynamicVertexUniformData> dynamicVertexUniformData;
 
     struct StaticVertexUniformData
     {
-        std::array<math::Matrix4x4<>, 2> viewProjectionMatrices;
+        std::array<math::Mat4<>, 2> viewProjectionMatrices;
     } staticVertexUniformData;
 
     struct StaticFragmentUniformData

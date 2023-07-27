@@ -82,11 +82,11 @@ int run(Engine* const engine) try
         &logoModel
     };
 
-    gridModel.worldMatrix = math::Matrix4x4<>::makeScalarMat(1.f);
-    carModelLeft.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -7.0f});
-    carModelRight.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {8.0f, 0.0f, -15.0f});
-    beetleModel.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -0.5f});
-    logoModel.worldMatrix = math::translate(math::Matrix4x4<>::makeScalarMat(1.0f), {0.0f, 3.0f, -10.0f});
+    gridModel.worldMatrix = math::Mat4<>::makeScalarMat(1.f);
+    carModelLeft.worldMatrix = math::translate(math::Mat4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -7.0f});
+    carModelRight.worldMatrix = math::translate(math::Mat4<>::makeScalarMat(1.0f), {8.0f, 0.0f, -15.0f});
+    beetleModel.worldMatrix = math::translate(math::Mat4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -0.5f});
+    logoModel.worldMatrix = math::translate(math::Mat4<>::makeScalarMat(1.0f), {0.0f, 3.0f, -10.0f});
 
     auto meshData{std::make_unique<MeshData>()};
     meshData->loadModel("assets/models/Grid.obj", models, 1);
@@ -105,29 +105,92 @@ int run(Engine* const engine) try
     LOGGER_LOG("tsengine initialization completed successfully");
 
     window->show();
-    while (true /*!engine->tick()*/)
+    auto previousTime{std::chrono::high_resolution_clock::now()};
+    while (!headset.isExitRequested())
     {
         auto message{window->peekMessage()};
-        (void)message;
-        if (false)
+        if (message == Window::Message::QUIT)
         {
-            engine->onMouseMove(-1, -1, -1, -1);
+            break;
         }
 
-        if (false)
-        {
-            engine->onMouseButtonClick({}, false);
-        }
+        const auto nowTime{std::chrono::high_resolution_clock::now()};
+        const auto deltaTime{std::chrono::duration_cast<std::chrono::seconds>(nowTime - previousTime).count()};
+        previousTime = nowTime;
 
-        if (false)
-        {
-            engine->onKeyPressed({});
-        }
+        uint32_t swapchainImageIndex;
+        const Headset::BeginFrameResult frameResult = headset.beginFrame(swapchainImageIndex);
+        //if (frameResult == Headset::BeginFrameResult::RENDER_FULLY)
+        //{
+        //    if (!controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime))
+        //    {
+        //        return EXIT_FAILURE;
+        //    }
 
-        if (false)
-        {
-            engine->onKeyReleased({});
-        }
+        //    static float time = 0.0f;
+        //    time += deltaTime;
+
+        //    // Update
+        //    for (size_t controllerIndex = 0u; controllerIndex < 2u; ++controllerIndex)
+        //    {
+        //        const float flySpeed = controllers.getFlySpeed(controllerIndex);
+        //        if (flySpeed > 0.0f)
+        //        {
+        //            const glm::vec3 forward = glm::normalize(controllers.getPose(controllerIndex)[2]);
+        //            cameraMatrix = glm::translate(cameraMatrix, forward * flySpeed * flySpeedMultiplier * deltaTime);
+        //        }
+        //    }
+
+        //    const glm::mat4 inverseCameraMatrix = glm::inverse(cameraMatrix);
+        //    handModelLeft.worldMatrix = inverseCameraMatrix * controllers.getPose(0u);
+        //    handModelRight.worldMatrix = inverseCameraMatrix * controllers.getPose(1u);
+        //    handModelRight.worldMatrix = glm::scale(handModelRight.worldMatrix, { -1.0f, 1.0f, 1.0f });
+
+        //    bikeModel.worldMatrix =
+        //        glm::rotate(glm::translate(glm::mat4(1.0f), { 0.5f, 0.0f, -4.5f }), time * 0.2f, { 0.0f, 1.0f, 0.0f });
+
+        //    // Render
+        //    renderer.render(cameraMatrix, swapchainImageIndex, time);
+
+        //    const MirrorView::RenderResult mirrorResult = mirrorView.render(swapchainImageIndex);
+        //    if (mirrorResult == MirrorView::RenderResult::Error)
+        //    {
+        //        return EXIT_FAILURE;
+        //    }
+
+        //    const bool mirrorViewVisible = (mirrorResult == MirrorView::RenderResult::Visible);
+        //    renderer.submit(mirrorViewVisible);
+
+        //    if (mirrorViewVisible)
+        //    {
+        //        mirrorView.present();
+        //    }
+        //}
+
+        //if (frameResult == Headset::BeginFrameResult::RenderFully || frameResult == Headset::BeginFrameResult::SkipRender)
+        //{
+        //    headset.endFrame();
+        //}
+
+        //if (false)
+        //{
+        //    engine->onMouseMove(-1, -1, -1, -1);
+        //}
+
+        //if (false)
+        //{
+        //    engine->onMouseButtonClick({}, false);
+        //}
+
+        //if (false)
+        //{
+        //    engine->onKeyPressed({});
+        //}
+
+        //if (false)
+        //{
+        //    engine->onKeyReleased({});
+        //}
     }
 
     engine->close();

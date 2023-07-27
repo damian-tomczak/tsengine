@@ -41,6 +41,109 @@ Headset::~Headset()
     }
 }
 
+Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
+{
+    XrEventDataBuffer buffer{XR_TYPE_EVENT_DATA_BUFFER};
+    while (xrPollEvent(mCtx->getXrInstance(), &buffer) == XR_SUCCESS)
+    {
+        switch (buffer.type)
+        {
+        case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
+        {
+            mIsExitRequested = true;
+            return BeginFrameResult::RENDER_SKIP_FULLY;
+        }
+        case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
+        {
+            XrEventDataSessionStateChanged* event = reinterpret_cast<XrEventDataSessionStateChanged*>(&buffer);
+            mXrSessionState = event->state;
+
+            if (event->state == XR_SESSION_STATE_READY)
+            {
+                beginSession();
+            }
+            else if (event->state == XR_SESSION_STATE_STOPPING)
+            {
+                endSession();
+            }
+            else if (event->state == XR_SESSION_STATE_LOSS_PENDING || event->state == XR_SESSION_STATE_EXITING)
+            {
+                mIsExitRequested = true;
+                return BeginFrameResult::RENDER_SKIP_FULLY;
+            }
+
+            break;
+        }
+        }
+
+        buffer.type = XR_TYPE_EVENT_DATA_BUFFER;
+    }
+
+    if ((mXrSessionState != XR_SESSION_STATE_READY) &&
+        (mXrSessionState != XR_SESSION_STATE_SYNCHRONIZED) &&
+        (mXrSessionState != XR_SESSION_STATE_VISIBLE) &&
+        (mXrSessionState != XR_SESSION_STATE_FOCUSED))
+    {
+        return BeginFrameResult::RENDER_SKIP_FULLY;
+    }
+
+    mXrFrameState.type = XR_TYPE_FRAME_STATE;
+    XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO};
+    LOGGER_XR(xrWaitFrame, mXrSession, &frameWaitInfo, &mXrFrameState);
+
+    XrFrameBeginInfo frameBeginInfo{XR_TYPE_FRAME_BEGIN_INFO};
+    LOGGER_XR(xrBeginFrame, mXrSession, &frameBeginInfo);
+
+    if (!mXrFrameState.shouldRender)
+    {
+        return BeginFrameResult::RENDER_SKIP_PARTIALLY;
+    }
+
+    mXrViewState.type = XR_TYPE_VIEW_STATE;
+    XrViewLocateInfo viewLocateInfo{
+        .type = XR_TYPE_VIEW_LOCATE_INFO,
+        .viewConfigurationType = mCtx->xrViewType,
+        .displayTime = mXrFrameState.predictedDisplayTime,
+        .space = mXrSpace
+    };
+    uint32_t viewCount;
+    LOGGER_XR(xrLocateViews,
+        mXrSession,
+        &viewLocateInfo,
+        &mXrViewState,
+        static_cast<uint32_t>(mEyePoses.size()),
+        &viewCount,
+        mEyePoses.data());
+
+    if (viewCount != mEyeCount)
+    {
+        LOGGER_ERR("Trying to display more views than defined eyes");
+    }
+
+    for (size_t eyeIndex{}; eyeIndex < mEyeCount; ++eyeIndex)
+    {
+        auto& eyeRenderInfo = mEyeRenderInfos.at(eyeIndex);
+        const auto& eyePose = mEyePoses.at(eyeIndex);
+        eyeRenderInfo.pose = eyePose.pose;
+        eyeRenderInfo.fov = eyePose.fov;
+
+        const XrPosef& pose = eyeRenderInfo.pose;
+        //mEyeViewMatrices.at(eyeIndex) = glm::inverse(khronos_utils::xrPoseToMatrix(pose));
+        mEyeProjectionMatrices.at(eyeIndex) = khronos_utils::createXrProjectionMatrix(eyeRenderInfo.fov, 0.01f, 250.0f);
+    }
+
+    XrSwapchainImageAcquireInfo swapchainImageAcquireInfo{ XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
+    LOGGER_XR(xrAcquireSwapchainImage, mXrSwapchain, &swapchainImageAcquireInfo, &swapchainImageIndex);
+
+    XrSwapchainImageWaitInfo swapchainImageWaitInfo{
+        .type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO,
+        .timeout = XR_INFINITE_DURATION,
+    };
+    LOGGER_XR(xrWaitSwapchainImage, mXrSwapchain, &swapchainImageWaitInfo);
+
+    return BeginFrameResult::RENDER_FULLY;
+}
+
 void Headset::createRenderPass()
 {
     constexpr uint32_t viewMask = 0b11;
@@ -195,12 +298,6 @@ void Headset::createViews()
     }
 }
 
-VkExtent2D Headset::getEyeResolution(int32_t eyeIndex) const
-{
-    const XrViewConfigurationView& eyeInfo = mEyeViewInfos.at(eyeIndex);
-    return { eyeInfo.recommendedImageRectWidth, eyeInfo.recommendedImageRectHeight };
-}
-
 void Headset::createSwapchain()
 {
     createViews();
@@ -311,4 +408,25 @@ void Headset::createSwapchain()
     mEyeViewMatrices.resize(mEyeCount);
     mEyeProjectionMatrices.resize(mEyeCount);
 }
+
+VkExtent2D Headset::getEyeResolution(int32_t eyeIndex) const
+{
+    const XrViewConfigurationView& eyeInfo = mEyeViewInfos.at(eyeIndex);
+    return {eyeInfo.recommendedImageRectWidth, eyeInfo.recommendedImageRectHeight};
+}
+
+void Headset::beginSession() const
+{
+    XrSessionBeginInfo sessionBeginInfo{
+        .type = XR_TYPE_SESSION_BEGIN_INFO,
+        .primaryViewConfigurationType = mCtx->xrViewType
+    };
+    LOGGER_XR(xrBeginSession, mXrSession, &sessionBeginInfo);
+}
+
+void Headset::endSession() const
+{
+    LOGGER_XR(xrEndSession, mXrSession);
+}
+
 } // namespace ts

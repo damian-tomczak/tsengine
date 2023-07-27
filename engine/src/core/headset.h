@@ -23,6 +23,15 @@ public:
     Headset(const Context* ctx);
     ~Headset();
 
+    enum class BeginFrameResult
+    {
+        RENDER_FULLY,
+        RENDER_SKIP_PARTIALLY,
+        RENDER_SKIP_FULLY
+    };
+
+    BeginFrameResult beginFrame(uint32_t& swapchainImageIndex);
+
     void createRenderPass();
     void createXrSession();
     void createXrSpace();
@@ -30,12 +39,15 @@ public:
 
     XrSession getXrSession() const { return mXrSession; }
     VkRenderPass getVkRenderPass() const { return mVkRenderPass; }
+    bool isExitRequested() const { return mIsExitRequested; }
 
 private:
     void createViews();
     VkExtent2D getEyeResolution(int32_t eyeIndex) const;
+    void beginSession() const;
+    void endSession() const;
 
-    const Context* mCtx;
+    const Context* mCtx{};
     VkRenderPass mVkRenderPass{};
     XrSession mXrSession{};
     XrSpace mXrSpace{};
@@ -47,7 +59,12 @@ private:
     XrSwapchain mXrSwapchain{};
     std::vector<std::unique_ptr<RenderTarget>> mSwapchainRenderTargets;
     std::vector<XrCompositionLayerProjectionView> mEyeRenderInfos;
-    std::vector<math::Matrix4x4<>> mEyeViewMatrices;
-    std::vector<math::Matrix4x4<>> mEyeProjectionMatrices;
+    std::vector<math::Mat4<>> mEyeViewMatrices;
+    std::vector<math::Mat4<>> mEyeProjectionMatrices;
+    bool mIsExitRequested{};
+    XrSwapchain mSwapchain{};
+    XrFrameState mXrFrameState{};
+    XrSessionState mXrSessionState{};
+    XrViewState mXrViewState{};
 };
 } // namespace ts

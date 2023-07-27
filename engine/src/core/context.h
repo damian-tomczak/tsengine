@@ -11,12 +11,13 @@ class Context final
 {
     NOT_COPYABLE_AND_MOVEABLE(Context);
 
+    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
+
 public:
     Context() = default;
     ~Context();
 
     static constexpr XrViewConfigurationType xrViewType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
-    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
 
     void createOpenXrContext();
     void createVulkanContext();
@@ -41,7 +42,7 @@ private:
 
     XrDebugUtilsMessengerEXT mXrDebugMessenger{};
     VkDebugUtilsMessengerEXT mVkDebugMessenger{};
-    static constexpr std::array vkLayers = {"VK_LAYER_KHRONOS_validation"};
+    static constexpr std::array vkLayers{"VK_LAYER_KHRONOS_validation"};
 
 #endif // DEBUG
 
