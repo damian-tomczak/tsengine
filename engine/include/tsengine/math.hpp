@@ -29,8 +29,10 @@ struct Vec3
 template<typename T>
 struct Quat;
 
+struct BaseMatrix {};
+
 template<typename ValueT, size_t matRows, size_t matColumns>
-struct Matrix
+struct Matrix : BaseMatrix
 {
     using ValueType = ValueT;
 
@@ -44,7 +46,7 @@ struct Matrix
 template<typename ValueT = float>
 struct Mat4 : public Matrix<ValueT, 4, 4>
 {
-    using ValueType = typename Matrix<ValueT, 4, 4>::ValueType;
+    using ValueType = ValueT;
 
     using Row = typename Matrix<ValueT, 4, 4>::Row;
     using Mat = typename Matrix<ValueT, 4, 4>::Mat;
@@ -77,12 +79,12 @@ struct Mat4 : public Matrix<ValueT, 4, 4>
         }}};
     }
 
-    Row& operator[](const int32_t index)
+    Row& operator[](const size_t index)
     {
         return data[index];
     }
 
-    const std::array<ValueT, 4>& operator[](const int32_t index) const
+    const Row& operator[](const size_t index) const
     {
         return data[index];
     }
@@ -145,27 +147,31 @@ inline void _getCofactor(
     size_t referenceColumn,
     size_t depth)
 {
-    //for (size_t row{}, newMatRow{}; row < depth; ++row)
-    //{
-    //    for (size_t col{}, newMatCol{}; col < depth; ++col)
-    //    {
-    //        if ((row != referenceRow) && (col != referenceColumn))
-    //        {
-    //            newMat[newMatCol][newMatRow++] = referenceMat[row][col];
+    static_assert(std::is_base_of_v<BaseMatrix, Mat>, "Mat should be a type derived from Mat");
 
-    //            if (newMatRow == depth - 1)
-    //            {
-    //                newMatRow = 0;
-    //                newMatCol++;
-    //            }
-    //        }
-    //    }
-    //}
+    for (size_t row{}, newMatRow{}; row < depth; ++row)
+    {
+        for (size_t col{}, newMatCol{}; col < depth; ++col)
+        {
+            if ((row != referenceRow) && (col != referenceColumn))
+            {
+                newMat[newMatCol][newMatRow++] = referenceMat[row][col];
+
+                if (newMatRow == depth - 1)
+                {
+                    newMatRow = 0;
+                    newMatCol++;
+                }
+            }
+        }
+    }
 }
 
 template<typename Mat>
 inline auto _determinant(const Mat& mat, size_t depth)
 {
+    static_assert(std::is_base_of_v<BaseMatrix, Mat>, "Mat should be a type derived from Mat");
+
     typename Mat::ValueType det{};
 
     if (depth == 1)
@@ -190,20 +196,20 @@ inline auto _determinant(const Mat& mat, size_t depth)
 template<typename Mat>
 inline void _adjoint(const Mat& referenceMat, Mat& adjMat)
 {
-    //static_assert(std::is_base_of<Mat<typename Mat::value_type, Mat::rowsNum, Mat::colsNum>, Matrix>::value, "Mat should be a type derived from Mat");
+    static_assert(std::is_base_of_v<BaseMatrix, Mat>, "Mat should be a type derived from Mat");
 
-    //Mat temp;
-    //for (size_t row{}; row < Mat::rowsNum ; ++row)
-    //{
-    //    for (size_t col{}; col < Mat::colsNum; ++col)
-    //    {
-    //        _getCofactor(referenceMat, temp, row, col, Mat::rowsNum);
+    Mat temp;
+    for (size_t row{}; row < Mat::rowsNum ; ++row)
+    {
+        for (size_t col{}; col < Mat::colsNum; ++col)
+        {
+            _getCofactor(referenceMat, temp, row, col, Mat::rowsNum);
 
-    //        const auto sign{((row + col) % 2 == 0) ? 1 : -1};
+            const auto sign{((row + col) % 2 == 0) ? 1 : -1};
 
-    //        adjMat[col][row] = sign * (_determinant(temp, Mat::rowsNum - 1));
-    //    }
-    //}
+            adjMat[col][row] = sign * (_determinant(temp, Mat::rowsNum - 1));
+        }
+    }
 }
 
 inline Mat4<> inverse(const Mat4<>& mat)

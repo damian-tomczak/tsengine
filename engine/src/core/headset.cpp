@@ -128,7 +128,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
         eyeRenderInfo.fov = eyePose.fov;
 
         const XrPosef& pose = eyeRenderInfo.pose;
-        //mEyeViewMatrices.at(eyeIndex) = glm::inverse(khronos_utils::xrPoseToMatrix(pose));
+        mEyeViewMatrices.at(eyeIndex) = math::inverse(khronos_utils::xrPoseToMatrix(pose));
         mEyeProjectionMatrices.at(eyeIndex) = khronos_utils::createXrProjectionMatrix(eyeRenderInfo.fov, 0.01f, 250.0f);
     }
 
