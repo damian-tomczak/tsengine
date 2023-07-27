@@ -40,6 +40,8 @@ public:
     XrSession getXrSession() const { return mXrSession; }
     VkRenderPass getVkRenderPass() const { return mVkRenderPass; }
     bool isExitRequested() const { return mIsExitRequested; }
+    XrSpace getXrSpace() const { return mXrSpace; }
+    XrFrameState getXrFrameState() const { return mXrFrameState; }
 
 private:
     void createViews();
@@ -59,10 +61,9 @@ private:
     XrSwapchain mXrSwapchain{};
     std::vector<std::unique_ptr<RenderTarget>> mSwapchainRenderTargets;
     std::vector<XrCompositionLayerProjectionView> mEyeRenderInfos;
-    std::vector<math::Mat4<>> mEyeViewMatrices;
-    std::vector<math::Mat4<>> mEyeProjectionMatrices;
+    std::vector<math::Mat4> mEyeViewMatrices;
+    std::vector<math::Mat4> mEyeProjectionMatrices;
     bool mIsExitRequested{};
-    XrSwapchain mSwapchain{};
     XrFrameState mXrFrameState{};
     XrSessionState mXrSessionState{};
     XrViewState mXrViewState{};

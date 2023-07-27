@@ -39,7 +39,7 @@ public:
     size_t getWidth() { return mWidth; }
     size_t getHeight() { return mHeight;}
 
-private:
+protected:
     size_t mWidth;
     size_t mHeight;
 };

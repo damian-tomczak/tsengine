@@ -65,8 +65,7 @@ void Controllers::setupControllers()
         LOGGER_XR(xrCreateActionSpace, mSession, &actionSpaceCreateInfo, &mSpaces.at(controllerIndex));
     }
 
-    // Suggest simple controller binding (generic)
-    const std::array<XrActionSuggestedBinding, 4u> bindings{{
+    const std::array<XrActionSuggestedBinding, 4> bindings{{
         { mPoseAction, str2xrPath(mInstance, "/user/hand/left/input/aim/pose")      },
         { mPoseAction, str2xrPath(mInstance, "/user/hand/right/input/aim/pose")     },
         { mFlyAction,  str2xrPath(mInstance, "/user/hand/left/input/select/click")  },
@@ -91,7 +90,77 @@ void Controllers::setupControllers()
     LOGGER_XR(xrAttachSessionActionSets, mSession, &sessionActionSetsAttachInfo);
 }
 
-void Controllers::createAction(std::string_view actionName, std::string_view localizedActionName, XrActionType type, XrAction& action)
+bool Controllers::sync(const XrSpace space, const XrTime time)
+{
+    const XrActiveActionSet activeActionSet{
+        .actionSet = mActionSet
+    };
+
+    XrActionsSyncInfo actionsSyncInfo{
+        .type = XR_TYPE_ACTIONS_SYNC_INFO,
+        .countActiveActionSets = 1,
+        .activeActionSets = &activeActionSet
+    };
+
+    LOGGER_XR(xrSyncActions, mSession, &actionsSyncInfo);
+
+    for (size_t controllerIndex{}; controllerIndex < controllerCount; ++controllerIndex)
+    {
+        const auto& path = mPaths.at(controllerIndex);
+
+        XrActionStatePose poseState{XR_TYPE_ACTION_STATE_POSE};
+        updateActionStatePose(mSession, mPoseAction, path, poseState);
+
+        if (poseState.isActive)
+        {
+            XrSpaceLocation spaceLocation{ XR_TYPE_SPACE_LOCATION };
+            LOGGER_XR(xrLocateSpace, mSpaces.at(controllerIndex), space, time, &spaceLocation);
+
+            constexpr XrSpaceLocationFlags checkFlags{
+                XR_SPACE_LOCATION_POSITION_VALID_BIT | XR_SPACE_LOCATION_POSITION_TRACKED_BIT |
+                XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT};
+
+            if ((spaceLocation.locationFlags & checkFlags) == checkFlags)
+            {
+                mPoses.at(controllerIndex) = khronos_utils::xrPoseToMatrix(spaceLocation.pose);
+            }
+        }
+
+        XrActionStateFloat flySpeedState{XR_TYPE_ACTION_STATE_FLOAT};
+        updateActionStateFloat(mSession, mFlyAction, path, flySpeedState);
+
+        if (flySpeedState.isActive)
+        {
+            mFlySpeeds.at(controllerIndex) = flySpeedState.currentState;
+        }
+    }
+
+    return true;
+}
+
+void Controllers::updateActionStatePose(const XrSession session, const XrAction action, const XrPath path, XrActionStatePose& state)
+{
+    XrActionStateGetInfo actionStateGetInfo{
+        .type = XR_TYPE_ACTION_STATE_GET_INFO,
+        .action = action,
+        .subactionPath = path
+    };
+
+    LOGGER_XR(xrGetActionStatePose, session, &actionStateGetInfo, &state);
+}
+
+void Controllers::updateActionStateFloat(const XrSession session, const XrAction action, const XrPath path, XrActionStateFloat& state)
+{
+    XrActionStateGetInfo actionStateGetInfo{
+        .type = XR_TYPE_ACTION_STATE_GET_INFO,
+        .action = action,
+        .subactionPath = path
+    };
+
+    LOGGER_XR(xrGetActionStateFloat, session, &actionStateGetInfo, &state);
+}
+
+void Controllers::createAction(const std::string& actionName, const std::string& localizedActionName, const XrActionType type, XrAction& action)
 {
     XrActionCreateInfo actionCreateInfo{
         .type = XR_TYPE_ACTION_CREATE_INFO,

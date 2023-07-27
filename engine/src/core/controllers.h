@@ -20,6 +20,10 @@ public:
     ~Controllers();
 
     void setupControllers();
+    bool sync(const XrSpace space, const XrTime time);
+
+    float getFlySpeed(size_t controllerIndex) const { return mFlySpeeds.at(controllerIndex); }
+    math::Mat4 getPose(size_t controllerIndex) const { return mPoses.at(controllerIndex); }
 
 private:
     XrInstance mInstance{};
@@ -28,9 +32,16 @@ private:
     XrActionSet mActionSet{};
     XrAction mPoseAction{}, mFlyAction{};
     std::array<XrPath, controllerCount> mPaths;
-    std::array<math::Mat4<>, controllerCount> mPoses;
+    std::array<math::Mat4, controllerCount> mPoses;
     std::array<float, controllerCount> mFlySpeeds;
 
-    void createAction(std::string_view actionName, std::string_view localizedActionName, XrActionType type, XrAction& action);
+    void createAction(
+        const std::string& actionName,
+        const std::string& localizedActionName,
+        const XrActionType type,
+        XrAction& action);
+
+    void updateActionStatePose(const XrSession session, const XrAction action, const XrPath path, XrActionStatePose& state);
+    void updateActionStateFloat(const XrSession session, const XrAction action, const XrPath path, XrActionStateFloat& state);
 };
 }

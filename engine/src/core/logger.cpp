@@ -70,7 +70,7 @@ void log(
     const char* functionName,
     int lineNumber)
 {
-    std::lock_guard<std::mutex> lock(loggerMutex);
+    std::lock_guard<std::mutex> _{loggerMutex};
 
     std::cout
         << colorToString(Color::GREEN)
@@ -89,7 +89,7 @@ void warning(
     const char* functionName,
     int lineNumber)
 {
-    std::lock_guard<std::mutex> lock(loggerMutex);
+    std::lock_guard<std::mutex> _{loggerMutex};
 
     std::cout
         << colorToString(Color::YELLOW)
@@ -109,7 +109,7 @@ void error(
     int lineNumber,
     bool isThrowingExc)
 {
-    std::lock_guard<std::mutex> lock(loggerMutex);
+    std::lock_guard<std::mutex> _{loggerMutex};
 
     std::cerr
         << colorToString(Color::RED)

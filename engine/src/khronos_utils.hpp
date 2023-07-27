@@ -62,17 +62,17 @@ inline VkDeviceSize align(VkDeviceSize value, VkDeviceSize alignment)
     return (value + alignment - 1u) & ~(alignment - 1u);
 }
 
-inline math::Mat4<> createXrProjectionMatrix(XrFovf fov, float nearClip, float farClip)
+inline math::Mat4 createXrProjectionMatrix(const XrFovf fov, const float nearClip, const float farClip)
 {
-    const float l = tan(fov.angleLeft);
-    const float r = tan(fov.angleRight);
-    const float d = tan(fov.angleDown);
-    const float u = tan(fov.angleUp);
+    const auto l = tan(fov.angleLeft);
+    const auto r = tan(fov.angleRight);
+    const auto d = tan(fov.angleDown);
+    const auto u = tan(fov.angleUp);
 
-    const float w = r - l;
-    const float h = d - u;
+    const auto w = r - l;
+    const auto h = d - u;
 
-    math::Mat4<> projectionMatrix{{{
+    math::Mat4 projectionMatrix{{{
         2.0f / w   , 0.0f       , 0.0f                                                     , 0.0f ,
         0.0f       , 2.0f / h   , 0.0f                                                     , 0.0f ,
         (r + l) / w, (u + d) / h, -(farClip + nearClip) / (farClip - nearClip)             , -1.0f,
@@ -82,13 +82,13 @@ inline math::Mat4<> createXrProjectionMatrix(XrFovf fov, float nearClip, float f
     return projectionMatrix;
 }
 
-inline math::Mat4<> xrPoseToMatrix(const XrPosef& pose)
+inline math::Mat4 xrPoseToMatrix(const XrPosef& pose)
 {
     const auto translation =
-        math::translate(math::Mat4<>::makeScalarMat(1.f), math::Vec3<>(pose.position.x, pose.position.y, pose.position.z));
+        math::translate(math::Mat4::makeScalarMat(1.f), {pose.position.x, pose.position.y, pose.position.z});
 
     const auto rotation =
-        math::Mat4<>(math::Quat<>(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z));
+        math::Mat4(math::Quat(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z));
 
     return translation * rotation;
 }

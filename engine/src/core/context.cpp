@@ -607,10 +607,9 @@ void Context::createXrInstance()
     LOGGER_XR(xrEnumerateInstanceExtensionProperties, nullptr, 0, &instanceExtensionCount, nullptr)
 
     supportedXrInstanceExtensions.resize(instanceExtensionCount);
-    for (XrExtensionProperties& extensionProperty : supportedXrInstanceExtensions)
+    for (auto& extensionProperty : supportedXrInstanceExtensions)
     {
         extensionProperty.type = XR_TYPE_EXTENSION_PROPERTIES;
-        extensionProperty.next = nullptr;
     }
 
     LOGGER_XR(xrEnumerateInstanceExtensionProperties,

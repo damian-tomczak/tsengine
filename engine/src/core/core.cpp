@@ -9,10 +9,15 @@
 #include "game_object.hpp"
 #include "renderer.h"
 
-unsigned tickCount{};
-bool isAlreadyInitiated{};
-
 std::mutex engineInit;
+
+namespace
+{
+    constexpr float flySpeedMultiplier{2.5f};
+
+    unsigned tickCount{};
+    bool isAlreadyInitiated{};
+}
 
 namespace ts
 {
@@ -82,11 +87,11 @@ int run(Engine* const engine) try
         &logoModel
     };
 
-    gridModel.worldMatrix = math::Mat4<>::makeScalarMat(1.f);
-    carModelLeft.worldMatrix = math::translate(math::Mat4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -7.0f});
-    carModelRight.worldMatrix = math::translate(math::Mat4<>::makeScalarMat(1.0f), {8.0f, 0.0f, -15.0f});
-    beetleModel.worldMatrix = math::translate(math::Mat4<>::makeScalarMat(1.0f), {-3.5f, 0.0f, -0.5f});
-    logoModel.worldMatrix = math::translate(math::Mat4<>::makeScalarMat(1.0f), {0.0f, 3.0f, -10.0f});
+    gridModel.worldMatrix = math::Mat4::makeScalarMat(1.f);
+    carModelLeft.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.0f), {-3.5f, 0.0f, -7.0f});
+    carModelRight.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.0f), {8.0f, 0.0f, -15.0f});
+    beetleModel.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.0f), {-3.5f, 0.0f, -0.5f});
+    logoModel.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.0f), {0.0f, 3.0f, -10.0f});
 
     auto meshData{std::make_unique<MeshData>()};
     meshData->loadModel("assets/models/Grid.obj", models, 1);
@@ -105,6 +110,8 @@ int run(Engine* const engine) try
     LOGGER_LOG("tsengine initialization completed successfully");
 
     window->show();
+
+    math::Mat4 cameraMat;
     auto previousTime{std::chrono::high_resolution_clock::now()};
     while (!headset.isExitRequested())
     {
@@ -120,36 +127,29 @@ int run(Engine* const engine) try
 
         uint32_t swapchainImageIndex;
         const Headset::BeginFrameResult frameResult = headset.beginFrame(swapchainImageIndex);
-        //if (frameResult == Headset::BeginFrameResult::RENDER_FULLY)
-        //{
-        //    if (!controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime))
-        //    {
-        //        return EXIT_FAILURE;
-        //    }
+        if (frameResult == Headset::BeginFrameResult::RENDER_FULLY)
+        {
+            controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
 
-        //    static float time = 0.0f;
-        //    time += deltaTime;
+            static float time{0.f};
+            time += deltaTime;
 
-        //    // Update
-        //    for (size_t controllerIndex = 0u; controllerIndex < 2u; ++controllerIndex)
-        //    {
-        //        const float flySpeed = controllers.getFlySpeed(controllerIndex);
-        //        if (flySpeed > 0.0f)
-        //        {
-        //            const glm::vec3 forward = glm::normalize(controllers.getPose(controllerIndex)[2]);
-        //            cameraMatrix = glm::translate(cameraMatrix, forward * flySpeed * flySpeedMultiplier * deltaTime);
-        //        }
-        //    }
+            for (size_t controllerIndex = 0u; controllerIndex < 2u; ++controllerIndex)
+            {
+                const auto flySpeed = controllers.getFlySpeed(controllerIndex);
+                if (flySpeed > 0.0f)
+                {
+                    const math::Vec3 forward{math::normalize(controllers.getPose(controllerIndex)[2])};
+                    cameraMat = math::translate(cameraMat, forward * flySpeed * flySpeedMultiplier * deltaTime);
+                }
+            }
 
-        //    const glm::mat4 inverseCameraMatrix = glm::inverse(cameraMatrix);
-        //    handModelLeft.worldMatrix = inverseCameraMatrix * controllers.getPose(0u);
-        //    handModelRight.worldMatrix = inverseCameraMatrix * controllers.getPose(1u);
-        //    handModelRight.worldMatrix = glm::scale(handModelRight.worldMatrix, { -1.0f, 1.0f, 1.0f });
+            const auto inverseCameraMat = math::inverse(cameraMat);
+            handModelLeft.worldMatrix = inverseCameraMat * controllers.getPose(0);
+            handModelRight.worldMatrix = inverseCameraMat * controllers.getPose(1);
+            handModelRight.worldMatrix = math::scale(handModelRight.worldMatrix, { -1.0f, 1.0f, 1.0f });
 
-        //    bikeModel.worldMatrix =
-        //        glm::rotate(glm::translate(glm::mat4(1.0f), { 0.5f, 0.0f, -4.5f }), time * 0.2f, { 0.0f, 1.0f, 0.0f });
 
-        //    // Render
         //    renderer.render(cameraMatrix, swapchainImageIndex, time);
 
         //    const MirrorView::RenderResult mirrorResult = mirrorView.render(swapchainImageIndex);
@@ -165,7 +165,7 @@ int run(Engine* const engine) try
         //    {
         //        mirrorView.present();
         //    }
-        //}
+        }
 
         //if (frameResult == Headset::BeginFrameResult::RenderFully || frameResult == Headset::BeginFrameResult::SkipRender)
         //{
