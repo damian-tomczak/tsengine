@@ -2,14 +2,11 @@
 #include "context.h"
 #include "vulkan_tools/vulkan_functions.h"
 #include "tsengine/logger.h"
-#include "khronos_utils.hpp"
+#include "khronos_utils.h"
 #include "data_buffer.h"
 
 namespace ts
 {
-RenderProcess::RenderProcess(const Context* ctx) : mCtx{ctx}
-{}
-
 RenderProcess::~RenderProcess()
 {
     if (mUniformBuffer != nullptr)
@@ -44,18 +41,18 @@ void RenderProcess::createRendererProcess(
     VkDescriptorSetLayout descriptorSetLayout,
     size_t modelCount)
 {
-    dynamicVertexUniformData.resize(modelCount);
+    mDynamicVertexUniformData.resize(modelCount);
     for (size_t modelIndex{}; modelIndex < modelCount; ++modelIndex)
     {
-        dynamicVertexUniformData.at(modelIndex).worldMatrix = math::Mat4::makeScalarMat(1.f);
+        mDynamicVertexUniformData.at(modelIndex).worldMatrix = math::Mat4::makeScalarMat(1.f);
     }
 
-    for (auto& viewProjectionMatrix : staticVertexUniformData.viewProjectionMatrices)
+    for (auto& viewProjectionMatrix : mStaticVertexUniformData.viewProjectionMatrices)
     {
         viewProjectionMatrix = math::Mat4::makeScalarMat(1.f);
     }
 
-    staticFragmentUniformData.time = 0.0f;
+    mStaticFragmentUniformData.time = 0.0f;
 
     const auto device{mCtx->getVkDevice()};
 
@@ -82,11 +79,11 @@ void RenderProcess::createRendererProcess(
 
     std::array<VkDescriptorBufferInfo, 3> descriptorBufferInfos;
     descriptorBufferInfos.at(0).offset = 0u;
-    descriptorBufferInfos.at(0).range = sizeof(DynamicVertexUniformData);
+    descriptorBufferInfos.at(0).range = sizeof(mDynamicVertexUniformData);
 
     descriptorBufferInfos.at(1).offset =
         khronos_utils::align(descriptorBufferInfos.at(0u).range, uniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(modelCount);
-    descriptorBufferInfos.at(1).range = sizeof(StaticVertexUniformData);
+    descriptorBufferInfos.at(1).range = sizeof(mStaticVertexUniformData);
 
     descriptorBufferInfos.at(2).offset =
         descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1u).range, uniformBufferOffsetAlignment);
@@ -152,5 +149,30 @@ void RenderProcess::createRendererProcess(
         static_cast<uint32_t>(writeDescriptorSets.size()),
         writeDescriptorSets.data(), 0,
         nullptr);
+}
+
+void RenderProcess::updateUniformBufferData() const
+{
+    if (mUniformBufferMemory != nullptr)
+    {
+        return;
+    }
+
+    const auto uniformBufferOffsetAlignment = mCtx->getUniformBufferOffsetAlignment();
+
+    auto offset = static_cast<char*>(mUniformBufferMemory);
+    VkDeviceSize length = sizeof(DynamicVertexUniformData);
+    for (const auto& dynamicData : mDynamicVertexUniformData)
+    {
+        memcpy(offset, &dynamicData, length);
+        offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+    }
+
+    length = sizeof(StaticVertexUniformData);
+    memcpy(offset, &mStaticVertexUniformData, length);
+    offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+
+    length = sizeof(StaticFragmentUniformData);
+    memcpy(offset, &mStaticFragmentUniformData, length);
 }
 }

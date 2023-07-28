@@ -11,7 +11,7 @@ std::string readShader(const std::filesystem::path& path)
     std::ifstream file(path);
     if (!file.is_open())
     {
-        LOGGER_ERR(("Shader file can not be opened" + path.string()).c_str());
+        LOGGER_ERR(("shader file can not be opened" + path.string()).c_str());
     }
 
     return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -50,7 +50,7 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::file
         .resource = glslang_default_resource()
     };
 
-    auto shader{glslang_shader_create(&input)};
+    auto shader = glslang_shader_create(&input);
 
     // TODO: implement more complex logging system, taking into account also line highlighting
     auto loggerWrapper{[&](const std::string& errorTitle) -> void {
@@ -60,21 +60,22 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::file
             << ": "
             << filePath.string()
             << "\n"
-            << "Compilation info: "
+            << "compilation info: "
             << glslang_shader_get_info_log(shader)
             << "\n"
             << glslang_shader_get_info_debug_log(shader);
+
         LOGGER_ERR(message.str().c_str());
     }};
 
     if (!glslang_shader_preprocess(shader, &input))
     {
-        loggerWrapper("Shader preprocessing failed");
+        loggerWrapper("shader preprocessing failed");
     }
 
     if (!glslang_shader_parse(shader, &input))
     {
-        loggerWrapper("Shader parsing failed");
+        loggerWrapper("shader parsing failed");
     }
 
     auto program{glslang_program_create()};
@@ -82,7 +83,7 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::file
 
     if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT))
     {
-        loggerWrapper("Shader linking failed");
+        loggerWrapper("shader linking failed");
     }
 
     glslang_program_SPIRV_generate(program, stage);
@@ -105,17 +106,17 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::file
 
 std::vector<uint32_t> compileShaderFile(const std::filesystem::path& filePath)
 {
-    auto src{readShader(filePath)};
+    auto src = readShader(filePath);
     if (src.empty())
     {
-        LOGGER_ERR(("Shader file is empty: " + filePath.string()).c_str());
+        LOGGER_ERR(("shader file is empty: " + filePath.string()).c_str());
     }
 
     const auto shaderStage{getShaderStage(filePath)};
 
     if (shaderStage == GLSLANG_STAGE_COUNT)
     {
-        LOGGER_ERR(("Shader file extension isn't supported: " + filePath.string()).c_str());
+        LOGGER_ERR(("shader file extension isn't supported: " + filePath.string()).c_str());
     }
 
     return processShader(shaderStage, filePath, src.c_str());
@@ -123,23 +124,23 @@ std::vector<uint32_t> compileShaderFile(const std::filesystem::path& filePath)
 
 void saveSPIRV(const std::filesystem::path& outputFilePath, const std::vector<uint32_t>& spirv)
 {
-    std::ofstream file(outputFilePath, std::ios::binary);
+    std::ofstream file{outputFilePath, std::ios::binary};
     if (!file.is_open())
     {
-        LOGGER_ERR(("Shader file can not be opened: " + outputFilePath.string()).c_str());
+        LOGGER_ERR(("shader file can not be opened: " + outputFilePath.string()).c_str());
     }
 
     file.write(reinterpret_cast<const char*>(spirv.data()), spirv.size() * sizeof(uint32_t));
 
     if (file.bad())
     {
-        LOGGER_ERR(("Failed to write to the shader file: " + outputFilePath.string()).c_str());
+        LOGGER_ERR(("failed to write to the shader file: " + outputFilePath.string()).c_str());
     }
 
     file.close();
     if (file.fail())
     {
-        LOGGER_ERR(("Failed to close the shader file: " + outputFilePath.string()).c_str());
+        LOGGER_ERR(("failed to close the shader file: " + outputFilePath.string()).c_str());
     }
 }
 }
@@ -181,7 +182,7 @@ void compileShaders(std::string_view shadersPath)
 
     if (shadersFoundNumber == 0)
     {
-        LOGGER_WARN("number of shaders found is 0");
+        LOGGER_WARN("no shaders found");
     }
 
     glslang_finalize_process();

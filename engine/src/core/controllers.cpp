@@ -1,6 +1,5 @@
 #include "controllers.h"
-#include "khronos_utils.hpp"
-#include "tsengine/logger.h"
+#include "khronos_utils.h"
 
 namespace
 {

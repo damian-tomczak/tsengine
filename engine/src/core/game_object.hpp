@@ -52,7 +52,7 @@ public:
                         attrib.vertices[3 * index.vertex_index + 1],
                         attrib.vertices[3 * index.vertex_index + 2]
                     },
-                    .color = { 1.f, 1.f, 1.f }
+                    .color = {1.f, 1.f, 1.f}
                 };
 
                 if (index.normal_index >= 0)
@@ -64,8 +64,8 @@ public:
                     };
                 }
 
-                mVertices.push_back(vertex);
-                mIndices.push_back(static_cast<uint32_t>(mIndices.size()));
+                mVertices.emplace_back(std::move(vertex));
+                mIndices.emplace_back(static_cast<uint32_t>(mIndices.size()));
             }
         }
 

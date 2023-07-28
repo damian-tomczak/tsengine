@@ -2,7 +2,7 @@
 #include "vulkan_tools/vulkan_functions.h"
 #include "context.h"
 #include "tsengine/logger.h"
-#include "khronos_utils.hpp"
+#include "khronos_utils.h"
 
 namespace ts
 {

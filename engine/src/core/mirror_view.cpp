@@ -4,6 +4,7 @@
 #include "os.h"
 #include "vulkan_tools/vulkan_functions.h"
 #include "renderer.h"
+#include "khronos_utils.h"
 
 namespace ts
 {

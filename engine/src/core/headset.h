@@ -42,10 +42,18 @@ public:
     bool isExitRequested() const { return mIsExitRequested; }
     XrSpace getXrSpace() const { return mXrSpace; }
     XrFrameState getXrFrameState() const { return mXrFrameState; }
+    std::shared_ptr<RenderTarget> getRenderTarget(size_t swapchainImageIndex) const { return mSwapchainRenderTargets.at(swapchainImageIndex); }
+    VkExtent2D getEyeResolution(int32_t eyeIndex) const
+    {
+        const XrViewConfigurationView& eyeInfo{mEyeViewInfos.at(eyeIndex)};
+        return {eyeInfo.recommendedImageRectWidth, eyeInfo.recommendedImageRectHeight};
+    }
+    size_t getEyeCount() const { return mEyeCount; }
+    math::Mat4 getEyeViewMatrix(size_t eyeIndex) const { return mEyeViewMatrices.at(eyeIndex); };
+    math::Mat4 getEyeProjectionMatrix(size_t eyeIndex) const { return mEyeProjectionMatrices.at(eyeIndex); };
 
 private:
     void createViews();
-    VkExtent2D getEyeResolution(int32_t eyeIndex) const;
     void beginSession() const;
     void endSession() const;
 
@@ -59,7 +67,7 @@ private:
     std::unique_ptr<ImageBuffer> mColorBuffer;
     std::unique_ptr<ImageBuffer> mDepthBuffer;
     XrSwapchain mXrSwapchain{};
-    std::vector<std::unique_ptr<RenderTarget>> mSwapchainRenderTargets;
+    std::vector<std::shared_ptr<RenderTarget>> mSwapchainRenderTargets;
     std::vector<XrCompositionLayerProjectionView> mEyeRenderInfos;
     std::vector<math::Mat4> mEyeViewMatrices;
     std::vector<math::Mat4> mEyeProjectionMatrices;

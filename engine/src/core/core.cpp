@@ -102,8 +102,8 @@ int run(Engine* const engine) try
     meshData->loadModel("assets/models/Hand.obj", models, 2);
     meshData->loadModel("assets/models/Logo.obj", models, 1);
 
-    Renderer renderer{&ctx, &headset};
-    renderer.createRenderer(std::move(meshData), models);
+    Renderer renderer{&ctx, &headset, models, std::move(meshData)};
+    renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
 
     isAlreadyInitiated = true;
@@ -139,7 +139,7 @@ int run(Engine* const engine) try
                 const auto flySpeed = controllers.getFlySpeed(controllerIndex);
                 if (flySpeed > 0.0f)
                 {
-                    const math::Vec3 forward{math::normalize(controllers.getPose(controllerIndex)[2])};
+                    const math::Vec3 forward(math::normalize(controllers.getPose(controllerIndex)[2]));
                     cameraMat = math::translate(cameraMat, forward * flySpeed * flySpeedMultiplier * deltaTime);
                 }
             }
@@ -150,7 +150,7 @@ int run(Engine* const engine) try
             handModelRight.worldMatrix = math::scale(handModelRight.worldMatrix, { -1.0f, 1.0f, 1.0f });
 
 
-        //    renderer.render(cameraMatrix, swapchainImageIndex, time);
+              renderer.render(cameraMat, swapchainImageIndex, time);
 
         //    const MirrorView::RenderResult mirrorResult = mirrorView.render(swapchainImageIndex);
         //    if (mirrorResult == MirrorView::RenderResult::Error)

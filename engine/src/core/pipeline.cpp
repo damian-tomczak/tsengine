@@ -2,6 +2,7 @@
 #include "context.h"
 #include "vulkan_tools/vulkan_functions.h"
 #include "tsengine/logger.h"
+#include "khronos_utils.h"
 
 namespace ts
 {
@@ -137,15 +138,20 @@ void Pipeline::createPipeline(
     vkDestroyShaderModule(device, fragmentShaderModule, nullptr);
 }
 
-void Pipeline::loadShaderFromFile(VkDevice device, const std::string& filename, VkShaderModule& shaderModule)
+void Pipeline::bind(const VkCommandBuffer commandBuffer) const
 {
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
+}
+
+void Pipeline::loadShaderFromFile(const VkDevice device, const std::string& fileName, VkShaderModule& shaderModule)
+{
+    std::ifstream file(fileName, std::ios::ate | std::ios::binary);
     if (!file.is_open())
     {
-        LOGGER_ERR(std::format("can not open {} shader file", filename).c_str());
+        LOGGER_ERR(("can not open shader file: " + fileName).c_str());
     }
 
-    const auto fileSize{static_cast<size_t>(file.tellg())};
+    const auto fileSize = static_cast<size_t>(file.tellg());
     std::vector<char> code(fileSize);
     file.seekg(0);
     file.read(code.data(), fileSize);

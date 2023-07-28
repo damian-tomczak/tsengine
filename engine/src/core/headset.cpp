@@ -3,9 +3,9 @@
 #include "image_buffer.h"
 #include "render_target.h"
 #include "openxr/openxr_platform.h"
-#include "khronos_utils.hpp"
-#include "tsengine/logger.h"
+#include "khronos_utils.h"
 #include "renderer.h"
+#include "vulkan_tools/vulkan_functions.h"
 
 namespace ts
 {
@@ -382,7 +382,7 @@ void Headset::createSwapchain()
         auto& pRenderTarget = mSwapchainRenderTargets.at(renderTargetIndex);
 
         const auto vkSwapchainImage = swapchainImages.at(renderTargetIndex).image;
-        pRenderTarget = std::make_unique<RenderTarget>(mCtx->getVkDevice(), vkSwapchainImage);
+        pRenderTarget = std::make_shared<RenderTarget>(mCtx->getVkDevice(), vkSwapchainImage);
         pRenderTarget->createRenderTarget(
             mColorBuffer->getVkImageView(),
             mDepthBuffer->getVkImageView(),
@@ -407,12 +407,6 @@ void Headset::createSwapchain()
 
     mEyeViewMatrices.resize(mEyeCount);
     mEyeProjectionMatrices.resize(mEyeCount);
-}
-
-VkExtent2D Headset::getEyeResolution(int32_t eyeIndex) const
-{
-    const XrViewConfigurationView& eyeInfo = mEyeViewInfos.at(eyeIndex);
-    return {eyeInfo.recommendedImageRectWidth, eyeInfo.recommendedImageRectHeight};
 }
 
 void Headset::beginSession() const

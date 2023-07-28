@@ -1,6 +1,5 @@
 #include "context.h"
-#include "tsengine/logger.h"
-#include "khronos_utils.hpp"
+#include "khronos_utils.h"
 #include "openxr/openxr_platform.h"
 #include "vulkan_tools/vulkan_loader.h"
 
@@ -101,9 +100,9 @@ void Context::createXrDebugMessenger()
 {
     const XrDebugUtilsMessengerCreateInfoEXT ci{
         .type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverities = logger::xrDebugMessageSeverityFlags,
-        .messageTypes = logger::xrDebugMessageTypeFlags,
-        .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(logger::xrCallback)
+        .messageSeverities = khronos_utils::xrDebugMessageSeverityFlags,
+        .messageTypes = khronos_utils::xrDebugMessageTypeFlags,
+        .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(khronos_utils::xrCallback)
     };
 
     LOGGER_XR(xrCreateDebugUtilsMessengerEXT,
@@ -512,9 +511,9 @@ void Context::createVkDebugMessenger()
 {
     const VkDebugUtilsMessengerCreateInfoEXT ci{
         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverity = logger::vkDebugMessageSeverityFlags,
-        .messageType = logger::vkDebugMessageTypeFlags,
-        .pfnUserCallback = &logger::vkCallback
+        .messageSeverity = khronos_utils::vkDebugMessageSeverityFlags,
+        .messageType = khronos_utils::vkDebugMessageTypeFlags,
+        .pfnUserCallback = &khronos_utils::vkCallback
     };
 
     LOGGER_VK(vkCreateDebugUtilsMessengerEXT, mVkInstance, &ci, nullptr, &mVkDebugMessenger);

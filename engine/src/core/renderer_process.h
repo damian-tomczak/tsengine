@@ -12,7 +12,8 @@ class DataBuffer;
 class RenderProcess final
 {
 public:
-    RenderProcess(const Context* ctx);
+    RenderProcess(const Context* ctx) : mCtx{ ctx }
+    {}
     ~RenderProcess();
 
     void createRendererProcess(
@@ -25,19 +26,22 @@ public:
     {
         math::Mat4 worldMatrix;
     };
-    std::vector<DynamicVertexUniformData> dynamicVertexUniformData;
+    std::vector<DynamicVertexUniformData> mDynamicVertexUniformData;
 
     struct StaticVertexUniformData
     {
         std::array<math::Mat4, 2> viewProjectionMatrices;
-    } staticVertexUniformData;
+    } mStaticVertexUniformData;
 
     struct StaticFragmentUniformData
     {
         float time;
-    } staticFragmentUniformData;
+    } mStaticFragmentUniformData;
 
     VkCommandBuffer getCommandBuffer() const { return mCommandBuffer; }
+    VkFence getFence() const { return mFence; }
+    VkDescriptorSet getDescriptorSet() const { return mDescriptorSet; }
+    void updateUniformBufferData() const;
 
 private:
     const Context* mCtx{};
