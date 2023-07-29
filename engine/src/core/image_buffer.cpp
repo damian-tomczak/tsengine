@@ -9,7 +9,7 @@ namespace ts
 {
 ImageBuffer::~ImageBuffer()
 {
-    const auto device{mCtx->getVkDevice()};
+    const auto device = mCtx->getVkDevice();
     if (mImageView != nullptr)
     {
         vkDestroyImageView(device, mImageView, nullptr);

@@ -168,9 +168,13 @@ XrBool32 xrCallback(
     const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
     void*)
 {
-    if (severity >= XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+    if (severity == XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
         logger::warning(callbackData->message, "", "", NOT_PRINT_LINE_NUMBER);
+    }
+    else if (severity == XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+    {
+        logger::error(callbackData->message, "", "", NOT_PRINT_LINE_NUMBER);
     }
 
     return XR_FALSE;
@@ -182,9 +186,13 @@ VkBool32 vkCallback(
     const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
     void*)
 {
-    if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+    if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
         logger::warning(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER);
+    }
+    else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+    {
+        logger::error(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER);
     }
 
     return VK_FALSE;
@@ -255,12 +263,12 @@ math::Mat4 createXrProjectionMatrix(const XrFovf fov, const float nearClip, cons
     const auto w = r - l;
     const auto h = d - u;
 
-    math::Mat4 projectionMatrix{ {{
+    math::Mat4 projectionMatrix{{{
         2.0f / w   , 0.0f       , 0.0f                                                     , 0.0f ,
         0.0f       , 2.0f / h   , 0.0f                                                     , 0.0f ,
         (r + l) / w, (u + d) / h, -(farClip + nearClip) / (farClip - nearClip)             , -1.0f,
         0.0f       , 0.0f       , -(farClip * (nearClip + nearClip)) / (farClip - nearClip), 0.0f ,
-    }} };
+    }}};
 
     return projectionMatrix;
 }

@@ -112,10 +112,10 @@ struct Mat4 : public Matrix<4, 4>
     {
         return {
         {{
-            value, 0    , 0    , 0    ,
-            0    , value, 0    , 0    ,
-            0    , 0    , value, 0    ,
-            0    , 0    , 0    , value,
+            value, 0.f  , 0.f  , 0.f  ,
+            0.f  , value, 0.f  , 0.f  ,
+            0.f  , 0.f  , value, 0.f  ,
+            0.f  , 0.f  , 0.f  , value
         }}};
     }
 
@@ -128,31 +128,32 @@ struct Mat4 : public Matrix<4, 4>
     {
         return data[index];
     }
-
-    Mat4 operator*(const Mat4& rhs) const {
-        return {{
-            data[0][0] * rhs.data[0][0] + data[0][1] * rhs.data[1][0] + data[0][2] * rhs.data[2][0] + data[0][3] * rhs.data[3][0],
-            data[0][0] * rhs.data[0][1] + data[0][1] * rhs.data[1][1] + data[0][2] * rhs.data[2][1] + data[0][3] * rhs.data[3][1],
-            data[0][0] * rhs.data[0][2] + data[0][1] * rhs.data[1][2] + data[0][2] * rhs.data[2][2] + data[0][3] * rhs.data[3][2],
-            data[0][0] * rhs.data[0][3] + data[0][1] * rhs.data[1][3] + data[0][2] * rhs.data[2][3] + data[0][3] * rhs.data[3][3],
-
-            data[1][0] * rhs.data[0][0] + data[1][1] * rhs.data[1][0] + data[1][2] * rhs.data[2][0] + data[1][3] * rhs.data[3][0],
-            data[1][0] * rhs.data[0][1] + data[1][1] * rhs.data[1][1] + data[1][2] * rhs.data[2][1] + data[1][3] * rhs.data[3][1],
-            data[1][0] * rhs.data[0][2] + data[1][1] * rhs.data[1][2] + data[1][2] * rhs.data[2][2] + data[1][3] * rhs.data[3][2],
-            data[1][0] * rhs.data[0][3] + data[1][1] * rhs.data[1][3] + data[1][2] * rhs.data[2][3] + data[1][3] * rhs.data[3][3],
-
-            data[2][0] * rhs.data[0][0] + data[2][1] * rhs.data[1][0] + data[2][2] * rhs.data[2][0] + data[2][3] * rhs.data[3][0],
-            data[2][0] * rhs.data[0][1] + data[2][1] * rhs.data[1][1] + data[2][2] * rhs.data[2][1] + data[2][3] * rhs.data[3][1],
-            data[2][0] * rhs.data[0][2] + data[2][1] * rhs.data[1][2] + data[2][2] * rhs.data[2][2] + data[2][3] * rhs.data[3][2],
-            data[2][0] * rhs.data[0][3] + data[2][1] * rhs.data[1][3] + data[2][2] * rhs.data[2][3] + data[2][3] * rhs.data[3][3],
-
-            data[3][0] * rhs.data[0][0] + data[3][1] * rhs.data[1][0] + data[3][2] * rhs.data[2][0] + data[3][3] * rhs.data[3][0],
-            data[3][0] * rhs.data[0][1] + data[3][1] * rhs.data[1][1] + data[3][2] * rhs.data[2][1] + data[3][3] * rhs.data[3][1],
-            data[3][0] * rhs.data[0][2] + data[3][1] * rhs.data[1][2] + data[3][2] * rhs.data[2][2] + data[3][3] * rhs.data[3][2],
-            data[3][0] * rhs.data[0][3] + data[3][1] * rhs.data[1][3] + data[3][2] * rhs.data[2][3] + data[3][3] * rhs.data[3][3],
-        }};
-    }
 };
+
+inline Mat4 operator*(const Mat4& lhs, const Mat4& rhs)
+{
+    return {{
+        rhs.data[0][0] * lhs.data[0][0] + rhs.data[0][1] * lhs.data[1][0] + rhs.data[0][2] * lhs.data[2][0] + rhs.data[0][3] * lhs.data[3][0],
+        rhs.data[0][0] * lhs.data[0][1] + rhs.data[0][1] * lhs.data[1][1] + rhs.data[0][2] * lhs.data[2][1] + rhs.data[0][3] * lhs.data[3][1],
+        rhs.data[0][0] * lhs.data[0][2] + rhs.data[0][1] * lhs.data[1][2] + rhs.data[0][2] * lhs.data[2][2] + rhs.data[0][3] * lhs.data[3][2],
+        rhs.data[0][0] * lhs.data[0][3] + rhs.data[0][1] * lhs.data[1][3] + rhs.data[0][2] * lhs.data[2][3] + rhs.data[0][3] * lhs.data[3][3],
+
+        rhs.data[1][0] * lhs.data[0][0] + rhs.data[1][1] * lhs.data[1][0] + rhs.data[1][2] * lhs.data[2][0] + rhs.data[1][3] * lhs.data[3][0],
+        rhs.data[1][0] * lhs.data[0][1] + rhs.data[1][1] * lhs.data[1][1] + rhs.data[1][2] * lhs.data[2][1] + rhs.data[1][3] * lhs.data[3][1],
+        rhs.data[1][0] * lhs.data[0][2] + rhs.data[1][1] * lhs.data[1][2] + rhs.data[1][2] * lhs.data[2][2] + rhs.data[1][3] * lhs.data[3][2],
+        rhs.data[1][0] * lhs.data[0][3] + rhs.data[1][1] * lhs.data[1][3] + rhs.data[1][2] * lhs.data[2][3] + rhs.data[1][3] * lhs.data[3][3],
+
+        rhs.data[2][0] * lhs.data[0][0] + rhs.data[2][1] * lhs.data[1][0] + rhs.data[2][2] * lhs.data[2][0] + rhs.data[2][3] * lhs.data[3][0],
+        rhs.data[2][0] * lhs.data[0][1] + rhs.data[2][1] * lhs.data[1][1] + rhs.data[2][2] * lhs.data[2][1] + rhs.data[2][3] * lhs.data[3][1],
+        rhs.data[2][0] * lhs.data[0][2] + rhs.data[2][1] * lhs.data[1][2] + rhs.data[2][2] * lhs.data[2][2] + rhs.data[2][3] * lhs.data[3][2],
+        rhs.data[2][0] * lhs.data[0][3] + rhs.data[2][1] * lhs.data[1][3] + rhs.data[2][2] * lhs.data[2][3] + rhs.data[2][3] * lhs.data[3][3],
+
+        rhs.data[3][0] * lhs.data[0][0] + rhs.data[3][1] * lhs.data[1][0] + rhs.data[3][2] * lhs.data[2][0] + rhs.data[3][3] * lhs.data[3][0],
+        rhs.data[3][0] * lhs.data[0][1] + rhs.data[3][1] * lhs.data[1][1] + rhs.data[3][2] * lhs.data[2][1] + rhs.data[3][3] * lhs.data[3][1],
+        rhs.data[3][0] * lhs.data[0][2] + rhs.data[3][1] * lhs.data[1][2] + rhs.data[3][2] * lhs.data[2][2] + rhs.data[3][3] * lhs.data[3][2],
+        rhs.data[3][0] * lhs.data[0][3] + rhs.data[3][1] * lhs.data[1][3] + rhs.data[3][2] * lhs.data[2][3] + rhs.data[3][3] * lhs.data[3][3],
+    }};
+}
 
 inline Mat4 translate(const Mat4& matrix, Vec3 translation)
 {
@@ -195,7 +196,7 @@ inline Mat4 inverse(const Mat4& mat)
     const auto det = _determinant(mat, 4);
     if (det == 0)
     {
-        throw std::runtime_error{ "singular matrix, can't find its inverse" };
+        throw std::runtime_error{"singular matrix, can't find its inverse"};
     }
 
     Mat4 adjMat;
@@ -215,6 +216,19 @@ inline Vec4 normalize(const Vec4 vec)
     return {vec.x / mag, vec.y / mag, vec.z / mag, vec.w / mag};
 }
 
+inline std::string to_string(const Mat4 mat)
+{
+    return std::format("\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f}\n",
+        mat[0][0], mat[0][1], mat[0][2], mat[0][3],
+        mat[1][0], mat[1][1], mat[1][2], mat[1][3],
+        mat[2][0], mat[2][1], mat[2][2], mat[2][3],
+        mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+}
+
 template<typename Mat>
 inline void _getCofactor(
     const Mat& referenceMat,
@@ -231,12 +245,12 @@ inline void _getCofactor(
         {
             if ((row != referenceRow) && (col != referenceColumn))
             {
-                newMat[newMatCol][newMatRow++] = referenceMat[row][col];
+                newMat[newMatRow][newMatCol++] = referenceMat[row][col];
 
-                if (newMatRow == depth - 1)
+                if (newMatCol == depth - 1)
                 {
-                    newMatRow = 0;
-                    newMatCol++;
+                    newMatCol = 0;
+                    newMatRow++;
                 }
             }
         }
@@ -255,14 +269,14 @@ inline float _determinant(const Mat& mat, size_t depth)
         return mat[0][0];
     }
 
-    bool sign{};
+    int32_t sign = 1;
     Mat temp;
     for (size_t f{}; f < depth; ++f)
     {
-        _getCofactor(mat, temp, 0ll, f, depth);
+        _getCofactor(mat, temp, 0, f, depth);
         det += sign * mat[0][f] * _determinant(temp, depth - 1);
 
-        sign = !sign;
+        sign = -sign;
     }
 
     return det;
@@ -281,7 +295,7 @@ inline void _adjoint(const Mat& referenceMat, Mat& adjMat)
         {
             _getCofactor(referenceMat, temp, row, col, Mat::rowsNum);
 
-            const auto sign{((row + col) % 2 == 0) ? 1 : -1};
+            const auto sign = ((row + col) % 2 == 0) ? 1 : -1;
 
             adjMat[col][row] = sign * (_determinant(temp, Mat::rowsNum - 1));
         }

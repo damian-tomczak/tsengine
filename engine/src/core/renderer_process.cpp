@@ -54,7 +54,7 @@ void RenderProcess::createRendererProcess(
 
     mStaticFragmentUniformData.time = 0.0f;
 
-    const auto device{mCtx->getVkDevice()};
+    const auto device = mCtx->getVkDevice();
 
     const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -64,7 +64,7 @@ void RenderProcess::createRendererProcess(
     };
     LOGGER_VK(vkAllocateCommandBuffers, device, &commandBufferAllocateInfo, &mCommandBuffer);
 
-    const VkSemaphoreCreateInfo semaphoreCreateInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+    const VkSemaphoreCreateInfo semaphoreCreateInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
     LOGGER_VK(vkCreateSemaphore, device, &semaphoreCreateInfo, nullptr, &mDrawableSemaphore);
 
     LOGGER_VK(vkCreateSemaphore, device, &semaphoreCreateInfo, nullptr, &mPresentableSemaphore);
@@ -75,18 +75,18 @@ void RenderProcess::createRendererProcess(
     };
     LOGGER_VK(vkCreateFence, device, &fenceCreateInfo, nullptr, &mFence);
 
-    const auto uniformBufferOffsetAlignment{mCtx->getUniformBufferOffsetAlignment()};
+    const auto uniformBufferOffsetAlignment = mCtx->getUniformBufferOffsetAlignment();
 
     std::array<VkDescriptorBufferInfo, 3> descriptorBufferInfos;
-    descriptorBufferInfos.at(0).offset = 0u;
-    descriptorBufferInfos.at(0).range = sizeof(mDynamicVertexUniformData);
+    descriptorBufferInfos.at(0).offset = 0;
+    descriptorBufferInfos.at(0).range = sizeof(DynamicVertexUniformData);
 
     descriptorBufferInfos.at(1).offset =
-        khronos_utils::align(descriptorBufferInfos.at(0u).range, uniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(modelCount);
-    descriptorBufferInfos.at(1).range = sizeof(mStaticVertexUniformData);
+        khronos_utils::align(descriptorBufferInfos.at(0).range, uniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(modelCount);
+    descriptorBufferInfos.at(1).range = sizeof(StaticVertexUniformData);
 
     descriptorBufferInfos.at(2).offset =
-        descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1u).range, uniformBufferOffsetAlignment);
+        descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment);
     descriptorBufferInfos.at(2).range = sizeof(StaticFragmentUniformData);
 
     const auto uniformBufferSize{descriptorBufferInfos.at(2).offset + descriptorBufferInfos.at(2).range};
@@ -115,7 +115,7 @@ void RenderProcess::createRendererProcess(
         descriptorBufferInfo.buffer = mUniformBuffer->getBuffer();
     }
 
-    std::array<VkWriteDescriptorSet, 3u> writeDescriptorSets{{
+    std::array<VkWriteDescriptorSet, 3> writeDescriptorSets{{
         {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = mDescriptorSet,
@@ -147,13 +147,14 @@ void RenderProcess::createRendererProcess(
     vkUpdateDescriptorSets(
         device,
         static_cast<uint32_t>(writeDescriptorSets.size()),
-        writeDescriptorSets.data(), 0,
+        writeDescriptorSets.data(),
+        0,
         nullptr);
 }
 
 void RenderProcess::updateUniformBufferData() const
 {
-    if (mUniformBufferMemory != nullptr)
+    if (mUniformBufferMemory == nullptr)
     {
         return;
     }

@@ -14,18 +14,20 @@ public:
     {}
     ~Win32Window();
 
-    void createWindow() override;
-
     HINSTANCE getHInstance() const { return mHInstance; }
     HWND getHwnd() const { return mHwnd; }
 
-private:
-    virtual void show() override;
-    virtual Message peekMessage() override;
+    void show() override;
+    Message peekMessage() override;
+    void dispatchMessage() override;
 
+private:
     static LRESULT windowProcedure(HWND pHwnd, UINT msg, WPARAM pWParam, LPARAM wLParam);
 
     HINSTANCE mHInstance{GetModuleHandle(nullptr)};
     HWND mHwnd{};
+    MSG mMsg{};
+
+    void createWindow() override;
 };
 } // namespace ts

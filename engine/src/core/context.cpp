@@ -5,14 +5,14 @@
 
 namespace
 {
-    PFN_xrGetVulkanInstanceExtensionsKHR xrGetVulkanInstanceExtensionsKHR{};
-    PFN_xrGetVulkanGraphicsDeviceKHR xrGetVulkanGraphicsDeviceKHR{};
-    PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtensionsKHR{};
-    PFN_xrGetVulkanGraphicsRequirementsKHR xrGetVulkanGraphicsRequirementsKHR{};
+PFN_xrGetVulkanInstanceExtensionsKHR xrGetVulkanInstanceExtensionsKHR{};
+PFN_xrGetVulkanGraphicsDeviceKHR xrGetVulkanGraphicsDeviceKHR{};
+PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtensionsKHR{};
+PFN_xrGetVulkanGraphicsRequirementsKHR xrGetVulkanGraphicsRequirementsKHR{};
 
 #ifndef NDEBUG
-    PFN_xrCreateDebugUtilsMessengerEXT xrCreateDebugUtilsMessengerEXT{};
-    PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
+PFN_xrCreateDebugUtilsMessengerEXT xrCreateDebugUtilsMessengerEXT{};
+PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
 #endif // DEBUG
 } // namespace
 
@@ -94,6 +94,25 @@ void Context::loadXrExtensions()
         reinterpret_cast<PFN_xrVoidFunction*>(&xrDestroyDebugUtilsMessengerEXT));
 #endif // DEBUG
 }
+
+uint32_t Context::getVkGraphicsQueueFamilyIndex() const
+{
+    if (mVkGraphicsQueueFamilyIndex == std::nullopt)
+    {
+        LOGGER_ERR("graphics queue index isn't selected yet");
+    }
+
+    return *mVkGraphicsQueueFamilyIndex;
+};
+uint32_t Context::getVkPresentQueueFamilyIndex() const
+{
+    if (mVkPresentQueueFamilyIndex == std::nullopt)
+    {
+        LOGGER_ERR("present queue index isn't selected yet");
+    }
+
+    return *mVkPresentQueueFamilyIndex;
+};
 
 #ifndef NDEBUG
 void Context::createXrDebugMessenger()
@@ -539,7 +558,12 @@ Context::~Context()
     {
         vkDestroyDebugUtilsMessengerEXT(mVkInstance, mVkDebugMessenger, nullptr);
     }
-#endif // DEBUG
+#endif // NDEBUG
+
+    if (mVkDevice != nullptr)
+    {
+        vkDestroyDevice(mVkDevice, nullptr);
+    }
 
     if (mVkInstance != nullptr)
     {
@@ -580,6 +604,11 @@ void Context::createVulkanContext()
 
 void Context::createXrInstance()
 {
+    if (strlen(GAME_NAME) > XR_MAX_APPLICATION_NAME_SIZE - 1)
+    {
+        LOGGER_ERR("too long game name: " STR(XR_MAX_APPLICATION_NAME_SIZE));
+    }
+
     const XrApplicationInfo appInfo{
         .applicationName = GAME_NAME,
         .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
@@ -587,12 +616,6 @@ void Context::createXrInstance()
         .engineVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
         .apiVersion = XR_CURRENT_API_VERSION,
     };
-
-    if (strlen(GAME_NAME) > XR_MAX_APPLICATION_NAME_SIZE - 1)
-    {
-        LOGGER_WARN("length of the game name has been reduced to the sie of XR_MAX_APPLICATION_NAME_SIZE,"
-            "which is " STR(XR_MAX_APPLICATION_NAME_SIZE) );
-    }
 
     std::vector<const char*> extensions{XR_KHR_VULKAN_ENABLE_EXTENSION_NAME};
 

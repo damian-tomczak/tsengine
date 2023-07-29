@@ -1,8 +1,9 @@
 #pragma once
 
 #include "tsengine/math.hpp"
+#include "utils.hpp"
 
-#include <vulkan/vulkan.h>
+#include "vulkan/vulkan.h"
 
 namespace ts
 {
@@ -11,6 +12,8 @@ class DataBuffer;
 
 class RenderProcess final
 {
+    NOT_COPYABLE_AND_MOVEABLE(RenderProcess);
+
 public:
     RenderProcess(const Context* ctx) : mCtx{ ctx }
     {}
@@ -38,10 +41,13 @@ public:
         float time;
     } mStaticFragmentUniformData;
 
+    void updateUniformBufferData() const;
+
     VkCommandBuffer getCommandBuffer() const { return mCommandBuffer; }
     VkFence getFence() const { return mFence; }
     VkDescriptorSet getDescriptorSet() const { return mDescriptorSet; }
-    void updateUniformBufferData() const;
+    VkSemaphore getDrawableSemaphore() const { return mDrawableSemaphore; }
+    VkSemaphore getPresentableSemaphore() const { return mPresentableSemaphore; }
 
 private:
     const Context* mCtx{};

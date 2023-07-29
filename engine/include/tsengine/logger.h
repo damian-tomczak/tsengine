@@ -1,17 +1,5 @@
 #pragma once
 
-#ifdef TSENGINE_BULDING
-#include "vulkan/vulkan.h"
-#include "openxr/openxr.h"
-
-class TSException : public std::exception
-{
-public:
-    TSException() {}
-};
-
-#endif // TSENGINE_BULDING
-
 #ifdef _WIN32
 #define FUNCTION_SIGNATURE __FUNCSIG__
 #else
@@ -26,33 +14,33 @@ public:
 
 namespace ts
 {
-    enum
-    {
-        SUCCESS,
-        TS_FAILURE,
-        STL_FAILURE,
-        UNKNOWN_FAILURE
-    };
+enum
+{
+    SUCCESS,
+    TS_FAILURE,
+    STL_FAILURE,
+    UNKNOWN_FAILURE
+};
 
 namespace logger
 {
-    void log(
-        const char* message,
-        const char* fileName,
-        const char* functionName,
-        int lineNumber);
+void log(
+    const char* message,
+    const char* fileName,
+    const char* functionName,
+    int lineNumber);
 
-    void warning(
-        const char* message,
-        const char* fileName,
-        const char* functionName,
-        int lineNumber);
+void warning(
+    const char* message,
+    const char* fileName,
+    const char* functionName,
+    int lineNumber);
 
-    void error(
-        const char* message,
-        const char* fileName,
-        const char* functionName,
-        int lineNumber,
-        bool isThrowingExc = true);
+void error(
+    const char* message,
+    const char* fileName,
+    const char* functionName,
+    int lineNumber,
+    bool throwException = true);
 } // namespace logger
 } // namespace ts

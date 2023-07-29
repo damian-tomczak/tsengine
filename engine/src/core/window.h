@@ -30,9 +30,10 @@ public:
         QUIT
     };
 
+    virtual void createWindow() = 0;
     virtual void show() = 0;
     virtual Message peekMessage() = 0;
-    virtual void createWindow() = 0;
+    virtual void dispatchMessage() = 0;
 
     static std::shared_ptr<Window> createWindowInstance(size_t width, size_t height);
 

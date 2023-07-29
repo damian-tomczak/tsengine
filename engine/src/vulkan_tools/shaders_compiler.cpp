@@ -32,7 +32,7 @@ glslang_stage_t getShaderStage(const std::filesystem::path& file)
     }
 
     return GLSLANG_STAGE_COUNT;
-}
+} // namespace
 
 std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::filesystem::path& filePath, const std::string& src)
 {

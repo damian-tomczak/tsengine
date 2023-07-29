@@ -1,8 +1,8 @@
 #pragma once
 
+#include "utils.hpp"
 #include "tsengine/math.hpp"
 
-#include "utils.hpp"
 #include "vulkan/vulkan.h"
 
 namespace ts
@@ -26,11 +26,16 @@ public:
     ~Renderer();
 
     void createRenderer();
-    void render(const math::Mat4& cameraMat, size_t swapchainImageIndex, float time);
+    void render(const math::Mat4& cameraMatrix, size_t swapchainImageIndex, float time);
+    void submit(bool useSemaphores) const;
+
+    VkSemaphore getCurrentDrawableSemaphore() const;
+    VkSemaphore getCurrentPresentableSemaphore() const;
+    VkCommandBuffer getCurrentCommandBuffer() const;
 
 private:
     void createVertexIndexBuffer();
-    void updateUniformData(const math::Mat4& cameraMat, float time, RenderProcess* renderProcess);
+    void updateUniformData(const math::Mat4& cameraMatrix, float time, RenderProcess* renderProcess);
 
     const Context* mCtx{};
     const Headset* mHeadset{};

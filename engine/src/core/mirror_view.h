@@ -24,13 +24,23 @@ public:
     MirrorView(const Context* ctx, const std::shared_ptr<Window> window);
     ~MirrorView();
 
+    enum class RenderResult
+    {
+        VISIBLE,
+        INVISIBLE
+    };
+
+    void createSurface();
     void connect(const Headset* headset, const Renderer* renderer);
+    MirrorView::RenderResult render(uint32_t swapchainImageIndex);
+    void present();
+
+    void onWindowResize() { mIsResizeDetected = true; }
 
     VkSurfaceKHR getSurface() const { return mSurface; }
 
 private:
-    void createSurface();
-    void recreateSwapchain();
+    void recreateXrSwapchain();
     void getSurfaceCapabilitiesAndExtent();
     bool isWindowMinimize();
     void pickSurfaceFormat();
@@ -46,5 +56,7 @@ private:
     VkExtent2D mSwapchainResolution{};
     std::vector<VkImage> mSwapchainImages;
     VkSurfaceFormatKHR mSurfaceFormat{};
+    bool mIsResizeDetected{};
+    uint32_t mDestinationImageIndex{};
 };
 }

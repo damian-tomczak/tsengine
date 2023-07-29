@@ -1,8 +1,9 @@
 #pragma once
 
 #include "utils.hpp"
-#include "openxr/openxr.h"
 #include "tsengine/math.hpp"
+
+#include "openxr/openxr.h"
 
 namespace ts
 {
@@ -10,7 +11,6 @@ class Controllers final
 {
     NOT_COPYABLE_AND_MOVEABLE(Controllers);
 
-    static constexpr size_t controllerCount{2};
     static constexpr std::string_view actionSetName{"actionset"};
     static constexpr std::string_view localizedActionSetName{"Actions"};
 
@@ -18,6 +18,8 @@ public:
     Controllers(XrInstance xrInstance, XrSession xrSession) : mInstance(xrInstance), mSession(xrSession)
     {}
     ~Controllers();
+
+    static constexpr size_t controllerCount{2};
 
     void setupControllers();
     bool sync(const XrSpace space, const XrTime time);

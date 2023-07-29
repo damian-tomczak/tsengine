@@ -3,10 +3,11 @@
 // ACHTUNG --- ONLY FOR DEVELOPMENT PURPOSES --- ACHTUNG
 // TODO: refactor it to the ecs
 
-#include "tsengine/math.hpp"
-#include "tiny_obj_loader.h"
 #include "utils.hpp"
+#include "tsengine/math.hpp"
 #include "tsengine/logger.h"
+
+#include "tiny_obj_loader.h"
 
 namespace ts
 {
@@ -40,7 +41,7 @@ public:
             LOGGER_ERR(("can not open the model: " + fileName).c_str());
         }
 
-        const auto oldIndexCount{mIndices.size()};
+        const auto oldIndexCount = mIndices.size();
 
         for (const auto& shape : shapes)
         {
@@ -76,6 +77,7 @@ public:
             model->firstIndex = oldIndexCount;
             model->indexCount = mIndices.size() - oldIndexCount;
         }
+        offset += count;
     }
 
     size_t getIndexOffset() const { return sizeof(mVertices.at(0)) * mVertices.size(); }

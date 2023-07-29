@@ -41,12 +41,12 @@ void Win32Window::createWindow()
 
 Win32Window::~Win32Window()
 {
-    if (mHwnd)
+    if (mHwnd != nullptr)
     {
         DestroyWindow(mHwnd);
     }
 
-    if (mHInstance)
+    if (mHInstance != nullptr)
     {
         UnregisterClass("tsengine", mHInstance);
     }
@@ -60,32 +60,36 @@ void Win32Window::show()
 
 Window::Message Win32Window::peekMessage()
 {
-    MSG msg{};
-    PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
+    PeekMessage(&mMsg, NULL, 0, 0, PM_REMOVE);
 
-    return static_cast<Message>(msg.message);
+    return static_cast<Message>(mMsg.message);
 }
 
-LRESULT CALLBACK Win32Window::windowProcedure(HWND pHwnd, UINT msg, WPARAM pWParam, LPARAM pLParam)
+void Win32Window::dispatchMessage()
 {
-    // TODO: investigate switch cases
+    TranslateMessage(&mMsg);
+    DispatchMessage(&mMsg);
+}
+
+LRESULT Win32Window::windowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
     switch (msg)
     {
     case WM_SIZE:
     case WM_EXITSIZEMOVE:
-        PostMessage(pHwnd, static_cast<UINT>(Message::RESIZE), pWParam, pLParam);
+        PostMessage(hwnd, static_cast<UINT32>(Message::RESIZE), wParam, lParam);
         break;
     case WM_KEYDOWN:
-        if (pWParam == VK_ESCAPE)
+        if (VK_ESCAPE == wParam)
         {
-            PostMessage(pHwnd, static_cast<UINT>(Message::QUIT), pWParam, pLParam);
+            PostMessage(hwnd, static_cast<UINT32>(Message::QUIT), wParam, lParam);
         }
         break;
     case WM_CLOSE:
-        PostMessage(pHwnd, static_cast<UINT>(Message::QUIT), pWParam, pLParam);
+        PostMessage(hwnd, static_cast<UINT32>(Message::QUIT), wParam, lParam);
         break;
     default:
-        return DefWindowProc(pHwnd, msg, pWParam, pLParam);
+        return DefWindowProc(hwnd, msg, wParam, lParam);
     }
 
     return 0;

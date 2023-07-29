@@ -33,7 +33,7 @@ void loadExportFunction()
     }
 
 #include "vulkan_functions.inl"
-}
+} // namespace
 
 void loadGlobalLevelFunctions()
 {

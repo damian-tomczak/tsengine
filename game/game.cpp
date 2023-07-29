@@ -7,6 +7,8 @@
 #include "events/key_pressed_event.hpp"
 #include "events/key_released_event.hpp"
 
+#include "tsengine/math.hpp"
+
 bool Game::init(unsigned& width, unsigned& height)
 {
     mpAssetStore = std::make_unique<ts::AssetStore>();
@@ -22,8 +24,6 @@ bool Game::init(unsigned& width, unsigned& height)
     mpRegistry->addSystem<KeyboardSystem>();
     mpRegistry->addSystem<MovementSystem>();
 
-    mPreviousTickCount = ts::getTickCount();
-
     return true;
 }
 
@@ -32,24 +32,15 @@ void Game::close()
 
 bool Game::tick()
 {
-    auto currentTime{ts::getTickCount()};
-    auto deltaTime{((currentTime - mPreviousTickCount) / 1000.f)};
-    mPreviousTickCount = currentTime;
-
     if (mpPlayer)
     {
         mpPlayer = mpRegistry->createEntity();
         mpPlayer->setTag("player");
-        mpPlayer->addComponent<TransformComponent>(
-          ts::math::Vec2{ static_cast<float>(mWidth - (mWidth / 2)), static_cast<float>(mHeight - 50) });
         mpPlayer->addComponent<TextureComponent>("player-left");
         mpPlayer->addComponent<RigidBodyComponent>();
     }
 
     mpRegistry->update();
-
-    mpRegistry->getSystem<RenderSystem>().update(mpAssetStore, deltaTime);
-    mpRegistry->getSystem<MovementSystem>().update(deltaTime);
 
     mpRegistry->getSystem<KeyboardSystem>().subscribeToEvents(mpEventBus);
 

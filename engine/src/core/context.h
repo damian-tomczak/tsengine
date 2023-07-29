@@ -29,10 +29,11 @@ public:
     VkPhysicalDevice getVkPhysicalDevice() const { return mPhysicalDevice; }
     VkDevice getVkDevice() const { return mVkDevice; }
     VkSampleCountFlagBits getVkMultisampleCount() const { return mVkMultisampleCount; }
-    uint32_t getVkGraphicsQueueFamilyIndex() const { return *mVkGraphicsQueueFamilyIndex; };
-    uint32_t getVkPresentQueueFamilyIndex() const { return *mVkPresentQueueFamilyIndex; };
+    uint32_t getVkGraphicsQueueFamilyIndex() const;
+    uint32_t getVkPresentQueueFamilyIndex() const;
     XrSystemId getXrSystemId() const { return mXrSystemId; }
     VkQueue getVkGraphicsQueue() const { return mVkGraphicsQueue; }
+    VkQueue getVkPresentQueue() const { return mVkPresentQueue; }
     VkDeviceSize getUniformBufferOffsetAlignment() const { return mVkUniformBufferOffsetAlignment; }
 
 private:
@@ -43,7 +44,6 @@ private:
     XrDebugUtilsMessengerEXT mXrDebugMessenger{};
     VkDebugUtilsMessengerEXT mVkDebugMessenger{};
     static constexpr std::array vkLayers{"VK_LAYER_KHRONOS_validation"};
-
 #endif // DEBUG
 
     void createXrInstance();
