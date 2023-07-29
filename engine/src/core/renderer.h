@@ -1,6 +1,8 @@
 #pragma once
 
 #include "utils.hpp"
+#include "tsengine/math.hpp"
+
 #include "vulkan/vulkan.h"
 
 namespace ts
@@ -20,13 +22,20 @@ class Renderer
     static constexpr size_t framesInFlightCount{2};
 
 public:
-    Renderer(const Context* ctx, const Headset* headset);
+    Renderer(const Context* ctx, const Headset* headset, const std::vector<Model*>& models, std::unique_ptr<MeshData>&& meshData);
     ~Renderer();
 
-    void createRenderer(std::unique_ptr<MeshData> meshData, const std::vector<Model*>& models);
+    void createRenderer();
+    void render(const math::Mat4& cameraMatrix, size_t swapchainImageIndex, float time);
+    void submit(bool useSemaphores) const;
+
+    VkSemaphore getCurrentDrawableSemaphore() const;
+    VkSemaphore getCurrentPresentableSemaphore() const;
+    VkCommandBuffer getCurrentCommandBuffer() const;
 
 private:
-    void createVertexIndexBuffer(std::unique_ptr<MeshData>& meshData, const std::vector<Model*>& models);
+    void createVertexIndexBuffer();
+    void updateUniformData(const math::Mat4& cameraMatrix, float time, RenderProcess* renderProcess);
 
     const Context* mCtx{};
     const Headset* mHeadset{};
@@ -38,5 +47,8 @@ private:
     Pipeline* mGridPipeline{}, *mDiffusePipeline{};
     size_t mIndexOffset{};
     DataBuffer* mVertexIndexBuffer{};
+    size_t mCurrentRenderProcessIndex{};
+    std::unique_ptr<MeshData> mMeshData;
+    const std::vector<Model*>& mModels;
 };
 }

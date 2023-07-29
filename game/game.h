@@ -4,7 +4,6 @@
 #include "tsengine/core.h"
 #include "tsengine/ecs.hpp"
 #include "tsengine/event_bus.hpp"
-#include "tsengine/math.hpp"
 
 #include <iostream>
 #include <memory>
@@ -24,16 +23,9 @@ public:
     void onKeyReleased(ts::Key k) override;
 
 private:
-    int mWidth{ 1280 };
-    int mHeight{ 720 };
-    bool mIsFullScreen{};
-
     std::unique_ptr<ts::AssetStore> mpAssetStore;
     std::unique_ptr<ts::Registry> mpRegistry;
     std::unique_ptr<ts::EventBus> mpEventBus;
 
     std::optional<ts::Entity> mpPlayer;
-
-    // TODO: move to the engine
-    unsigned mPreviousTickCount{};
 };

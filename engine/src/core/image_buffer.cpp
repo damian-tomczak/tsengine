@@ -2,13 +2,14 @@
 
 #include "context.h"
 #include "tsengine/logger.h"
-#include "khronos_utils.hpp"
+#include "khronos_utils.h"
+#include "vulkan_tools/vulkan_functions.h"
 
 namespace ts
 {
 ImageBuffer::~ImageBuffer()
 {
-    const auto device{mCtx->getVkDevice()};
+    const auto device = mCtx->getVkDevice();
     if (mImageView != nullptr)
     {
         vkDestroyImageView(device, mImageView, nullptr);

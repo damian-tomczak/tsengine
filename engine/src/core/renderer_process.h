@@ -1,8 +1,9 @@
 #pragma once
 
 #include "tsengine/math.hpp"
+#include "utils.hpp"
 
-#include <vulkan/vulkan.h>
+#include "vulkan/vulkan.h"
 
 namespace ts
 {
@@ -11,8 +12,11 @@ class DataBuffer;
 
 class RenderProcess final
 {
+    NOT_COPYABLE_AND_MOVEABLE(RenderProcess);
+
 public:
-    RenderProcess(const Context* ctx);
+    RenderProcess(const Context* ctx) : mCtx{ ctx }
+    {}
     ~RenderProcess();
 
     void createRendererProcess(
@@ -23,21 +27,27 @@ public:
 
     struct DynamicVertexUniformData
     {
-        math::Mat4<> worldMatrix;
+        math::Mat4 worldMatrix;
     };
-    std::vector<DynamicVertexUniformData> dynamicVertexUniformData;
+    std::vector<DynamicVertexUniformData> mDynamicVertexUniformData;
 
     struct StaticVertexUniformData
     {
-        std::array<math::Mat4<>, 2> viewProjectionMatrices;
-    } staticVertexUniformData;
+        std::array<math::Mat4, 2> viewProjectionMatrices;
+    } mStaticVertexUniformData;
 
     struct StaticFragmentUniformData
     {
         float time;
-    } staticFragmentUniformData;
+    } mStaticFragmentUniformData;
+
+    void updateUniformBufferData() const;
 
     VkCommandBuffer getCommandBuffer() const { return mCommandBuffer; }
+    VkFence getFence() const { return mFence; }
+    VkDescriptorSet getDescriptorSet() const { return mDescriptorSet; }
+    VkSemaphore getDrawableSemaphore() const { return mDrawableSemaphore; }
+    VkSemaphore getPresentableSemaphore() const { return mPresentableSemaphore; }
 
 private:
     const Context* mCtx{};

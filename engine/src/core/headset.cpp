@@ -3,9 +3,9 @@
 #include "image_buffer.h"
 #include "render_target.h"
 #include "openxr/openxr_platform.h"
-#include "khronos_utils.hpp"
-#include "tsengine/logger.h"
+#include "khronos_utils.h"
 #include "renderer.h"
+#include "vulkan_tools/vulkan_functions.h"
 
 namespace ts
 {
@@ -34,11 +34,19 @@ Headset::~Headset()
         xrDestroySession(mXrSession);
     }
 
-    const VkDevice vkDevice{mCtx->getVkDevice()};
-    if (vkDevice != nullptr && mVkRenderPass != nullptr)
+    const auto device = mCtx->getVkDevice();
+    if (device != nullptr && mVkRenderPass != nullptr)
     {
-        vkDestroyRenderPass(vkDevice, mVkRenderPass, nullptr);
+        vkDestroyRenderPass(device, mVkRenderPass, nullptr);
     }
+}
+
+void Headset::init()
+{
+    createVkRenderPass();
+    createXrSession();
+    createXrSpace();
+    createXrSwapchain();
 }
 
 Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
@@ -55,7 +63,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
         }
         case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
         {
-            XrEventDataSessionStateChanged* event = reinterpret_cast<XrEventDataSessionStateChanged*>(&buffer);
+            auto event = reinterpret_cast<XrEventDataSessionStateChanged*>(&buffer);
             mXrSessionState = event->state;
 
             if (event->state == XR_SESSION_STATE_READY)
@@ -66,7 +74,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
             {
                 endSession();
             }
-            else if (event->state == XR_SESSION_STATE_LOSS_PENDING || event->state == XR_SESSION_STATE_EXITING)
+            else if ((event->state == XR_SESSION_STATE_LOSS_PENDING) || (event->state == XR_SESSION_STATE_EXITING))
             {
                 mIsExitRequested = true;
                 return BeginFrameResult::RENDER_SKIP_FULLY;
@@ -117,7 +125,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
 
     if (viewCount != mEyeCount)
     {
-        LOGGER_ERR("Trying to display more views than defined eyes");
+        LOGGER_ERR("trying to display more views than defined eyes");
     }
 
     for (size_t eyeIndex{}; eyeIndex < mEyeCount; ++eyeIndex)
@@ -127,7 +135,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
         eyeRenderInfo.pose = eyePose.pose;
         eyeRenderInfo.fov = eyePose.fov;
 
-        const XrPosef& pose = eyeRenderInfo.pose;
+        const auto& pose = eyeRenderInfo.pose;
         mEyeViewMatrices.at(eyeIndex) = math::inverse(khronos_utils::xrPoseToMatrix(pose));
         mEyeProjectionMatrices.at(eyeIndex) = khronos_utils::createXrProjectionMatrix(eyeRenderInfo.fov, 0.01f, 250.0f);
     }
@@ -144,7 +152,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
     return BeginFrameResult::RENDER_FULLY;
 }
 
-void Headset::createRenderPass()
+void Headset::createVkRenderPass()
 {
     constexpr uint32_t viewMask = 0b11;
     constexpr uint32_t correlationMask = 0b11;
@@ -294,11 +302,10 @@ void Headset::createViews()
     for (auto& eyePose : mEyePoses)
     {
         eyePose.type = XR_TYPE_VIEW;
-        eyePose.next = nullptr;
     }
 }
 
-void Headset::createSwapchain()
+void Headset::createXrSwapchain()
 {
     createViews();
 
@@ -323,7 +330,7 @@ void Headset::createSwapchain()
         LOGGER_ERR("openxr color doesn't support color format");
     }
 
-    const auto eyeResolution{getEyeResolution(0)};
+    const auto eyeResolution = getEyeResolution(0);
 
     mColorBuffer = std::make_unique<ImageBuffer>(mCtx);
     mColorBuffer->createImage(
@@ -382,7 +389,7 @@ void Headset::createSwapchain()
         auto& pRenderTarget = mSwapchainRenderTargets.at(renderTargetIndex);
 
         const auto vkSwapchainImage = swapchainImages.at(renderTargetIndex).image;
-        pRenderTarget = std::make_unique<RenderTarget>(mCtx->getVkDevice(), vkSwapchainImage);
+        pRenderTarget = std::make_shared<RenderTarget>(mCtx->getVkDevice(), vkSwapchainImage);
         pRenderTarget->createRenderTarget(
             mColorBuffer->getVkImageView(),
             mDepthBuffer->getVkImageView(),
@@ -409,10 +416,40 @@ void Headset::createSwapchain()
     mEyeProjectionMatrices.resize(mEyeCount);
 }
 
-VkExtent2D Headset::getEyeResolution(int32_t eyeIndex) const
+void Headset::endFrame() const
 {
-    const XrViewConfigurationView& eyeInfo = mEyeViewInfos.at(eyeIndex);
-    return {eyeInfo.recommendedImageRectWidth, eyeInfo.recommendedImageRectHeight};
+    XrSwapchainImageReleaseInfo swapchainImageReleaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
+    auto result = xrReleaseSwapchainImage(mXrSwapchain, &swapchainImageReleaseInfo);
+    if (XR_FAILED(result))
+    {
+        // TODO: investigate the problem (probably problem with the main loop code architecture)
+        LOGGER_WARN(("(KNOWN ISSUE) xrReleaseSwapchainImage failed with status: " + ts::khronos_utils::xrResultToString(result)).c_str());
+    }
+
+    XrCompositionLayerProjection compositionLayerProjection{
+        .type = XR_TYPE_COMPOSITION_LAYER_PROJECTION,
+        .space = mXrSpace,
+        .viewCount = static_cast<uint32_t>(mEyeRenderInfos.size()),
+        .views = mEyeRenderInfos.data()
+    };
+
+    std::vector<XrCompositionLayerBaseHeader*> layers;
+
+    const auto positionValid = mXrViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT;
+    const auto orientationValid = mXrViewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT;
+    if (mXrFrameState.shouldRender && positionValid && orientationValid)
+    {
+        layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&compositionLayerProjection));
+    }
+
+    XrFrameEndInfo frameEndInfo{
+        .type = XR_TYPE_FRAME_END_INFO,
+        .displayTime = mXrFrameState.predictedDisplayTime,
+        .environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE,
+        .layerCount = static_cast<uint32_t>(layers.size()),
+        .layers = layers.data(),
+    };
+    LOGGER_XR(xrEndFrame, mXrSession, &frameEndInfo);
 }
 
 void Headset::beginSession() const

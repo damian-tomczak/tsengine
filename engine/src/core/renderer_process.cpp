@@ -2,14 +2,11 @@
 #include "context.h"
 #include "vulkan_tools/vulkan_functions.h"
 #include "tsengine/logger.h"
-#include "khronos_utils.hpp"
+#include "khronos_utils.h"
 #include "data_buffer.h"
 
 namespace ts
 {
-RenderProcess::RenderProcess(const Context* ctx) : mCtx{ctx}
-{}
-
 RenderProcess::~RenderProcess()
 {
     if (mUniformBuffer != nullptr)
@@ -44,20 +41,20 @@ void RenderProcess::createRendererProcess(
     VkDescriptorSetLayout descriptorSetLayout,
     size_t modelCount)
 {
-    dynamicVertexUniformData.resize(modelCount);
+    mDynamicVertexUniformData.resize(modelCount);
     for (size_t modelIndex{}; modelIndex < modelCount; ++modelIndex)
     {
-        dynamicVertexUniformData.at(modelIndex).worldMatrix = math::Mat4<>::makeScalarMat(1.f);
+        mDynamicVertexUniformData.at(modelIndex).worldMatrix = math::Mat4::makeScalarMat(1.f);
     }
 
-    for (auto& viewProjectionMatrix : staticVertexUniformData.viewProjectionMatrices)
+    for (auto& viewProjectionMatrix : mStaticVertexUniformData.viewProjectionMatrices)
     {
-        viewProjectionMatrix = math::Mat4<>::makeScalarMat(1.f);
+        viewProjectionMatrix = math::Mat4::makeScalarMat(1.f);
     }
 
-    staticFragmentUniformData.time = 0.0f;
+    mStaticFragmentUniformData.time = 0.0f;
 
-    const auto device{mCtx->getVkDevice()};
+    const auto device = mCtx->getVkDevice();
 
     const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -67,7 +64,7 @@ void RenderProcess::createRendererProcess(
     };
     LOGGER_VK(vkAllocateCommandBuffers, device, &commandBufferAllocateInfo, &mCommandBuffer);
 
-    const VkSemaphoreCreateInfo semaphoreCreateInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+    const VkSemaphoreCreateInfo semaphoreCreateInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
     LOGGER_VK(vkCreateSemaphore, device, &semaphoreCreateInfo, nullptr, &mDrawableSemaphore);
 
     LOGGER_VK(vkCreateSemaphore, device, &semaphoreCreateInfo, nullptr, &mPresentableSemaphore);
@@ -78,18 +75,18 @@ void RenderProcess::createRendererProcess(
     };
     LOGGER_VK(vkCreateFence, device, &fenceCreateInfo, nullptr, &mFence);
 
-    const auto uniformBufferOffsetAlignment{mCtx->getUniformBufferOffsetAlignment()};
+    const auto uniformBufferOffsetAlignment = mCtx->getUniformBufferOffsetAlignment();
 
     std::array<VkDescriptorBufferInfo, 3> descriptorBufferInfos;
-    descriptorBufferInfos.at(0).offset = 0u;
+    descriptorBufferInfos.at(0).offset = 0;
     descriptorBufferInfos.at(0).range = sizeof(DynamicVertexUniformData);
 
     descriptorBufferInfos.at(1).offset =
-        khronos_utils::align(descriptorBufferInfos.at(0u).range, uniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(modelCount);
+        khronos_utils::align(descriptorBufferInfos.at(0).range, uniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(modelCount);
     descriptorBufferInfos.at(1).range = sizeof(StaticVertexUniformData);
 
     descriptorBufferInfos.at(2).offset =
-        descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1u).range, uniformBufferOffsetAlignment);
+        descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment);
     descriptorBufferInfos.at(2).range = sizeof(StaticFragmentUniformData);
 
     const auto uniformBufferSize{descriptorBufferInfos.at(2).offset + descriptorBufferInfos.at(2).range};
@@ -118,7 +115,7 @@ void RenderProcess::createRendererProcess(
         descriptorBufferInfo.buffer = mUniformBuffer->getBuffer();
     }
 
-    std::array<VkWriteDescriptorSet, 3u> writeDescriptorSets{{
+    std::array<VkWriteDescriptorSet, 3> writeDescriptorSets{{
         {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = mDescriptorSet,
@@ -150,7 +147,33 @@ void RenderProcess::createRendererProcess(
     vkUpdateDescriptorSets(
         device,
         static_cast<uint32_t>(writeDescriptorSets.size()),
-        writeDescriptorSets.data(), 0,
+        writeDescriptorSets.data(),
+        0,
         nullptr);
+}
+
+void RenderProcess::updateUniformBufferData() const
+{
+    if (mUniformBufferMemory == nullptr)
+    {
+        return;
+    }
+
+    const auto uniformBufferOffsetAlignment = mCtx->getUniformBufferOffsetAlignment();
+
+    auto offset = static_cast<char*>(mUniformBufferMemory);
+    VkDeviceSize length = sizeof(DynamicVertexUniformData);
+    for (const auto& dynamicData : mDynamicVertexUniformData)
+    {
+        memcpy(offset, &dynamicData, length);
+        offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+    }
+
+    length = sizeof(StaticVertexUniformData);
+    memcpy(offset, &mStaticVertexUniformData, length);
+    offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+
+    length = sizeof(StaticFragmentUniformData);
+    memcpy(offset, &mStaticFragmentUniformData, length);
 }
 }

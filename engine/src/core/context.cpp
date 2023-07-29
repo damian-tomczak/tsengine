@@ -1,19 +1,18 @@
 #include "context.h"
-#include "tsengine/logger.h"
-#include "khronos_utils.hpp"
+#include "khronos_utils.h"
 #include "openxr/openxr_platform.h"
 #include "vulkan_tools/vulkan_loader.h"
 
 namespace
 {
-    PFN_xrGetVulkanInstanceExtensionsKHR xrGetVulkanInstanceExtensionsKHR{};
-    PFN_xrGetVulkanGraphicsDeviceKHR xrGetVulkanGraphicsDeviceKHR{};
-    PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtensionsKHR{};
-    PFN_xrGetVulkanGraphicsRequirementsKHR xrGetVulkanGraphicsRequirementsKHR{};
+PFN_xrGetVulkanInstanceExtensionsKHR xrGetVulkanInstanceExtensionsKHR{};
+PFN_xrGetVulkanGraphicsDeviceKHR xrGetVulkanGraphicsDeviceKHR{};
+PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtensionsKHR{};
+PFN_xrGetVulkanGraphicsRequirementsKHR xrGetVulkanGraphicsRequirementsKHR{};
 
 #ifndef NDEBUG
-    PFN_xrCreateDebugUtilsMessengerEXT xrCreateDebugUtilsMessengerEXT{};
-    PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
+PFN_xrCreateDebugUtilsMessengerEXT xrCreateDebugUtilsMessengerEXT{};
+PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
 #endif // DEBUG
 } // namespace
 
@@ -96,14 +95,33 @@ void Context::loadXrExtensions()
 #endif // DEBUG
 }
 
+uint32_t Context::getVkGraphicsQueueFamilyIndex() const
+{
+    if (mVkGraphicsQueueFamilyIndex == std::nullopt)
+    {
+        LOGGER_ERR("graphics queue index isn't selected yet");
+    }
+
+    return *mVkGraphicsQueueFamilyIndex;
+};
+uint32_t Context::getVkPresentQueueFamilyIndex() const
+{
+    if (mVkPresentQueueFamilyIndex == std::nullopt)
+    {
+        LOGGER_ERR("present queue index isn't selected yet");
+    }
+
+    return *mVkPresentQueueFamilyIndex;
+};
+
 #ifndef NDEBUG
 void Context::createXrDebugMessenger()
 {
     const XrDebugUtilsMessengerCreateInfoEXT ci{
         .type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverities = logger::xrDebugMessageSeverityFlags,
-        .messageTypes = logger::xrDebugMessageTypeFlags,
-        .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(logger::xrCallback)
+        .messageSeverities = khronos_utils::xrDebugMessageSeverityFlags,
+        .messageTypes = khronos_utils::xrDebugMessageTypeFlags,
+        .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(khronos_utils::xrCallback)
     };
 
     LOGGER_XR(xrCreateDebugUtilsMessengerEXT,
@@ -512,9 +530,9 @@ void Context::createVkDebugMessenger()
 {
     const VkDebugUtilsMessengerCreateInfoEXT ci{
         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverity = logger::vkDebugMessageSeverityFlags,
-        .messageType = logger::vkDebugMessageTypeFlags,
-        .pfnUserCallback = &logger::vkCallback
+        .messageSeverity = khronos_utils::vkDebugMessageSeverityFlags,
+        .messageType = khronos_utils::vkDebugMessageTypeFlags,
+        .pfnUserCallback = &khronos_utils::vkCallback
     };
 
     LOGGER_VK(vkCreateDebugUtilsMessengerEXT, mVkInstance, &ci, nullptr, &mVkDebugMessenger);
@@ -540,7 +558,12 @@ Context::~Context()
     {
         vkDestroyDebugUtilsMessengerEXT(mVkInstance, mVkDebugMessenger, nullptr);
     }
-#endif // DEBUG
+#endif // NDEBUG
+
+    if (mVkDevice != nullptr)
+    {
+        vkDestroyDevice(mVkDevice, nullptr);
+    }
 
     if (mVkInstance != nullptr)
     {
@@ -581,6 +604,11 @@ void Context::createVulkanContext()
 
 void Context::createXrInstance()
 {
+    if (strlen(GAME_NAME) > XR_MAX_APPLICATION_NAME_SIZE - 1)
+    {
+        LOGGER_ERR("too long game name: " STR(XR_MAX_APPLICATION_NAME_SIZE));
+    }
+
     const XrApplicationInfo appInfo{
         .applicationName = GAME_NAME,
         .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
@@ -588,12 +616,6 @@ void Context::createXrInstance()
         .engineVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
         .apiVersion = XR_CURRENT_API_VERSION,
     };
-
-    if (strlen(GAME_NAME) > XR_MAX_APPLICATION_NAME_SIZE - 1)
-    {
-        LOGGER_WARN("length of the game name has been reduced to the sie of XR_MAX_APPLICATION_NAME_SIZE,"
-            "which is " STR(XR_MAX_APPLICATION_NAME_SIZE) );
-    }
 
     std::vector<const char*> extensions{XR_KHR_VULKAN_ENABLE_EXTENSION_NAME};
 
@@ -607,10 +629,9 @@ void Context::createXrInstance()
     LOGGER_XR(xrEnumerateInstanceExtensionProperties, nullptr, 0, &instanceExtensionCount, nullptr)
 
     supportedXrInstanceExtensions.resize(instanceExtensionCount);
-    for (XrExtensionProperties& extensionProperty : supportedXrInstanceExtensions)
+    for (auto& extensionProperty : supportedXrInstanceExtensions)
     {
         extensionProperty.type = XR_TYPE_EXTENSION_PROPERTIES;
-        extensionProperty.next = nullptr;
     }
 
     LOGGER_XR(xrEnumerateInstanceExtensionProperties,

@@ -20,8 +20,10 @@ public:
         const std::vector<VkVertexInputBindingDescription>& vertexInputBindingDescriptions,
         const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions);
 
+    void bind(const VkCommandBuffer commandBuffer) const;
+
 private:
-    void loadShaderFromFile(VkDevice device, const std::string& filename, VkShaderModule& shaderModule);
+    void loadShaderFromFile(const VkDevice device, const std::string& fileName, VkShaderModule& shaderModule);
 
     const Context* mCtx{};
     VkPipeline mPipeline{};

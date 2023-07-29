@@ -6,13 +6,56 @@
 #include "pipeline.h"
 #include "headset.h"
 #include "data_buffer.h"
+#include "khronos_utils.h"
+#include "headset.h"
+#include "render_target.h"
 
 namespace ts
 {
-Renderer::Renderer(const Context* ctx, const Headset* headset) : mCtx{ctx}, mHeadset{headset}
+Renderer::Renderer(const Context* ctx, const Headset* headset, const std::vector<Model*>& models, std::unique_ptr<MeshData>&& meshData) :
+    mCtx{ctx},
+    mHeadset{headset},
+    mModels{models},
+    mMeshData{std::move(meshData)}
 {}
 
-void Renderer::createRenderer(std::unique_ptr<MeshData> meshData, const std::vector<Model*>& models)
+Renderer::~Renderer()
+{
+    delete mVertexIndexBuffer;
+    delete mDiffusePipeline;
+    delete mGridPipeline;
+
+    const auto device = mCtx->getVkDevice();
+    if (device != nullptr)
+    {
+        if (mPipelineLayout != nullptr)
+        {
+            vkDestroyPipelineLayout(device, mPipelineLayout, nullptr);
+        }
+
+        if (mDescriptorSetLayout != nullptr)
+        {
+            vkDestroyDescriptorSetLayout(device, mDescriptorSetLayout, nullptr);
+        }
+
+        if (mDescriptorPool != nullptr)
+        {
+            vkDestroyDescriptorPool(device, mDescriptorPool, nullptr);
+        }
+    }
+
+    for (const auto renderProcess : mRenderProcesses)
+    {
+        delete renderProcess;
+    }
+
+    if ((device != nullptr) && (mCommandPool != nullptr))
+    {
+        vkDestroyCommandPool(device, mCommandPool, nullptr);
+    }
+}
+
+void Renderer::createRenderer()
 {
     const auto device{mCtx->getVkDevice()};
 
@@ -23,7 +66,7 @@ void Renderer::createRenderer(std::unique_ptr<MeshData> meshData, const std::vec
     };
     LOGGER_VK(vkCreateCommandPool, device, &commandPoolCreateInfo, nullptr, &mCommandPool);
 
-    const std::array<VkDescriptorPoolSize, 2> descriptorPoolSizes{ {
+    const std::array<VkDescriptorPoolSize, 2> descriptorPoolSizes{{
         {
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
             .descriptorCount = static_cast<uint32_t>(framesInFlightCount),
@@ -32,7 +75,7 @@ void Renderer::createRenderer(std::unique_ptr<MeshData> meshData, const std::vec
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .descriptorCount = static_cast<uint32_t>(framesInFlightCount * 2)
         }
-    } };
+    }};
 
     const VkDescriptorPoolCreateInfo descriptorPoolCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -80,7 +123,7 @@ void Renderer::createRenderer(std::unique_ptr<MeshData> meshData, const std::vec
     for (auto& renderProcess : mRenderProcesses)
     {
         renderProcess = new RenderProcess(mCtx);
-        renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, models.size());
+        renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, mModels.size());
     }
 
     const VkVertexInputBindingDescription vertexInputBindingDescription{
@@ -128,27 +171,165 @@ void Renderer::createRenderer(std::unique_ptr<MeshData> meshData, const std::vec
         {vertexInputBindingDescription},
         {vertexInputAttributePosition, vertexInputAttributeNormal, vertexInputAttributeColor});
 
-    createVertexIndexBuffer(meshData, models);
+    createVertexIndexBuffer();
 
-    mIndexOffset = meshData->getIndexOffset();
+    mIndexOffset = mMeshData->getIndexOffset();
 }
 
-void Renderer::createVertexIndexBuffer(std::unique_ptr<MeshData>& meshData, const std::vector<Model*>& models)
+void Renderer::render(const math::Mat4& cameraMatrix, size_t swapchainImageIndex, float time)
 {
-    const auto bufferSize{static_cast<VkDeviceSize>(meshData->getSize())};
-    auto stagingBuffer{new DataBuffer{mCtx}};
+    mCurrentRenderProcessIndex = (mCurrentRenderProcessIndex + 1) % mRenderProcesses.size();
+
+    auto renderProcess = mRenderProcesses.at(mCurrentRenderProcessIndex);
+
+    const auto busyFence = renderProcess->getFence();
+    LOGGER_VK(vkResetFences, mCtx->getVkDevice(), 1, &busyFence);
+
+    const auto commandBuffer = renderProcess->getCommandBuffer();
+
+    LOGGER_VK(vkResetCommandBuffer, commandBuffer, 0);
+
+    const VkCommandBufferBeginInfo commandBufferBeginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+    LOGGER_VK(vkBeginCommandBuffer, commandBuffer, &commandBufferBeginInfo);
+
+    updateUniformData(cameraMatrix, time, renderProcess);
+
+    const std::array<VkClearValue, 2> clearValues{{
+        {.color = {0.01f, 0.01f, 0.01f, 1.f}},
+        {.color = {1.f, 0}}
+    }};
+
+    VkRenderPassBeginInfo renderPassBeginInfo{
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .renderPass = mHeadset->getVkRenderPass(),
+        .framebuffer = mHeadset->getRenderTarget(swapchainImageIndex)->getFramebuffer(),
+        .renderArea = {
+            .extent = mHeadset->getEyeResolution(0),
+        },
+        .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+        .pClearValues = clearValues.data()
+    };
+
+    vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    VkViewport viewport{
+        .x = static_cast<float>(renderPassBeginInfo.renderArea.offset.x),
+        .y = static_cast<float>(renderPassBeginInfo.renderArea.offset.y),
+        .width = static_cast<float>(renderPassBeginInfo.renderArea.extent.width),
+        .height = static_cast<float>(renderPassBeginInfo.renderArea.extent.height),
+        .minDepth = 0.f,
+        .maxDepth = 1.f,
+    };
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+    VkRect2D scissor{
+        .offset = renderPassBeginInfo.renderArea.offset,
+        .extent = renderPassBeginInfo.renderArea.extent
+    };
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    VkDeviceSize vertexOffset{};
+    const auto buffer = mVertexIndexBuffer->getBuffer();
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &buffer, &vertexOffset);
+
+    vkCmdBindIndexBuffer(commandBuffer, buffer, mIndexOffset, VK_INDEX_TYPE_UINT32);
+
+    const auto descriptorSet = renderProcess->getDescriptorSet();
+    for (size_t modelIndex{}; modelIndex < mModels.size(); ++modelIndex)
+    {
+        const auto model = mModels.at(modelIndex);
+
+        const auto uniformBufferOffset = static_cast<uint32_t>(
+            khronos_utils::align(
+                static_cast<VkDeviceSize>(sizeof(RenderProcess::DynamicVertexUniformData)),
+                mCtx->getUniformBufferOffsetAlignment()) * static_cast<VkDeviceSize>(modelIndex));
+
+        vkCmdBindDescriptorSets(
+            commandBuffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            mPipelineLayout,
+            0,
+            1,
+            &descriptorSet,
+            1,
+            &uniformBufferOffset);
+
+        if (modelIndex == 0)
+        {
+            mGridPipeline->bind(commandBuffer);
+        }
+        else if (modelIndex == 1)
+        {
+            mDiffusePipeline->bind(commandBuffer);
+        }
+
+        vkCmdDrawIndexed(
+            commandBuffer,
+            static_cast<uint32_t>(model->indexCount),
+            1,
+            static_cast<uint32_t>(model->firstIndex),
+            0,
+            0);
+    }
+
+    vkCmdEndRenderPass(commandBuffer);
+}
+
+void Renderer::submit(bool useSemaphores) const
+{
+    const auto renderProcess = mRenderProcesses.at(mCurrentRenderProcessIndex);
+    const auto commandBuffer = renderProcess->getCommandBuffer();
+    LOGGER_VK(vkEndCommandBuffer, commandBuffer);
+
+    constexpr VkPipelineStageFlags waitStages{VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    const auto drawableSemaphore = renderProcess->getDrawableSemaphore();
+    const auto presentableSemaphore = renderProcess->getPresentableSemaphore();
+
+    VkSubmitInfo submitInfo{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .waitSemaphoreCount = useSemaphores ? 1u : 0u,
+        .pWaitSemaphores = useSemaphores ? &drawableSemaphore : nullptr,
+        .pWaitDstStageMask = &waitStages,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &commandBuffer,
+        .signalSemaphoreCount = useSemaphores ? 1u : 0u,
+        .pSignalSemaphores = useSemaphores ? &presentableSemaphore : nullptr
+    };
+
+    LOGGER_VK(vkQueueSubmit, mCtx->getVkGraphicsQueue(), 1, &submitInfo, renderProcess->getFence());
+}
+
+VkSemaphore Renderer::getCurrentDrawableSemaphore() const
+{
+    return mRenderProcesses.at(mCurrentRenderProcessIndex)->getDrawableSemaphore();
+}
+
+VkSemaphore Renderer::getCurrentPresentableSemaphore() const
+{
+    return mRenderProcesses.at(mCurrentRenderProcessIndex)->getPresentableSemaphore();
+}
+
+VkCommandBuffer Renderer::getCurrentCommandBuffer() const
+{
+    return mRenderProcesses.at(mCurrentRenderProcessIndex)->getCommandBuffer();
+}
+
+void Renderer::createVertexIndexBuffer()
+{
+    const auto bufferSize{ static_cast<VkDeviceSize>(mMeshData->getSize()) };
+    auto stagingBuffer{ new DataBuffer{mCtx} };
     stagingBuffer->createDataBuffer(
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         bufferSize);
 
-    char* bufferData{static_cast<char*>(stagingBuffer->map())};
+    auto bufferData = static_cast<char*>(stagingBuffer->map());
     if (!bufferData)
     {
         LOGGER_ERR("invalid mapping memory");
     }
 
-    meshData->writeTo(bufferData);
+    mMeshData->writeTo(bufferData);
     stagingBuffer->unmap();
 
     mVertexIndexBuffer = new DataBuffer{mCtx};
@@ -164,40 +345,21 @@ void Renderer::createVertexIndexBuffer(std::unique_ptr<MeshData>& meshData, cons
     delete stagingBuffer;
 }
 
-Renderer::~Renderer()
+void Renderer::updateUniformData(const math::Mat4& cameraMatrix, float time, RenderProcess* renderProcess)
 {
-    delete mVertexIndexBuffer;
-    delete mDiffusePipeline;
-    delete mGridPipeline;
-
-    const VkDevice device{mCtx->getVkDevice()};
-    if (device != nullptr)
+    for (size_t modelIndex{}; modelIndex < mModels.size(); ++modelIndex)
     {
-        if (mPipelineLayout != nullptr)
-        {
-            vkDestroyPipelineLayout(device, mPipelineLayout, nullptr);
-        }
-
-        if (mDescriptorSetLayout != nullptr)
-        {
-            vkDestroyDescriptorSetLayout(device, mDescriptorSetLayout, nullptr);
-        }
-
-        if (mDescriptorPool != nullptr)
-        {
-            vkDestroyDescriptorPool(device, mDescriptorPool, nullptr);
-        }
+        renderProcess->mDynamicVertexUniformData.at(modelIndex).worldMatrix = mModels.at(modelIndex)->worldMatrix;
     }
 
-    for (const RenderProcess* renderProcess : mRenderProcesses)
+    for (size_t eyeIndex{}; eyeIndex < mHeadset->getEyeCount(); ++eyeIndex)
     {
-        delete renderProcess;
+        renderProcess->mStaticVertexUniformData.viewProjectionMatrices.at(eyeIndex) =
+            mHeadset->getEyeProjectionMatrix(eyeIndex) * mHeadset->getEyeViewMatrix(eyeIndex) * cameraMatrix;
     }
 
-    if ((device != nullptr) && (mCommandPool != nullptr))
-    {
-        vkDestroyCommandPool(device, mCommandPool, nullptr);
-    }
+    renderProcess->mStaticFragmentUniformData.time = time;
+
+    renderProcess->updateUniformBufferData();
 }
-
 }

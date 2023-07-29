@@ -1,7 +1,8 @@
 #pragma once
 
-#include "tsengine/math.hpp"
 #include "utils.hpp"
+#include "tsengine/math.hpp"
+
 #include "openxr/openxr.h"
 #include "vulkan/vulkan.h"
 
@@ -30,20 +31,33 @@ public:
         RENDER_SKIP_FULLY
     };
 
+    void init();
+
     BeginFrameResult beginFrame(uint32_t& swapchainImageIndex);
 
-    void createRenderPass();
+    void createVkRenderPass();
     void createXrSession();
     void createXrSpace();
-    void createSwapchain();
+    void createXrSwapchain();
+    void endFrame() const;
 
     XrSession getXrSession() const { return mXrSession; }
     VkRenderPass getVkRenderPass() const { return mVkRenderPass; }
     bool isExitRequested() const { return mIsExitRequested; }
+    XrSpace getXrSpace() const { return mXrSpace; }
+    XrFrameState getXrFrameState() const { return mXrFrameState; }
+    std::shared_ptr<RenderTarget> getRenderTarget(size_t swapchainImageIndex) const { return mSwapchainRenderTargets.at(swapchainImageIndex); }
+    VkExtent2D getEyeResolution(int32_t eyeIndex) const
+    {
+        const XrViewConfigurationView& eyeInfo{mEyeViewInfos.at(eyeIndex)};
+        return {eyeInfo.recommendedImageRectWidth, eyeInfo.recommendedImageRectHeight};
+    }
+    size_t getEyeCount() const { return mEyeCount; }
+    math::Mat4 getEyeViewMatrix(size_t eyeIndex) const { return mEyeViewMatrices.at(eyeIndex); }
+    math::Mat4 getEyeProjectionMatrix(size_t eyeIndex) const { return mEyeProjectionMatrices.at(eyeIndex); }
 
 private:
     void createViews();
-    VkExtent2D getEyeResolution(int32_t eyeIndex) const;
     void beginSession() const;
     void endSession() const;
 
@@ -57,12 +71,11 @@ private:
     std::unique_ptr<ImageBuffer> mColorBuffer;
     std::unique_ptr<ImageBuffer> mDepthBuffer;
     XrSwapchain mXrSwapchain{};
-    std::vector<std::unique_ptr<RenderTarget>> mSwapchainRenderTargets;
+    std::vector<std::shared_ptr<RenderTarget>> mSwapchainRenderTargets;
     std::vector<XrCompositionLayerProjectionView> mEyeRenderInfos;
-    std::vector<math::Mat4<>> mEyeViewMatrices;
-    std::vector<math::Mat4<>> mEyeProjectionMatrices;
+    std::vector<math::Mat4> mEyeViewMatrices;
+    std::vector<math::Mat4> mEyeProjectionMatrices;
     bool mIsExitRequested{};
-    XrSwapchain mSwapchain{};
     XrFrameState mXrFrameState{};
     XrSessionState mXrSessionState{};
     XrViewState mXrViewState{};

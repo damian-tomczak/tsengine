@@ -2,12 +2,12 @@
 
 #include "vulkan_functions.h"
 
-namespace vulkanloader
+namespace ts::vulkanloader
 {
 void connectWithLoader();
 void loadExportFunction();
 void loadGlobalLevelFunctions();
-void loadInstanceLevelFunctions(const VkInstance pInstance, const std::vector<std::string>& vulkanInstanceExtensions);
-void loadDebugLevelFunctions(const VkInstance pInstance);
-void loadDeviceLevelFunctions(const VkDevice vkDevice, const std::vector<std::string>& enabledVulkanDeviceExtensions);
+void loadInstanceLevelFunctions(const VkInstance instance, const std::vector<std::string>& vulkanInstanceExtensions);
+void loadDebugLevelFunctions(const VkInstance instance);
+void loadDeviceLevelFunctions(const VkDevice device, const std::vector<std::string>& enabledVulkanDeviceExtensions);
 }

@@ -1,8 +1,8 @@
 #pragma once
 
-#define NOT_COPYABLE(TypeName)               \
-    TypeName(const TypeName&) = delete;      \
-    TypeName& operator=(TypeName&) = delete;
+#define NOT_COPYABLE(TypeName)                     \
+    TypeName(const TypeName&) = delete;            \
+    TypeName& operator=(const TypeName&) = delete;
 
 #define NOT_MOVEABLE(TypeName)                \
     TypeName(TypeName&&) = delete;            \
@@ -29,3 +29,9 @@
 
 #define XSTR(x) #x
 #define STR(x) XSTR(x)
+
+class TSException : public std::exception
+{
+public:
+    TSException() {}
+};

@@ -4,9 +4,9 @@
 
 struct TransformComponent
 {
-    ts::math::Vec2<> position;
+    ts::math::Vec2 position;
 
-    TransformComponent(ts::math::Vec2<> position_ = {}) : position{ position_ }
+    TransformComponent(ts::math::Vec2 position_ = {}) : position{ position_ }
     {
     }
 };

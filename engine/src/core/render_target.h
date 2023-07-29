@@ -22,8 +22,8 @@ public:
         VkRenderPass renderPass,
         uint32_t layerCount);
 
-    VkImage getVkImage() const { return mImage; }
-    VkFramebuffer getVkFramebuffer() const { return mFramebuffer; };
+    VkImage getImage() const { return mImage; }
+    VkFramebuffer getFramebuffer() const { return mFramebuffer; };
 
 private:
     VkDevice mDevice{};
