@@ -52,7 +52,7 @@ void ImageBuffer::createImage(
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    const VkDevice device{mCtx->getVkDevice()};
+    const auto device = mCtx->getVkDevice();
 
     LOGGER_VK(vkCreateImage, device, &imageCreateInfo, nullptr, &mImage);
 

@@ -2,6 +2,7 @@
 #include "khronos_utils.h"
 #include "openxr/openxr_platform.h"
 #include "vulkan_tools/vulkan_loader.h"
+#include "globals.hpp"
 
 namespace
 {
@@ -133,17 +134,26 @@ void Context::createXrDebugMessenger()
 
 void Context::initXrSystemId()
 {
-    const XrSystemGetInfo ci{
+    const XrSystemGetInfo xrSystemInfo{
         .type = XR_TYPE_SYSTEM_GET_INFO,
         .formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
     };
 
-    auto result{xrGetSystem(mXrInstance, &ci, &mXrSystemId)};
+    auto result = xrGetSystem(mXrInstance, &xrSystemInfo, &mXrSystemId);
 
     if (XR_FAILED(result))
     {
         LOGGER_ERR("no headset detected");
     }
+}
+
+void Context::getXrSystemInfo()
+{
+    XrSystemProperties xrSystemProperties{XR_TYPE_SYSTEM_PROPERTIES};
+
+    LOGGER_XR(xrGetSystemProperties, mXrInstance, mXrSystemId, &xrSystemProperties);
+
+    gXrDeviceName = xrSystemProperties.systemName;
 }
 
 void Context::isXrBlendModeAvailable()
@@ -579,6 +589,7 @@ void Context::createOpenXrContext()
     createXrDebugMessenger();
 #endif
     initXrSystemId();
+    getXrSystemInfo();
     isXrBlendModeAvailable();
 }
 

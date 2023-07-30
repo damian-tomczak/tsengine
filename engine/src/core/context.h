@@ -49,6 +49,7 @@ private:
     void createXrInstance();
     void loadXrExtensions();
     void initXrSystemId();
+    void getXrSystemInfo();
     void isXrBlendModeAvailable();
 
     void getRequiredVulkanInstanceExtensions(std::vector<std::string>& requiredVulkanInstanceExtensions);
@@ -82,5 +83,6 @@ private:
     VkQueue mVkGraphicsQueue{}, mVkPresentQueue{};
     VkSampleCountFlagBits mVkMultisampleCount{};
     VkDeviceSize mVkUniformBufferOffsetAlignment{};
+    std::string mXrDeviceName;
 };
 } // namespace ts

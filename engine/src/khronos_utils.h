@@ -33,6 +33,8 @@
         }                                                                                                  \
     }
 
+#define DEVICE_NAME_HTC_VIVE "Vive OpenXR: Vive SRanipal"
+
 namespace ts::khronos_utils
 {
     std::string vkResultToString(VkResult result);
