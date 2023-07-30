@@ -79,7 +79,7 @@ void log(
 
     std::cout
         << colorToString(Color::GREEN)
-        << "LOG [" + currentDateTimeToString()
+        << "[INFO][" + currentDateTimeToString()
 #ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif // NDEBUG
@@ -99,7 +99,7 @@ void warning(
 
     std::cout
         << colorToString(Color::YELLOW)
-        << "WARNING [" + currentDateTimeToString()
+        << "[WARNING][" + currentDateTimeToString()
 #ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif // NDEBUG
@@ -120,7 +120,7 @@ void error(
 
     std::cerr
         << colorToString(Color::RED)
-        << "ERROR [" << currentDateTimeToString()
+        << "[ERROR][" << currentDateTimeToString()
 #ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
 #endif // NDEBUG

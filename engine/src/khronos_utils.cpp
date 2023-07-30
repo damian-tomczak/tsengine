@@ -1,5 +1,6 @@
 #include "khronos_utils.h"
 #include "vulkan_tools/vulkan_functions.h"
+#include "globals.hpp"
 
 namespace ts::khronos_utils
 {
@@ -168,11 +169,11 @@ XrBool32 xrCallback(
     const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
     void*)
 {
-    if (severity == XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+    if (severity & XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
         logger::warning(callbackData->message, "", "", NOT_PRINT_LINE_NUMBER);
     }
-    else if (severity == XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+    else if (severity & XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
     {
         logger::error(callbackData->message, "", "", NOT_PRINT_LINE_NUMBER);
     }
@@ -186,13 +187,21 @@ VkBool32 vkCallback(
     const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
     void*)
 {
-    if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+    if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
         logger::warning(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER);
     }
-    else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+    else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
     {
-        logger::error(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER);
+        auto throwException = true;
+
+        // Problematic devices:
+        if (gXrDeviceName == DEVICE_NAME_HTC_VIVE)
+        {
+            throwException = false;
+        }
+
+        logger::error((std::string{"(KNOWN ISSUE) "} + callbackData->pMessage).c_str(), "", "", NOT_PRINT_LINE_NUMBER, throwException);
     }
 
     return VK_FALSE;

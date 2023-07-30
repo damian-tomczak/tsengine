@@ -39,7 +39,7 @@ Controllers::~Controllers()
 
 void Controllers::setupControllers()
 {
-    XrActionSetCreateInfo actionSetCreateInfo{ XR_TYPE_ACTION_SET_CREATE_INFO };
+    XrActionSetCreateInfo actionSetCreateInfo{XR_TYPE_ACTION_SET_CREATE_INFO};
 
     memcpy(actionSetCreateInfo.actionSetName, actionSetName.data(), actionSetName.length() + 1);
     memcpy(actionSetCreateInfo.localizedActionSetName, localizedActionSetName.data(), localizedActionSetName.length() + 1);
