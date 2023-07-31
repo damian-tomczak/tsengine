@@ -256,7 +256,7 @@ void MirrorView::present()
     }
     else if (result != VK_SUCCESS)
     {
-        LOGGER_ERR(("vkQueuePresentKHR failed with status: " + ts::khronos_utils::vkResultToString(result)).c_str());
+        LOGGER_ERR(("vkQueuePresentKHR failed with status: " + khronos_utils::vkResultToString(result)).c_str());
     }
 }
 

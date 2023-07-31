@@ -89,7 +89,7 @@ void Controllers::setupControllers()
     LOGGER_XR(xrAttachSessionActionSets, mSession, &sessionActionSetsAttachInfo);
 }
 
-bool Controllers::sync(const XrSpace space, const XrTime time)
+void Controllers::sync(const XrSpace space, const XrTime time)
 {
     const XrActiveActionSet activeActionSet{
         .actionSet = mActionSet
@@ -101,7 +101,11 @@ bool Controllers::sync(const XrSpace space, const XrTime time)
         .activeActionSets = &activeActionSet
     };
 
-    LOGGER_XR(xrSyncActions, mSession, &actionsSyncInfo);
+    auto result = xrSyncActions(mSession, &actionsSyncInfo);
+    if (XR_FAILED(result))
+    {
+        LOGGER_ERR(("xrSyncActions failed with status: " + khronos_utils::xrResultToString(result)).c_str());
+    }
 
     for (size_t controllerIndex{}; controllerIndex < controllerCount; ++controllerIndex)
     {
@@ -133,8 +137,6 @@ bool Controllers::sync(const XrSpace space, const XrTime time)
             mFlySpeeds.at(controllerIndex) = flySpeedState.currentState;
         }
     }
-
-    return true;
 }
 
 void Controllers::updateActionStatePose(const XrSession session, const XrAction action, const XrPath path, XrActionStatePose& state)
