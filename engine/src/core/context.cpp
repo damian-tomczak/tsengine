@@ -143,7 +143,7 @@ void Context::initXrSystemId()
 
     if (XR_FAILED(result))
     {
-        LOGGER_ERR("no headset detected");
+        LOGGER_ERR("No headset detected");
     }
 }
 
@@ -155,10 +155,13 @@ void Context::getXrSystemInfo()
 
     gXrDeviceId = std::hash<std::string_view>{}(xrSystemProperties.systemName);
 
-    if (gXrDeviceId == khronos_utils::DeviceIdHtcVive)
+    auto deviceIt = std::ranges::find_if(khronos_utils::knownXrDevicesNameToId, [](const auto& device)  -> bool {
+        return device.second == gXrDeviceId;
+    });
+
+    if (deviceIt == khronos_utils::knownXrDevicesNameToId.end())
     {
-        LOGGER_WARN("Headset you are using (htc vive) isn't stable be aware of potential problems"
-            "Vulkan validation layers' errors don't stop the execution.");
+        LOGGER_WARN("Engine doesn't recognize headset in use");
     }
 }
 
@@ -314,7 +317,7 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
 
         if (!isLayerSupported)
         {
-            LOGGER_WARN((std::string{layer} + " vulkan layer isn't supported").c_str());
+            LOGGER_WARN(("Vulkan validation layer isn't supported: "s + layer).c_str());
         }
     }
 
@@ -427,7 +430,7 @@ void Context::isVulkanDeviceExtensionsAvailable(
 
         if (!isExtensionSupported)
         {
-            LOGGER_ERR((requiredExtension + " extension isn't supported").c_str());
+            LOGGER_ERR(("Vulkan extension isn't supported: " + requiredExtension).c_str());
         }
     }
 
@@ -623,11 +626,6 @@ void Context::createVulkanContext()
 
 void Context::createXrInstance()
 {
-    if (strlen(GAME_NAME) > XR_MAX_APPLICATION_NAME_SIZE - 1)
-    {
-        LOGGER_ERR("too long game name: " STR(XR_MAX_APPLICATION_NAME_SIZE));
-    }
-
     const XrApplicationInfo appInfo{
         .applicationName = GAME_NAME,
         .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
@@ -640,7 +638,7 @@ void Context::createXrInstance()
 
 #ifndef NDEBUG
     extensions.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif // DEBUG
+#endif // !NDEBUG
 
     std::vector<XrExtensionProperties> supportedXrInstanceExtensions;
 
@@ -671,9 +669,13 @@ void Context::createXrInstance()
             }
         }
 
-        if (!isExtensionSupported)
+        if ((!isExtensionSupported) && (extension != XR_EXT_DEBUG_UTILS_EXTENSION_NAME))
         {
-            LOGGER_WARN((extension + std::string{" xr extension isn't supported"}).c_str());
+            LOGGER_ERR(("OpenXr extension isn't supported: "s + extension).c_str());
+        }
+        else if (!isExtensionSupported)
+        {
+            LOGGER_WARN(("OpenXr debug extension isn't supported: "s + extension).c_str());
         }
     }
 

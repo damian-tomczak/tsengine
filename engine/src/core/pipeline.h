@@ -17,8 +17,8 @@ public:
         VkRenderPass renderPass,
         const std::string& vertexFilename,
         const std::string& fragmentFilename,
-        const std::vector<VkVertexInputBindingDescription>& vertexInputBindingDescriptions,
-        const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions);
+        const std::vector<VkVertexInputBindingDescription>& vertexInputBindingDescriptions = {},
+        const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions = {});
 
     void bind(const VkCommandBuffer commandBuffer) const;
 

@@ -318,7 +318,7 @@ bool MirrorView::isWindowMinimize()
 
 void MirrorView::getSurfaceCapabilitiesAndExtent()
 {
-    const auto physicalDevice{mCtx->getVkPhysicalDevice()};
+    const auto physicalDevice = mCtx->getVkPhysicalDevice();
 
     LOGGER_VK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR, physicalDevice, mSurface, &mSurfaceCapabilities);
 
@@ -339,6 +339,7 @@ void MirrorView::getSurfaceCapabilitiesAndExtent()
         {
             LOGGER_ERR("Invalid window");
         }
+
         auto width{static_cast<uint32_t>(window->getWidth())};
         auto height{static_cast<uint32_t>(window->getHeight())};
 
@@ -351,7 +352,7 @@ void MirrorView::getSurfaceCapabilitiesAndExtent()
 
 void MirrorView::pickSurfaceFormat()
 {
-    const auto physicalDevice{ mCtx->getVkPhysicalDevice() };
+    const auto physicalDevice = mCtx->getVkPhysicalDevice();
 
     uint32_t surfaceFormatCount{};
     LOGGER_VK(vkGetPhysicalDeviceSurfaceFormatsKHR, physicalDevice, mSurface, &surfaceFormatCount, nullptr);

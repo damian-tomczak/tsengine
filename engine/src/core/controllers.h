@@ -13,6 +13,7 @@ class Controllers final
 
     static constexpr std::string_view actionSetName{"actionset"};
     static constexpr std::string_view localizedActionSetName{"Actions"};
+    static constexpr std::string_view interactionProfile{"/interaction_profiles/khr/simple_controller"};
 
 public:
     Controllers(XrInstance xrInstance, XrSession xrSession) : mInstance(xrInstance), mSession(xrSession)
@@ -32,7 +33,7 @@ private:
     XrSession mSession{};
     std::array<XrSpace, controllerCount> mSpaces{};
     XrActionSet mActionSet{};
-    XrAction mPoseAction{}, mFlyAction{};
+    XrAction mPoseAction{}, mFlyAction{}, mTriggerAction{};
     std::array<XrPath, controllerCount> mPaths;
     std::array<math::Mat4, controllerCount> mPoses;
     std::array<float, controllerCount> mFlySpeeds;

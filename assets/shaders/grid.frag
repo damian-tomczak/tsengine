@@ -1,40 +1,70 @@
-#version 450
+#version 460 core
+#extension GL_GOOGLE_include_directive : enable
 
-layout(binding = 2) uniform Time { float value; } time;
+#include "assets/shaders/grid_params.h"
 
-layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 color;
-
-layout(location = 0) out vec4 outColor;
-
-bool isOnGrid(float position, float threshold)
+float log10(float x)
 {
-    return position < threshold || position > 1.0 - threshold;
+	return log(x) / log(10.0);
 }
+
+float satf(float x)
+{
+	return clamp(x, 0.0, 1.0);
+}
+
+vec2 satv(vec2 x)
+{
+	return clamp(x, vec2(0.0), vec2(1.0));
+}
+
+float max2(vec2 v)
+{
+	return max(v.x, v.y);
+}
+
+vec4 gridColor(vec2 uv, vec2 camPos)
+{
+	vec2 dudv = vec2(
+		length(vec2(dFdx(uv.x), dFdy(uv.x))),
+		length(vec2(dFdx(uv.y), dFdy(uv.y)))
+	);
+
+	float lodLevel = max(0.0, log10((length(dudv) * gridMinPixelsBetweenCells) / gridCellSize) + 1.0);
+	float lodFade = fract(lodLevel);
+
+	// cell sizes for lod0, lod1 and lod2
+	float lod0 = gridCellSize * pow(10.0, floor(lodLevel));
+	float lod1 = lod0 * 10.0;
+	float lod2 = lod1 * 10.0;
+
+	// each anti-aliased line covers up to 4 pixels
+	dudv *= 4.0;
+
+	// calculate absolute distances to cell line centers for each lod and pick max X/Y to get coverage alpha value
+	float lod0a = max2( vec2(1.0) - abs(satv(mod(uv, lod0) / dudv) * 2.0 - vec2(1.0)) );
+	float lod1a = max2( vec2(1.0) - abs(satv(mod(uv, lod1) / dudv) * 2.0 - vec2(1.0)) );
+	float lod2a = max2( vec2(1.0) - abs(satv(mod(uv, lod2) / dudv) * 2.0 - vec2(1.0)) );
+
+	uv -= camPos;
+
+	// blend between falloff colors to handle LOD transition
+	vec4 c = lod2a > 0.0 ? gridColorThick : lod1a > 0.0 ? mix(gridColorThick, gridColorThin, lodFade) : gridColorThin;
+
+	// calculate opacity falloff based on distance to grid extents
+	float opacityFalloff = (1.0 - satf(length(uv) / gridSize));
+
+	// blend between LOD level alphas and scale with opacity falloff
+	c.a *= (lod2a > 0.0 ? lod2a : lod1a > 0.0 ? lod1a : (lod0a * (1.0-lodFade))) * opacityFalloff;
+
+	return c;
+}
+
+layout (location=0) in vec2 uv;
+layout (location=1) in vec2 cameraPos;
+layout (location=0) out vec4 out_FragColor;
 
 void main()
 {
-    const float animation = abs(sin(time.value * 2.0 + position.x / 10.0 + position.z / 10.0));
-    const float crossThickness = 0.005 + animation * 0.01;
-    const float crossLength = 0.025 + animation * 0.05;
-
-    const float x = mod(position.x, 1.0);
-    const float z = mod(position.z, 1.0);
-
-    if ((isOnGrid(x, crossThickness) && isOnGrid(z, crossLength)) || (isOnGrid(z, crossThickness) && isOnGrid(x, crossLength)))
-    {
-        const float fadeLength = 20.0;
-        const float fade = clamp(1.0 - (length(position.xz) / fadeLength), 0.0, 1.0);
-        outColor = vec4(color, fade);
-    }
-    else
-    {
-        const float fadeLength = 10.0;
-        const float fade = clamp(1.0 - (length(position.xz) / fadeLength), 0.0, 1.0);
-
-        const vec3 backgroundColor = vec3(0.01, 0.01, 0.01);
-        const vec3 floorColor = vec3(0.08, 0.08, 0.08);
-
-        outColor = vec4(mix(backgroundColor, floorColor, fade), 1.0);
-    }
+	out_FragColor = gridColor(uv, cameraPos);
 }

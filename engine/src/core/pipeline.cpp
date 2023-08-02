@@ -26,7 +26,7 @@ void Pipeline::createPipeline(
     const std::vector<VkVertexInputBindingDescription>& vertexInputBindingDescriptions,
     const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions)
 {
-    const auto device{mCtx->getVkDevice()};
+    const auto device = mCtx->getVkDevice();
 
     VkShaderModule vertexShaderModule;
     loadShaderFromFile(device, vertexFilename, vertexShaderModule);
@@ -148,7 +148,7 @@ void Pipeline::loadShaderFromFile(const VkDevice device, const std::string& file
     std::ifstream file(fileName, std::ios::ate | std::ios::binary);
     if (!file.is_open())
     {
-        LOGGER_ERR(("can not open shader file: " + fileName).c_str());
+        LOGGER_ERR(("Can not open shader file: " + fileName).c_str());
     }
 
     const auto fileSize = static_cast<size_t>(file.tellg());
@@ -162,6 +162,7 @@ void Pipeline::loadShaderFromFile(const VkDevice device, const std::string& file
         .codeSize = code.size(),
         .pCode = reinterpret_cast<const uint32_t*>(code.data())
     };
+
     LOGGER_VK(vkCreateShaderModule, device, &shaderModuleCreateInfo, nullptr, &shaderModule);
 }
 }

@@ -36,10 +36,27 @@
 
 namespace ts::khronos_utils
 {
-inline constexpr auto DeviceIdHtcVive = std::hash<std::string_view>{}("Vive OpenXR: Vive SRanipal");
+namespace device_names
+{
+    inline constexpr std::string_view HtcVivePro{"Vive OpenXR: Vive SRanipal"};
+    inline constexpr std::string_view OculusQuest2{"Oculus Quest2"};
+} // namespace device_ids
+namespace device_ids
+{
+    inline constexpr auto HtcVivePro = std::hash<std::string_view>{}(device_names::HtcVivePro);
+    inline constexpr auto OcuslusQuest2 = std::hash<std::string_view>{}(device_names::OculusQuest2);
+} // namespace device_ids
+constexpr std::array<std::pair<std::string_view, size_t>, 2> knownXrDevicesNameToId{{
+    {device_names::HtcVivePro, device_ids::HtcVivePro},
+    {device_names::OculusQuest2, device_ids::OcuslusQuest2},
+}};
+constexpr std::array<std::pair<size_t, std::string_view>, 2> knownXrDevicesIdToName{{
+    {device_ids::HtcVivePro, device_names::HtcVivePro},
+    {device_ids::OcuslusQuest2, device_names::OculusQuest2},
+}};
 
-std::string vkResultToString(VkResult result);
-std::string xrResultToString(XrResult result);
+std::string vkResultToString(const VkResult result);
+std::string xrResultToString(const XrResult result);
 
 #ifndef NDEBUG
 constexpr XrDebugUtilsMessageSeverityFlagsEXT xrDebugMessageSeverityFlags =
@@ -69,7 +86,7 @@ VkBool32 vkCallback(
     VkDebugUtilsMessageTypeFlagsEXT type,
     const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
     void* userData);
-#endif // NDEBUG
+#endif // !NDEBUG
 
 // TODO: investigate performance of it
 void unpackXrExtensionString(const std::string& str, std::vector<std::string>& result);

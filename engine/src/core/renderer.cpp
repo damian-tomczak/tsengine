@@ -57,7 +57,7 @@ Renderer::~Renderer()
 
 void Renderer::createRenderer()
 {
-    const auto device{mCtx->getVkDevice()};
+    const auto device = mCtx->getVkDevice();
 
     const VkCommandPoolCreateInfo commandPoolCreateInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -126,6 +126,13 @@ void Renderer::createRenderer()
         renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, mModels.size());
     }
 
+    mGridPipeline = new Pipeline{mCtx};
+    mGridPipeline->createPipeline(
+        mPipelineLayout,
+        mHeadset->getVkRenderPass(),
+        "assets/shaders/grid.vert.spirv",
+        "assets/shaders/grid.frag.spirv");
+
     const VkVertexInputBindingDescription vertexInputBindingDescription{
         .binding = 0,
         .stride = sizeof(Vertex),
@@ -153,15 +160,6 @@ void Renderer::createRenderer()
         .offset = offsetof(Vertex, color),
     };
 
-    mGridPipeline = new Pipeline{mCtx};
-    mGridPipeline->createPipeline(
-        mPipelineLayout,
-        mHeadset->getVkRenderPass(),
-        "assets/shaders/grid.vert.spirv",
-        "assets/shaders/grid.frag.spirv",
-        {vertexInputBindingDescription},
-        {vertexInputAttributePosition, vertexInputAttributeColor});
-
     mDiffusePipeline = new Pipeline{mCtx};
     mDiffusePipeline->createPipeline(
         mPipelineLayout,
@@ -176,28 +174,25 @@ void Renderer::createRenderer()
     mIndexOffset = mMeshData->getIndexOffset();
 }
 
-void Renderer::render(const math::Mat4& cameraMatrix, size_t swapchainImageIndex, float time)
+void Renderer::render(const math::Mat4& cameraMatrix, const size_t swapchainImageIndex, const float time)
 {
     mCurrentRenderProcessIndex = (mCurrentRenderProcessIndex + 1) % mRenderProcesses.size();
-
     auto renderProcess = mRenderProcesses.at(mCurrentRenderProcessIndex);
 
     const auto busyFence = renderProcess->getFence();
+    LOGGER_VK(vkWaitForFences, mCtx->getVkDevice(), 1, &busyFence, VK_TRUE, UINT64_MAX);
     LOGGER_VK(vkResetFences, mCtx->getVkDevice(), 1, &busyFence);
 
     const auto commandBuffer = renderProcess->getCommandBuffer();
-
-    LOGGER_VK(vkResetCommandBuffer, commandBuffer, 0);
-
     const VkCommandBufferBeginInfo commandBufferBeginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
     LOGGER_VK(vkBeginCommandBuffer, commandBuffer, &commandBufferBeginInfo);
 
     updateUniformData(cameraMatrix, time, renderProcess);
 
-    const std::array<VkClearValue, 2> clearValues{{
+    const std::array<VkClearValue, 2> clearValues{ {
         {.color = {0.01f, 0.01f, 0.01f, 1.f}},
-        {.color = {1.f, 0}}
-    }};
+        {.depthStencil = {1.0f, 0}}
+    } };
 
     VkRenderPassBeginInfo renderPassBeginInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -316,8 +311,8 @@ VkCommandBuffer Renderer::getCurrentCommandBuffer() const
 
 void Renderer::createVertexIndexBuffer()
 {
-    const auto bufferSize{ static_cast<VkDeviceSize>(mMeshData->getSize()) };
-    auto stagingBuffer{ new DataBuffer{mCtx} };
+    const auto bufferSize = static_cast<VkDeviceSize>(mMeshData->getSize());
+    auto stagingBuffer = new DataBuffer{mCtx};
     stagingBuffer->createDataBuffer(
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -361,5 +356,16 @@ void Renderer::updateUniformData(const math::Mat4& cameraMatrix, float time, Ren
     renderProcess->mStaticFragmentUniformData.time = time;
 
     renderProcess->updateUniformBufferData();
+}
+void Renderer::beginRenderPass(
+    VkCommandBuffer cmdBuffer,
+    VkRenderPass pass,
+    size_t currentImage,
+    const VkRect2D area,
+    VkFramebuffer fb,
+    uint32_t clearValueCount,
+    const VkClearValue* clearValues)
+{
+
 }
 }

@@ -261,7 +261,7 @@ inline void Registry::addComponent(Entity entity, TArgs&&... args)
     {
         mComponentPools.emplace_back(std::make_unique<TPool>());
     }
-    mComponentPools.at(componentId)->emplace_back(entityId, TComponent{ std::forward<TArgs>(args)... });
+    //mComponentPools.at(componentId)->emplace_back(entityId, TComponent{ std::forward<TArgs>(args)... });
     mEntitySignatures.at(entityId).set(componentId);
 }
 

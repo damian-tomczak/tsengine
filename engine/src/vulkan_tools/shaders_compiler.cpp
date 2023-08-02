@@ -19,7 +19,7 @@ std::string readShader(const std::filesystem::path& path)
 
 glslang_stage_t getShaderStage(const std::filesystem::path& file)
 {
-    auto extension{file.extension()};
+    auto extension = file.extension();
 
     if (extension == ".vert")
     {
@@ -53,14 +53,14 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::file
     auto shader = glslang_shader_create(&input);
 
     // TODO: implement more complex logging system, taking into account also line highlighting
-    auto loggerWrapper{[&](const std::string& errorTitle) -> void {
+    auto loggerWrapper{[&](std::string_view errorTitle) -> void {
         std::ostringstream message;
         message
             << errorTitle
             << ": "
             << filePath.string()
             << "\n"
-            << "compilation info: "
+            << "info: "
             << glslang_shader_get_info_log(shader)
             << "\n"
             << glslang_shader_get_info_debug_log(shader);
@@ -78,7 +78,7 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::file
         loggerWrapper("shader parsing failed");
     }
 
-    auto program{glslang_program_create()};
+    auto program = glslang_program_create();
     glslang_program_add_shader(program, shader);
 
     if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT))
@@ -91,11 +91,11 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::file
     std::vector<uint32_t> spirv(glslang_program_SPIRV_get_size(program));
     glslang_program_SPIRV_get(program, spirv.data());
 
-    auto spirvMessages{glslang_program_SPIRV_get_messages(program)};
+    auto spirvMessages = glslang_program_SPIRV_get_messages(program);
 
     if (spirvMessages != nullptr)
     {
-        LOGGER_ERR((std::string("glslang program spriv message: ") + spirvMessages).c_str());
+        LOGGER_ERR(("glslang program spriv message: "s + spirvMessages).c_str());
     }
 
     glslang_program_delete(program);
@@ -109,14 +109,14 @@ std::vector<uint32_t> compileShaderFile(const std::filesystem::path& filePath)
     auto src = readShader(filePath);
     if (src.empty())
     {
-        LOGGER_ERR(("shader file is empty: " + filePath.string()).c_str());
+        LOGGER_ERR(("Shader file is empty: " + filePath.string()).c_str());
     }
 
-    const auto shaderStage{getShaderStage(filePath)};
+    const auto shaderStage = getShaderStage(filePath);
 
     if (shaderStage == GLSLANG_STAGE_COUNT)
     {
-        LOGGER_ERR(("shader file extension isn't supported: " + filePath.string()).c_str());
+        LOGGER_ERR(("Shader file extension isn't supported: " + filePath.string()).c_str());
     }
 
     return processShader(shaderStage, filePath, src.c_str());
@@ -147,7 +147,7 @@ void saveSPIRV(const std::filesystem::path& outputFilePath, const std::vector<ui
 
 namespace ts
 {
-void compileShaders(std::string_view shadersPath)
+void compileShaders(const std::string& shadersPath)
 {
     if (!glslang_initialize_process())
     {
@@ -156,25 +156,28 @@ void compileShaders(std::string_view shadersPath)
 
     if (!std::filesystem::is_directory(shadersPath))
     {
-        LOGGER_ERR((std::string{shadersPath} + " path couldn't be found").c_str());
+        LOGGER_ERR((shadersPath + " path couldn't be found").c_str());
     }
 
     size_t shadersFoundNumber{};
     for (const auto& file : std::filesystem::recursive_directory_iterator(shadersPath))
     {
-        if (file.is_directory() || (file.path().extension() == ".spirv"))
+        if (file.is_directory() || (file.path().extension() == ".spirv") || (file.path().extension() == ".h"))
         {
             continue;
         }
 
         shadersFoundNumber++;
 
+#ifdef NDEBUG
+        // Shader is already compiled
         if (std::filesystem::exists((file.path().string() + ".spirv")))
         {
             continue;
         }
+#endif // NDEBUG
 
-        auto spriv{compileShaderFile(file.path())};
+        auto spriv = compileShaderFile(file.path());
 
         auto outputFileName{file.path().string() + ".spirv"};
         saveSPIRV(outputFileName, spriv);

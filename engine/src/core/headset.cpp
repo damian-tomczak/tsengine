@@ -125,7 +125,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
 
     if (viewCount != mEyeCount)
     {
-        LOGGER_ERR("trying to display more views than defined eyes");
+        LOGGER_ERR("Trying to display more views than defined eyes");
     }
 
     for (size_t eyeIndex{}; eyeIndex < mEyeCount; ++eyeIndex)
@@ -423,7 +423,7 @@ void Headset::endFrame() const
     if (XR_FAILED(result))
     {
         // TODO: investigate the problem (probably problem with the main loop code architecture)
-        LOGGER_WARN(("(KNOWN ISSUE) xrReleaseSwapchainImage failed with status: " + ts::khronos_utils::xrResultToString(result)).c_str());
+        LOGGER_WARN(("(KNOWN ISSUE) xrReleaseSwapchainImage failed with status: " + khronos_utils::xrResultToString(result)).c_str());
     }
 
     XrCompositionLayerProjection compositionLayerProjection{

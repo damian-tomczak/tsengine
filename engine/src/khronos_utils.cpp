@@ -6,7 +6,7 @@
 
 namespace ts::khronos_utils
 {
-std::string vkResultToString(VkResult result)
+std::string vkResultToString(const VkResult result)
 {
     switch (result)
     {
@@ -63,7 +63,7 @@ std::string vkResultToString(VkResult result)
     }
 }
 
-std::string xrResultToString(XrResult result)
+std::string xrResultToString(const XrResult result)
 {
     switch (result)
     {
@@ -197,17 +197,31 @@ VkBool32 vkCallback(
     {
         auto throwException = true;
 
-        if (gXrDeviceId == khronos_utils::DeviceIdHtcVive)
+
+        if (gXrDeviceId == khronos_utils::device_ids::HtcVivePro)
         {
             throwException = false;
         }
 
-        logger::error(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER, throwException);
+        if (!throwException)
+        {
+            static std::optional<size_t> warnedXrDevice;
+
+            if ((warnedXrDevice == std::nullopt) || warnedXrDevice != gXrDeviceId)
+            {
+                warnedXrDevice = std::make_optional<size_t>(gXrDeviceId);
+
+                LOGGER_WARN(("Unstable xr device in use (" + std::string{knownXrDevicesIdToName[*warnedXrDevice].second.data()} + ")." +
+                    "Vulkan validation layers's errors won't stop the program.").c_str());
+            }
+        }
+
+        logger::error(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER, throwException, throwException);
     }
 
     return VK_FALSE;
 }
-#endif // NDEBUG
+#endif // !NDEBUG
 
 void unpackXrExtensionString(const std::string& str, std::vector<std::string>& result)
 {
@@ -273,12 +287,13 @@ math::Mat4 createXrProjectionMatrix(const XrFovf fov, const float nearClip, cons
     const auto w = r - l;
     const auto h = d - u;
 
-    math::Mat4 projectionMatrix{{{
-        2.0f / w   , 0.0f       , 0.0f                                                     , 0.0f ,
-        0.0f       , 2.0f / h   , 0.0f                                                     , 0.0f ,
+    math::Mat4 projectionMatrix
+    {
+        2.f / w    , 0.f        , 0.f                                                      , 0.0f ,
+        0.f        , 2.f / h    , 0.f                                                      , 0.0f ,
         (r + l) / w, (u + d) / h, -(farClip + nearClip) / (farClip - nearClip)             , -1.0f,
-        0.0f       , 0.0f       , -(farClip * (nearClip + nearClip)) / (farClip - nearClip), 0.0f ,
-    }}};
+        0.f        , 0.f        , -(farClip * (nearClip + nearClip)) / (farClip - nearClip), 0.0f ,
+    };
 
     return projectionMatrix;
 }

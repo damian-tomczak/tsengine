@@ -30,7 +30,7 @@ void DataBuffer::createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryP
 {
     mSize = size;
 
-    const auto device{mCtx->getVkDevice()};
+    const auto device = mCtx->getVkDevice();
 
     VkBufferCreateInfo bufferCreateInfo{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,

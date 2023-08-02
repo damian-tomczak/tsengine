@@ -36,7 +36,6 @@ public:
     TSException() {}
 };
 
-// C++ 20 STL still doesn't support hash calculation on c strings
 template<>
 struct std::hash<std::string_view> final
 {
