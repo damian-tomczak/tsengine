@@ -24,8 +24,8 @@ public:
     void setupControllers();
     bool sync(const XrSpace space, const XrTime time);
 
-    float getFlySpeed(size_t controllerIndex) const { return mFlySpeeds.at(controllerIndex); }
-    math::Mat4 getPose(size_t controllerIndex) const { return mPoses.at(controllerIndex); }
+    [[nodiscard]] float getFlySpeed(size_t controllerIndex) const { return mFlySpeeds.at(controllerIndex); }
+    [[nodiscard]] math::Mat4 getPose(size_t controllerIndex) const { return mPoses.at(controllerIndex); }
 
 private:
     XrInstance mInstance{};

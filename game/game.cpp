@@ -8,6 +8,7 @@
 #include "events/key_released_event.hpp"
 
 #include "tsengine/math.hpp"
+#include "tsengine/logger.h"
 
 bool Game::init(unsigned& width, unsigned& height)
 {
@@ -70,3 +71,5 @@ void Game::onKeyReleased(ts::Key k)
 {
     mpEventBus->emitEvent<KeyReleasedEvent>(k);
 }
+
+TS_MAIN()

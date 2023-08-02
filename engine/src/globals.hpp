@@ -2,5 +2,5 @@
 
 namespace ts
 {
-inline std::string gXrDeviceName;
+inline size_t gXrDeviceId;
 }

@@ -18,7 +18,7 @@ public:
 
     void createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryPropertyFlags memoryProperties, VkDeviceSize size);
 
-    VkBuffer getBuffer() const { return mBuffer; }
+    [[nodiscard]] VkBuffer getBuffer() const { return mBuffer; }
 
     void copyTo(const DataBuffer& target, VkCommandBuffer commandBuffer, VkQueue queue) const;
     void* map() const;

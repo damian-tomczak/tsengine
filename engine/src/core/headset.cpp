@@ -452,6 +452,12 @@ void Headset::endFrame() const
     LOGGER_XR(xrEndFrame, mXrSession, &frameEndInfo);
 }
 
+[[nodiscard]] VkExtent2D Headset::getEyeResolution(int32_t eyeIndex) const
+{
+    const XrViewConfigurationView& eyeInfo{mEyeViewInfos.at(eyeIndex)};
+    return {eyeInfo.recommendedImageRectWidth, eyeInfo.recommendedImageRectHeight};
+}
+
 void Headset::beginSession() const
 {
     XrSessionBeginInfo sessionBeginInfo{

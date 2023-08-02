@@ -25,7 +25,7 @@ public:
         VkImageAspectFlags aspect,
         size_t layerCount);
 
-    VkImageView getVkImageView() const { return mImageView; }
+    [[nodiscard]] VkImageView getVkImageView() const { return mImageView; }
 
 private:
     const Context* mCtx{};

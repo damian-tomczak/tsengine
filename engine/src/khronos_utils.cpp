@@ -2,6 +2,8 @@
 #include "vulkan_tools/vulkan_functions.h"
 #include "globals.hpp"
 
+#undef STR
+
 namespace ts::khronos_utils
 {
 std::string vkResultToString(VkResult result)
@@ -195,13 +197,12 @@ VkBool32 vkCallback(
     {
         auto throwException = true;
 
-        // Problematic devices:
-        if (gXrDeviceName == DEVICE_NAME_HTC_VIVE)
+        if (gXrDeviceId == khronos_utils::DeviceIdHtcVive)
         {
             throwException = false;
         }
 
-        logger::error((std::string{"(KNOWN ISSUE) "} + callbackData->pMessage).c_str(), "", "", NOT_PRINT_LINE_NUMBER, throwException);
+        logger::error(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER, throwException);
     }
 
     return VK_FALSE;
@@ -285,7 +286,7 @@ math::Mat4 createXrProjectionMatrix(const XrFovf fov, const float nearClip, cons
 math::Mat4 xrPoseToMatrix(const XrPosef& pose)
 {
     const auto translation =
-        math::translate(math::Mat4::makeScalarMat(1.f), { pose.position.x, pose.position.y, pose.position.z });
+        math::translate(math::Mat4(1.f), { pose.position.x, pose.position.y, pose.position.z });
 
     const auto rotation =
         math::Mat4(math::Quat(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z));

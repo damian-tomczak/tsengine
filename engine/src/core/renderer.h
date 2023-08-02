@@ -29,9 +29,9 @@ public:
     void render(const math::Mat4& cameraMatrix, size_t swapchainImageIndex, float time);
     void submit(bool useSemaphores) const;
 
-    VkSemaphore getCurrentDrawableSemaphore() const;
-    VkSemaphore getCurrentPresentableSemaphore() const;
-    VkCommandBuffer getCurrentCommandBuffer() const;
+    [[nodiscard]] VkSemaphore getCurrentDrawableSemaphore() const;
+    [[nodiscard]] VkSemaphore getCurrentPresentableSemaphore() const;
+    [[nodiscard]] VkCommandBuffer getCurrentCommandBuffer() const;
 
 private:
     void createVertexIndexBuffer();

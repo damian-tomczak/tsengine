@@ -19,22 +19,22 @@ public:
 
     static constexpr XrViewConfigurationType xrViewType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
 
-    void createOpenXrContext();
+    Context& createOpenXrContext();
     void createVulkanContext();
     void createVkDevice(VkSurfaceKHR vkMirrorSurface);
     void sync() const;
 
-    XrInstance getXrInstance() const { return mXrInstance; }
-    VkInstance getVkInstance() const { return mVkInstance; }
-    VkPhysicalDevice getVkPhysicalDevice() const { return mPhysicalDevice; }
-    VkDevice getVkDevice() const { return mVkDevice; }
-    VkSampleCountFlagBits getVkMultisampleCount() const { return mVkMultisampleCount; }
-    uint32_t getVkGraphicsQueueFamilyIndex() const;
-    uint32_t getVkPresentQueueFamilyIndex() const;
-    XrSystemId getXrSystemId() const { return mXrSystemId; }
-    VkQueue getVkGraphicsQueue() const { return mVkGraphicsQueue; }
-    VkQueue getVkPresentQueue() const { return mVkPresentQueue; }
-    VkDeviceSize getUniformBufferOffsetAlignment() const { return mVkUniformBufferOffsetAlignment; }
+    [[nodiscard]] XrInstance getXrInstance() const { return mXrInstance; }
+    [[nodiscard]] VkInstance getVkInstance() const { return mVkInstance; }
+    [[nodiscard]] VkPhysicalDevice getVkPhysicalDevice() const { return mPhysicalDevice; }
+    [[nodiscard]] VkDevice getVkDevice() const { return mVkDevice; }
+    [[nodiscard]] VkSampleCountFlagBits getVkMultisampleCount() const { return mVkMultisampleCount; }
+    [[nodiscard]] uint32_t getVkGraphicsQueueFamilyIndex() const;
+    [[nodiscard]] uint32_t getVkPresentQueueFamilyIndex() const;
+    [[nodiscard]] XrSystemId getXrSystemId() const { return mXrSystemId; }
+    [[nodiscard]] VkQueue getVkGraphicsQueue() const { return mVkGraphicsQueue; }
+    [[nodiscard]] VkQueue getVkPresentQueue() const { return mVkPresentQueue; }
+    [[nodiscard]] VkDeviceSize getUniformBufferOffsetAlignment() const { return mVkUniformBufferOffsetAlignment; }
 
 private:
 #ifndef NDEBUG

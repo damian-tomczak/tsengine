@@ -1,11 +1,11 @@
 #pragma once
 
+#include "utils.hpp"
+#include "tsengine/logger.h"
 #include "tsengine/math.hpp"
 
 #include "openxr/openxr.h"
 #include "vulkan/vulkan.h"
-
-#include "tsengine/logger.h"
 
 #define LOGGER_VK(function, ...)                                                                           \
     {                                                                                                      \
@@ -33,41 +33,42 @@
         }                                                                                                  \
     }
 
-#define DEVICE_NAME_HTC_VIVE "Vive OpenXR: Vive SRanipal"
 
 namespace ts::khronos_utils
 {
-    std::string vkResultToString(VkResult result);
-    std::string xrResultToString(XrResult result);
+inline constexpr auto DeviceIdHtcVive = std::hash<std::string_view>{}("Vive OpenXR: Vive SRanipal");
+
+std::string vkResultToString(VkResult result);
+std::string xrResultToString(XrResult result);
 
 #ifndef NDEBUG
-    constexpr XrDebugUtilsMessageSeverityFlagsEXT xrDebugMessageSeverityFlags =
-        XR_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-        XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+constexpr XrDebugUtilsMessageSeverityFlagsEXT xrDebugMessageSeverityFlags =
+    XR_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+    XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 
-    constexpr XrDebugUtilsMessageTypeFlagsEXT xrDebugMessageTypeFlags =
-        XR_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-        XR_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_TYPE_CONFORMANCE_BIT_EXT;
+constexpr XrDebugUtilsMessageTypeFlagsEXT xrDebugMessageTypeFlags =
+    XR_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+    XR_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_TYPE_CONFORMANCE_BIT_EXT;
 
-    XrBool32 xrCallback(
-        XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
-        XrDebugUtilsMessageTypeFlagsEXT messageTypes,
-        const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
-        void* userData);
+XrBool32 xrCallback(
+    XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
+    XrDebugUtilsMessageTypeFlagsEXT messageTypes,
+    const XrDebugUtilsMessengerCallbackDataEXT* callbackData,
+    void* userData);
 
-    constexpr VkFlags64 vkDebugMessageSeverityFlags =
-        VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+constexpr VkFlags64 vkDebugMessageSeverityFlags =
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 
-    constexpr VkFlags64 vkDebugMessageTypeFlags =
-        VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+constexpr VkFlags64 vkDebugMessageTypeFlags =
+    VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
-    VkBool32 vkCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-        VkDebugUtilsMessageTypeFlagsEXT type,
-        const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
-        void* userData);
+VkBool32 vkCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+    VkDebugUtilsMessageTypeFlagsEXT type,
+    const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+    void* userData);
 #endif // NDEBUG
 
 // TODO: investigate performance of it

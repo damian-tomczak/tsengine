@@ -41,20 +41,16 @@ public:
     void createXrSwapchain();
     void endFrame() const;
 
-    XrSession getXrSession() const { return mXrSession; }
-    VkRenderPass getVkRenderPass() const { return mVkRenderPass; }
-    bool isExitRequested() const { return mIsExitRequested; }
-    XrSpace getXrSpace() const { return mXrSpace; }
-    XrFrameState getXrFrameState() const { return mXrFrameState; }
-    std::shared_ptr<RenderTarget> getRenderTarget(size_t swapchainImageIndex) const { return mSwapchainRenderTargets.at(swapchainImageIndex); }
-    VkExtent2D getEyeResolution(int32_t eyeIndex) const
-    {
-        const XrViewConfigurationView& eyeInfo{mEyeViewInfos.at(eyeIndex)};
-        return {eyeInfo.recommendedImageRectWidth, eyeInfo.recommendedImageRectHeight};
-    }
-    size_t getEyeCount() const { return mEyeCount; }
-    math::Mat4 getEyeViewMatrix(size_t eyeIndex) const { return mEyeViewMatrices.at(eyeIndex); }
-    math::Mat4 getEyeProjectionMatrix(size_t eyeIndex) const { return mEyeProjectionMatrices.at(eyeIndex); }
+    [[nodiscard]] XrSession getXrSession() const { return mXrSession; }
+    [[nodiscard]] VkRenderPass getVkRenderPass() const { return mVkRenderPass; }
+    [[nodiscard]] bool isExitRequested() const { return mIsExitRequested; }
+    [[nodiscard]] XrSpace getXrSpace() const { return mXrSpace; }
+    [[nodiscard]] XrFrameState getXrFrameState() const { return mXrFrameState; }
+    [[nodiscard]] std::shared_ptr<RenderTarget> getRenderTarget(size_t swapchainImageIndex) const { return mSwapchainRenderTargets.at(swapchainImageIndex); }
+    [[nodiscard]] VkExtent2D getEyeResolution(int32_t eyeIndex) const;
+    [[nodiscard]] size_t getEyeCount() const { return mEyeCount; }
+    [[nodiscard]] math::Mat4 getEyeViewMatrix(size_t eyeIndex) const { return mEyeViewMatrices.at(eyeIndex); }
+    [[nodiscard]] math::Mat4 getEyeProjectionMatrix(size_t eyeIndex) const { return mEyeProjectionMatrices.at(eyeIndex); }
 
 private:
     void createViews();

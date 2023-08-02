@@ -43,11 +43,11 @@ public:
 
     void updateUniformBufferData() const;
 
-    VkCommandBuffer getCommandBuffer() const { return mCommandBuffer; }
-    VkFence getFence() const { return mFence; }
-    VkDescriptorSet getDescriptorSet() const { return mDescriptorSet; }
-    VkSemaphore getDrawableSemaphore() const { return mDrawableSemaphore; }
-    VkSemaphore getPresentableSemaphore() const { return mPresentableSemaphore; }
+    [[nodiscard]] VkCommandBuffer getCommandBuffer() const { return mCommandBuffer; }
+    [[nodiscard]] VkFence getFence() const { return mFence; }
+    [[nodiscard]] VkDescriptorSet getDescriptorSet() const { return mDescriptorSet; }
+    [[nodiscard]] VkSemaphore getDrawableSemaphore() const { return mDrawableSemaphore; }
+    [[nodiscard]] VkSemaphore getPresentableSemaphore() const { return mPresentableSemaphore; }
 
 private:
     const Context* mCtx{};

@@ -91,7 +91,7 @@ struct Mat4 : public Matrix<4, 4>
     using Row = typename Matrix<4, 4>::Row;
     using Mat = typename Matrix<4, 4>::Mat;
 
-    Mat data;
+    Mat data{};
 
     Mat4()
     {}
@@ -99,7 +99,7 @@ struct Mat4 : public Matrix<4, 4>
     Mat4(const Mat& mat) : data(mat)
     {}
 
-    Mat4(const Quat& quat) :
+    explicit Mat4(const Quat& quat) :
         data{
             1 - 2 * (quat.y * quat.y + quat.z * quat.z), 2 * (quat.x * quat.y + quat.z * quat.w)    , 2 * (quat.x * quat.z - quat.y * quat.w)    , 0,
             2 * (quat.x * quat.y - quat.z * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.z * quat.z), 2 * (quat.y * quat.z + quat.x * quat.w)    , 0,
@@ -108,16 +108,14 @@ struct Mat4 : public Matrix<4, 4>
         }
     {}
 
-    static Mat4 makeScalarMat(const float value)
-    {
-        return {
-        {{
+    explicit Mat4(const float value) :
+        data{
             value, 0.f  , 0.f  , 0.f  ,
             0.f  , value, 0.f  , 0.f  ,
             0.f  , 0.f  , value, 0.f  ,
             0.f  , 0.f  , 0.f  , value
-        }}};
-    }
+        }
+    {}
 
     Row& operator[](const size_t index)
     {

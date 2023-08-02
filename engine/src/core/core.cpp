@@ -40,7 +40,7 @@ int run(Engine* const engine) try
         LOGGER_ERR("game is already initiated");
     }
 
-    unsigned width{1280}, height{720};
+    unsigned width{1280u}, height{720u};
     engine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
@@ -51,8 +51,7 @@ int run(Engine* const engine) try
     compileShaders("assets/shaders");
 
     Context ctx;
-    ctx.createOpenXrContext();
-    ctx.createVulkanContext();
+    ctx.createOpenXrContext().createVulkanContext();
 
     auto window = Window::createWindowInstance(width, height);
     MirrorView mirrorView{&ctx, window};
@@ -84,11 +83,11 @@ int run(Engine* const engine) try
         &logoModel
     };
 
-    gridModel.worldMatrix = ruinsModel.worldMatrix = math::Mat4::makeScalarMat(1.f);
-    carModelLeft.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.f), {-3.5f, 0.0f, -7.0f});
-    carModelRight.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.f), {8.0f, 0.0f, -15.0f});
-    beetleModel.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.f), {-3.5f, 0.0f, -0.5f});
-    logoModel.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.f), {0.0f, 3.0f, -10.0f});
+    gridModel.worldMatrix = ruinsModel.worldMatrix = math::Mat4(1.f);
+    carModelLeft.worldMatrix = math::translate(math::Mat4(1.f), {-3.5f, 0.0f, -7.0f});
+    carModelRight.worldMatrix = math::translate(math::Mat4(1.f), {8.0f, 0.0f, -15.0f});
+    beetleModel.worldMatrix = math::translate(math::Mat4(1.f), {-3.5f, 0.0f, -0.5f});
+    logoModel.worldMatrix = math::translate(math::Mat4(1.f), {0.0f, 3.0f, -10.0f});
 
     auto meshData{std::make_unique<MeshData>()};
     meshData->loadModel("assets/models/Grid.obj", models, 1);
@@ -107,7 +106,7 @@ int run(Engine* const engine) try
 
     window->show();
 
-    auto cameraMatrix = math::Mat4::makeScalarMat(1.f);
+    auto cameraMatrix = math::Mat4(1.f);
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     while (loop)
@@ -131,7 +130,8 @@ int run(Engine* const engine) try
         const auto nowTime = std::chrono::high_resolution_clock::now();
         const long long elapsedNanoseconds =
             std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - previousTime).count();
-        const float deltaTime = static_cast<float>(elapsedNanoseconds) / 1e9f;
+        constexpr auto NanosecondsPerSecond = 1e9f;
+        const auto deltaTime = static_cast<float>(elapsedNanoseconds) / NanosecondsPerSecond;
         previousTime = nowTime;
 
         uint32_t swapchainImageIndex;
@@ -153,11 +153,6 @@ int run(Engine* const engine) try
                     cameraMatrix = math::translate(cameraMatrix, t);
                 }
             }
-
-            //const auto inversecameraMatrix = glm::inverse(cameraMatrix);
-            //handModelLeft.worldMatrix = inversecameraMatrix * controllers.getPose(0);
-            //handModelRight.worldMatrix = inversecameraMatrix * controllers.getPose(1);
-            //handModelRight.worldMatrix = math::scale(handModelRight.worldMatrix, { -1.0f, 1.0f, 1.0f });
 
             renderer.render(cameraMatrix, swapchainImageIndex, time);
             const auto mirrorResult = mirrorView.render(swapchainImageIndex);

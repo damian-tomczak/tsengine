@@ -37,7 +37,7 @@ public:
 
     void onWindowResize() { mIsResizeDetected = true; }
 
-    VkSurfaceKHR getSurface() const { return mSurface; }
+    [[nodiscard]] VkSurfaceKHR getSurface() const { return mSurface; }
 
 private:
     void recreateXrSwapchain();

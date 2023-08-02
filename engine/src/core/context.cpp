@@ -153,7 +153,13 @@ void Context::getXrSystemInfo()
 
     LOGGER_XR(xrGetSystemProperties, mXrInstance, mXrSystemId, &xrSystemProperties);
 
-    gXrDeviceName = xrSystemProperties.systemName;
+    gXrDeviceId = std::hash<std::string_view>{}(xrSystemProperties.systemName);
+
+    if (gXrDeviceId == khronos_utils::DeviceIdHtcVive)
+    {
+        LOGGER_WARN("Headset you are using (htc vive) isn't stable be aware of potential problems"
+            "Vulkan validation layers' errors don't stop the execution.");
+    }
 }
 
 void Context::isXrBlendModeAvailable()
@@ -581,7 +587,7 @@ Context::~Context()
     }
 }
 
-void Context::createOpenXrContext()
+Context& Context::createOpenXrContext()
 {
     createXrInstance();
     loadXrExtensions();
@@ -591,6 +597,8 @@ void Context::createOpenXrContext()
     initXrSystemId();
     getXrSystemInfo();
     isXrBlendModeAvailable();
+
+    return *this;
 }
 
 void Context::createVulkanContext()

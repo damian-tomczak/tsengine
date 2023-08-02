@@ -1,5 +1,25 @@
 #pragma once
 
+#define TS_MAIN()                            \
+    int main()                               \
+    {                                        \
+        try                                  \
+        {                                    \
+            auto result = ts::run(new Game); \
+            if (result != ts::SUCCESS)       \
+            {                                \
+                return result;               \
+            }                                \
+        }                                    \
+        catch (const std::exception& e)      \
+        {                                    \
+            std::cerr << e.what() << "\n";   \
+            return EXIT_FAILURE;             \
+        }                                    \
+                                             \
+        return EXIT_SUCCESS;                 \
+    }
+
 namespace ts
 {
 unsigned getTickCount();
