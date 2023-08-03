@@ -22,11 +22,11 @@ class Renderer
     static constexpr size_t framesInFlightCount{2};
 
 public:
-    Renderer(const Context* ctx, const Headset* headset, const std::vector<Model*>& models, std::unique_ptr<MeshData>&& meshData);
+    Renderer(const Context& ctx, const Headset& headset, const std::vector<Model*>& models, std::unique_ptr<MeshData>&& meshData);
     virtual ~Renderer();
 
     void createRenderer();
-    void render(const math::Mat4& cameraMatrix, size_t swapchainImageIndex, float time);
+    void render(const math::Mat4& cameraMatrix, size_t swapchainImageIndex);
     void submit(bool useSemaphores) const;
 
     [[nodiscard]] VkSemaphore getCurrentDrawableSemaphore() const;
@@ -35,18 +35,10 @@ public:
 
 private:
     void createVertexIndexBuffer();
-    void updateUniformData(const math::Mat4& cameraMatrix, float time, RenderProcess* renderProcess);
-    void beginRenderPass(
-        VkCommandBuffer cmdBuffer,
-        VkRenderPass pass,
-        size_t currentImage,
-        const VkRect2D area,
-        VkFramebuffer fb = nullptr,
-        uint32_t clearValueCount = 0,
-        const VkClearValue* clearValues = nullptr);
+    void updateUniformData(const math::Mat4& cameraMatrix, RenderProcess* renderProcess);
 
-    const Context* mCtx{};
-    const Headset* mHeadset{};
+    const Context& mCtx;
+    const Headset& mHeadset;
     VkCommandPool mCommandPool{};
     VkDescriptorPool mDescriptorPool{};
     VkDescriptorSetLayout mDescriptorSetLayout{};

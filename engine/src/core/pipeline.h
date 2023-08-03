@@ -9,7 +9,7 @@ class Context;
 class Pipeline final
 {
 public:
-    Pipeline(const Context* ctx);
+    Pipeline(const Context& ctx);
     ~Pipeline();
 
     void createPipeline(
@@ -25,7 +25,7 @@ public:
 private:
     void loadShaderFromFile(const VkDevice device, const std::string& fileName, VkShaderModule& shaderModule);
 
-    const Context* mCtx{};
+    const Context& mCtx;
     VkPipeline mPipeline{};
 };
 }

@@ -54,7 +54,7 @@ int run(Engine* const engine) try
     ctx.createOpenXrContext().createVulkanContext();
 
     auto window = Window::createWindowInstance(width, height);
-    MirrorView mirrorView{&ctx, window};
+    MirrorView mirrorView{ctx, window};
     mirrorView.createSurface();
     ctx.createVkDevice(mirrorView.getSurface());
     Headset headset{&ctx};
@@ -97,7 +97,7 @@ int run(Engine* const engine) try
     meshData->loadModel("assets/models/Hand.obj", models, 2);
     meshData->loadModel("assets/models/Logo.obj", models, 1);
 
-    Renderer renderer{&ctx, &headset, models, std::move(meshData)};
+    Renderer renderer{ctx, headset, models, std::move(meshData)};
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
 
@@ -108,6 +108,7 @@ int run(Engine* const engine) try
     auto cameraMatrix = math::Mat4(1.f);
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
+    // TODO: Display message to wear the headset
     while (loop)
     {
         if (headset.isExitRequested())
@@ -139,9 +140,6 @@ int run(Engine* const engine) try
         {
             controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
 
-            static float time{0.f};
-            time += deltaTime;
-
             for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
             {
                 const auto flySpeed = controllers.getFlySpeed(controllerIndex);
@@ -153,7 +151,7 @@ int run(Engine* const engine) try
                 }
             }
 
-            renderer.render(cameraMatrix, swapchainImageIndex, time);
+            renderer.render(cameraMatrix, swapchainImageIndex);
             const auto mirrorResult = mirrorView.render(swapchainImageIndex);
 
             const auto isMirrorViewVisible = (mirrorResult == MirrorView::RenderResult::VISIBLE);

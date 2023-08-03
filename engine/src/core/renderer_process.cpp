@@ -4,9 +4,13 @@
 #include "tsengine/logger.h"
 #include "khronos_utils.h"
 #include "data_buffer.h"
+#include "headset.h"
 
 namespace ts
 {
+RenderProcess::RenderProcess(const Context& ctx, const Headset& headset) : mCtx{ ctx }, mHeadset{ headset }
+{}
+
 RenderProcess::~RenderProcess()
 {
     if (mUniformBuffer != nullptr)
@@ -15,8 +19,8 @@ RenderProcess::~RenderProcess()
     }
     delete mUniformBuffer;
 
-    const auto device{mCtx->getVkDevice()};
-    if (device)
+    const auto device = mCtx.getVkDevice();
+    if (device != nullptr)
     {
         if (mFence != nullptr)
         {
@@ -47,14 +51,14 @@ void RenderProcess::createRendererProcess(
         mDynamicVertexUniformData.at(modelIndex).worldMatrix = math::Mat4(1.f);
     }
 
-    for (auto& viewProjectionMatrix : mStaticVertexUniformData.viewProjectionMatrices)
+    mStaticVertexUniformData2.cameraMatrix = math::Mat4(1.f);
+    for (size_t eyeIndex{}; eyeIndex < mHeadset.getEyeCount(); ++eyeIndex)
     {
-        viewProjectionMatrix = math::Mat4(1.f);
+        mStaticVertexUniformData2.viewMatrices.emplace_back(1.f);
+        mStaticVertexUniformData2.projectionMatrices.emplace_back(1.f);
     }
 
-    mStaticFragmentUniformData.time = 0.0f;
-
-    const auto device = mCtx->getVkDevice();
+    const auto device = mCtx.getVkDevice();
 
     const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -75,21 +79,20 @@ void RenderProcess::createRendererProcess(
     };
     LOGGER_VK(vkCreateFence, device, &fenceCreateInfo, nullptr, &mFence);
 
-    const auto uniformBufferOffsetAlignment = mCtx->getUniformBufferOffsetAlignment();
+    const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
 
-    std::array<VkDescriptorBufferInfo, 3> descriptorBufferInfos;
+    std::array<VkDescriptorBufferInfo, 2> descriptorBufferInfos;
     descriptorBufferInfos.at(0).offset = 0;
     descriptorBufferInfos.at(0).range = sizeof(DynamicVertexUniformData);
 
     descriptorBufferInfos.at(1).offset =
         khronos_utils::align(descriptorBufferInfos.at(0).range, uniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(modelCount);
-    descriptorBufferInfos.at(1).range = sizeof(StaticVertexUniformData);
+    descriptorBufferInfos.at(1).range =
+        sizeof(math::Mat4) +
+        sizeof(math::Mat4) * mStaticVertexUniformData2.viewMatrices.size() +
+        sizeof(math::Mat4) * mStaticVertexUniformData2.viewMatrices.size();
 
-    descriptorBufferInfos.at(2).offset =
-        descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment);
-    descriptorBufferInfos.at(2).range = sizeof(StaticFragmentUniformData);
-
-    const auto uniformBufferSize{descriptorBufferInfos.at(2).offset + descriptorBufferInfos.at(2).range};
+    const auto uniformBufferSize = descriptorBufferInfos.back().offset + descriptorBufferInfos.back().range;
     mUniformBuffer = new DataBuffer{mCtx};
     mUniformBuffer->createDataBuffer(
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -99,7 +102,7 @@ void RenderProcess::createRendererProcess(
     mUniformBufferMemory = mUniformBuffer->map();
     if (!mUniformBufferMemory)
     {
-        LOGGER_ERR("invalid mapping memory");
+        LOGGER_ERR("Invalid mapping memory");
     }
 
     const VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{
@@ -110,12 +113,12 @@ void RenderProcess::createRendererProcess(
     };
     LOGGER_VK(vkAllocateDescriptorSets, device, &descriptorSetAllocateInfo, &mDescriptorSet);
 
-    for (VkDescriptorBufferInfo& descriptorBufferInfo : descriptorBufferInfos)
+    for (auto& descriptorBufferInfo : descriptorBufferInfos)
     {
         descriptorBufferInfo.buffer = mUniformBuffer->getBuffer();
     }
 
-    std::array<VkWriteDescriptorSet, 3> writeDescriptorSets{{
+    std::array<VkWriteDescriptorSet, 2> writeDescriptorSets{{
         {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = mDescriptorSet,
@@ -134,15 +137,7 @@ void RenderProcess::createRendererProcess(
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .pBufferInfo = &descriptorBufferInfos.at(1),
         },
-        {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = mDescriptorSet,
-            .dstBinding = 2,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pBufferInfo = &descriptorBufferInfos.at(2)
-    }}};
+    }};
 
     vkUpdateDescriptorSets(
         device,
@@ -159,7 +154,7 @@ void RenderProcess::updateUniformBufferData() const
         return;
     }
 
-    const auto uniformBufferOffsetAlignment = mCtx->getUniformBufferOffsetAlignment();
+    const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
 
     auto offset = static_cast<char*>(mUniformBufferMemory);
     VkDeviceSize length = sizeof(DynamicVertexUniformData);
@@ -169,11 +164,20 @@ void RenderProcess::updateUniformBufferData() const
         offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
     }
 
-    length = sizeof(StaticVertexUniformData);
-    memcpy(offset, &mStaticVertexUniformData, length);
+    length = sizeof(math::Mat4);
+    memcpy(offset, &mStaticVertexUniformData2.cameraMatrix, length);
     offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
 
-    length = sizeof(StaticFragmentUniformData);
-    memcpy(offset, &mStaticFragmentUniformData, length);
+    for (const auto& viewMatrix : mStaticVertexUniformData2.viewMatrices)
+    {
+        memcpy(offset, &viewMatrix, length);
+        offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+    }
+
+    for (const auto& projectionMatrix : mStaticVertexUniformData2.projectionMatrices)
+    {
+        memcpy(offset, &projectionMatrix, length);
+        offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+    }
 }
 }

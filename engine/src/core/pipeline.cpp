@@ -6,13 +6,13 @@
 
 namespace ts
 {
-Pipeline::Pipeline(const Context* ctx) : mCtx{ctx}
+Pipeline::Pipeline(const Context& ctx) : mCtx{ctx}
 {}
 
 Pipeline::~Pipeline()
 {
-    const auto device{mCtx->getVkDevice()};
-    if (device != nullptr && mPipeline != nullptr)
+    const auto device = mCtx.getVkDevice();
+    if ((device != nullptr) && (mPipeline != nullptr))
     {
         vkDestroyPipeline(device, mPipeline, nullptr);
     }
@@ -26,7 +26,7 @@ void Pipeline::createPipeline(
     const std::vector<VkVertexInputBindingDescription>& vertexInputBindingDescriptions,
     const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions)
 {
-    const auto device = mCtx->getVkDevice();
+    const auto device = mCtx.getVkDevice();
 
     VkShaderModule vertexShaderModule;
     loadShaderFromFile(device, vertexFilename, vertexShaderModule);
@@ -78,7 +78,7 @@ void Pipeline::createPipeline(
 
     const VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-        .rasterizationSamples = mCtx->getVkMultisampleCount()
+        .rasterizationSamples = mCtx.getVkMultisampleCount()
     };
 
 

@@ -393,7 +393,10 @@ void Headset::createXrSwapchain()
         pRenderTarget->createRenderTarget(
             mColorBuffer->getVkImageView(),
             mDepthBuffer->getVkImageView(),
-            eyeResolution, colorFormat, mVkRenderPass, 2);
+            eyeResolution,
+            colorFormat,
+            mVkRenderPass,
+            2);
     }
 
     mEyeRenderInfos.resize(mEyeCount);

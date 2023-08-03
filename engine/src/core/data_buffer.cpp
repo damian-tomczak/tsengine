@@ -6,12 +6,12 @@
 
 namespace ts
 {
-DataBuffer::DataBuffer(const Context* ctx) : mCtx{ctx}
+DataBuffer::DataBuffer(const Context& ctx) : mCtx{ctx}
 {}
 
 DataBuffer::~DataBuffer()
 {
-    const auto device{mCtx->getVkDevice()};
+    const auto device = mCtx.getVkDevice();
     if (device != nullptr)
     {
         if (mDeviceMemory != nullptr)
@@ -30,7 +30,7 @@ void DataBuffer::createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryP
 {
     mSize = size;
 
-    const auto device = mCtx->getVkDevice();
+    const auto device = mCtx.getVkDevice();
 
     VkBufferCreateInfo bufferCreateInfo{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -43,11 +43,11 @@ void DataBuffer::createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryP
     VkMemoryRequirements memoryRequirements;
     vkGetBufferMemoryRequirements(device, mBuffer, &memoryRequirements);
 
-    uint32_t suitableMemoryTypeIndex = 0u;
-    if (!khronos_utils::findSuitableMemoryTypeIndex(mCtx->getVkPhysicalDevice(), memoryRequirements, memoryProperties,
+    uint32_t suitableMemoryTypeIndex{0};
+    if (!khronos_utils::findSuitableMemoryTypeIndex(mCtx.getVkPhysicalDevice(), memoryRequirements, memoryProperties,
         suitableMemoryTypeIndex))
     {
-        LOGGER_ERR("can not find the suitable memory index");
+        LOGGER_ERR("Can not find the suitable memory index");
     }
 
     VkMemoryAllocateInfo memoryAllocateInfo{
@@ -88,13 +88,13 @@ void DataBuffer::copyTo(const DataBuffer& target, VkCommandBuffer commandBuffer,
 void* DataBuffer::map() const
 {
     void* data;
-    LOGGER_VK(vkMapMemory, mCtx->getVkDevice(), mDeviceMemory, 0, mSize, 0, &data);
+    LOGGER_VK(vkMapMemory, mCtx.getVkDevice(), mDeviceMemory, 0, mSize, 0, &data);
 
     return data;
 }
 
 void DataBuffer::unmap() const
 {
-    vkUnmapMemory(mCtx->getVkDevice(), mDeviceMemory);
+    vkUnmapMemory(mCtx.getVkDevice(), mDeviceMemory);
 }
 }

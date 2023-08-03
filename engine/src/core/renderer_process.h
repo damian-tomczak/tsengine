@@ -9,14 +9,14 @@ namespace ts
 {
 class Context;
 class DataBuffer;
+class Headset;
 
 class RenderProcess final
 {
     NOT_COPYABLE_AND_MOVEABLE(RenderProcess);
 
 public:
-    RenderProcess(const Context* ctx) : mCtx{ ctx }
-    {}
+    RenderProcess(const Context& ctx, const Headset& headset);
     ~RenderProcess();
 
     void createRendererProcess(
@@ -33,13 +33,10 @@ public:
 
     struct StaticVertexUniformData
     {
-        std::array<math::Mat4, 2> viewProjectionMatrices;
-    } mStaticVertexUniformData;
-
-    struct StaticFragmentUniformData
-    {
-        float time;
-    } mStaticFragmentUniformData;
+        math::Mat4 cameraMatrix;
+        std::vector<math::Mat4> viewMatrices;
+        std::vector<math::Mat4> projectionMatrices;
+    } mStaticVertexUniformData2;
 
     void updateUniformBufferData() const;
 
@@ -50,12 +47,13 @@ public:
     [[nodiscard]] VkSemaphore getPresentableSemaphore() const { return mPresentableSemaphore; }
 
 private:
-    const Context* mCtx{};
+    const Context& mCtx;
     VkCommandBuffer mCommandBuffer{};
     VkSemaphore mDrawableSemaphore{}, mPresentableSemaphore{};
     VkFence mFence{};
     DataBuffer* mUniformBuffer{};
     void* mUniformBufferMemory{};
     VkDescriptorSet mDescriptorSet{};
+    const Headset& mHeadset;
 };
 }

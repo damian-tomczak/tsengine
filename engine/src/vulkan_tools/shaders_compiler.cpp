@@ -60,7 +60,6 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::file
             << ": "
             << filePath.string()
             << "\n"
-            << "info: "
             << glslang_shader_get_info_log(shader)
             << "\n"
             << glslang_shader_get_info_debug_log(shader);
