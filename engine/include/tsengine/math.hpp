@@ -86,7 +86,7 @@ struct Mat4 : public Matrix<4, 4>
         }}
     {}
 
-    explicit Mat4(const float v) :
+    Mat4(const float v) :
         data
         {{
             {v  , 0.f, 0.f, 0.f},

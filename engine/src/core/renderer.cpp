@@ -90,13 +90,17 @@ void Renderer::createRenderer()
         },
     };
 
-    const std::array pushConstantRanges{
-        VkPushConstantRange{
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-            .offset = 0,
-            .size = sizeof(Model::pos),
-        },
-    };
+    std::vector<VkPushConstantRange> pushConstantRanges;
+    pushConstantRanges.emplace_back<VkPushConstantRange>({
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        .offset = 0,
+        .size = sizeof(Model::pos)
+    });
+    pushConstantRanges.emplace_back<VkPushConstantRange>({
+        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .offset = pushConstantRanges.size() > 0 ? pushConstantRanges.back().size : 0,
+        .size = sizeof(Material::Params)
+    });
 
     const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -158,8 +162,8 @@ void Renderer::createRenderer()
     mDiffusePipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
-        "assets/shaders/diffuse.vert.spirv",
-        "assets/shaders/diffuse.frag.spirv",
+        "assets/shaders/default.vert.spirv",
+        "assets/shaders/default.frag.spirv",
         {vertexInputBindingDescription},
         {vertexInputAttributePosition, vertexInputAttributeNormal, vertexInputAttributeColor});
 

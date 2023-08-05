@@ -23,7 +23,7 @@ public:
     static constexpr size_t controllerCount{2};
 
     void setupControllers();
-    bool sync(const XrSpace space, const XrTime time);
+    void sync(const XrSpace space, const XrTime time);
 
     [[nodiscard]] float getFlySpeed(size_t controllerIndex) const { return mFlySpeeds.at(controllerIndex); }
     [[nodiscard]] math::Mat4 getPose(size_t controllerIndex) const { return mPoses.at(controllerIndex); }

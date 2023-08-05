@@ -63,19 +63,23 @@ int run(Engine* const engine) try
     controllers.setupControllers();
 
     std::shared_ptr<Model> ruins = std::make_shared<Model>();
-
     std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
-        .pos = math::Vec3{0.f, 0.f, -5.f}
+        .pos = {0.f, 0.f, -10.f}
+    });
+    std::shared_ptr<Model> sphere = std::make_shared<Model>(Model{
+        .pos = {0.f, 5.f, -5.f}
     });
 
     const std::vector<std::shared_ptr<Model>> models{
         ruins,
         polonez,
+        sphere
     };
 
     auto meshData = std::make_unique<MeshData>();
     meshData->loadModel("assets/models/ruins.obj", models, 1);
     meshData->loadModel("assets/models/polonez.obj", models, 1);
+    meshData->loadModel("assets/models/sphere.obj", models, 1);
 
     Renderer renderer{ctx, headset, models, std::move(meshData)};
     renderer.createRenderer();

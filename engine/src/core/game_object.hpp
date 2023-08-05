@@ -108,7 +108,6 @@ struct Material final
     } params;
 };
 
-// Setup some default materials (source: https://seblagarde.wordpress.com/2011/08/17/feeding-a-physical-based-lighting-mode/)
 inline constexpr std::array materials
 {
     Material{.name = "White"   , .params{.color = {1.0f},                            .roughness = 0.1f, .metallic = 1.0f}},

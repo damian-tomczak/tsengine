@@ -1,32 +1,30 @@
 #version 450
 
-layout (location = 0) in vec3 inPos;
-layout (location = 1) in vec3 inNormal;
+#extension GL_EXT_multiview : enable
 
-layout (binding = 0) uniform UBO
-{
-    mat4 projection;
-    mat4 model;
-    mat4 view;
-    vec3 camPos;
+layout(binding = 0) uniform Ubo{
+    mat4 cameraMat;
+    mat4 viewMats[2];
+    mat4 projMats[2];
 } ubo;
 
-layout (location = 0) out vec3 outWorldPos;
-layout (location = 1) out vec3 outNormal;
-
-layout(push_constant) uniform PushConsts {
+layout(push_constant) uniform PushConsts{
     vec3 objPos;
 } pushConsts;
 
-out gl_PerVertex
-{
-    vec4 gl_Position;
-};
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec3 inNormal;
+layout(location = 2) in vec3 inColor;
+
+layout(location = 0) out vec3 outColor;
 
 void main()
 {
-    vec3 locPos = vec3(vec4(inPos, 1.0));
-    outWorldPos = locPos + pushConsts.objPos;
-    outNormal = mat3(ubo.model) * inNormal;
-    gl_Position =  ubo.projection * ubo.view * vec4(outWorldPos, 1.0);
+    gl_Position =
+        ubo.projMats[gl_ViewIndex] *
+        ubo.viewMats[gl_ViewIndex] *
+        ubo.cameraMat *
+        vec4(pushConsts.objPos + inPosition, 1.0);
+
+    outColor = normalize(inNormal);
 }
