@@ -12,7 +12,7 @@
 
 namespace ts
 {
-Renderer::Renderer(const Context& ctx, const Headset& headset, const std::vector<Model*>& models, std::unique_ptr<MeshData>&& meshData) :
+Renderer::Renderer(const Context& ctx, const Headset& headset, const std::vector<std::shared_ptr<Model>>& models, std::unique_ptr<MeshData>&& meshData) :
     mCtx{ctx},
     mHeadset{headset},
     mModels{models},
@@ -184,7 +184,7 @@ void Renderer::render(const math::Mat4& cameraMatrix, const size_t swapchainImag
     updateUniformData(cameraMatrix, renderProcess);
 
     const std::array<VkClearValue, 2> clearValues{{
-        {.color = {0.01f, 0.01f, 0.01f, 1.f}},
+        {.color = {1.f, 1.f, 1.f, 1.f}},
         {.depthStencil = {1.0f, 0}}
     }};
 
@@ -224,14 +224,13 @@ void Renderer::render(const math::Mat4& cameraMatrix, const size_t swapchainImag
     vkCmdBindIndexBuffer(commandBuffer, buffer, mIndexOffset, VK_INDEX_TYPE_UINT32);
 
     const auto descriptorSet = renderProcess->getDescriptorSet();
-    for (size_t modelIndex{}; modelIndex < mModels.size(); ++modelIndex)
+    // TODO: it beggs for the refactor
+    for (size_t modelIdx{}; modelIdx < mModels.size() + 1; ++modelIdx)
     {
-        const auto model = mModels.at(modelIndex);
-
         const auto uniformBufferOffset = static_cast<uint32_t>(
             khronos_utils::align(
                 static_cast<VkDeviceSize>(sizeof(RenderProcess::DynamicVertexUniformData)),
-                mCtx.getUniformBufferOffsetAlignment()) * static_cast<VkDeviceSize>(modelIndex));
+                mCtx.getUniformBufferOffsetAlignment()) * static_cast<VkDeviceSize>((modelIdx != 0) ? modelIdx - 1 : 0));
 
         vkCmdBindDescriptorSets(
             commandBuffer,
@@ -243,17 +242,19 @@ void Renderer::render(const math::Mat4& cameraMatrix, const size_t swapchainImag
             1,
             &uniformBufferOffset);
 
-        if (modelIndex == 0)
+        if (modelIdx == 0)
         {
             mGridPipeline->bind(commandBuffer);
         }
-        else if (modelIndex == 1)
+        else if (modelIdx >= 1)
         {
             mDiffusePipeline->bind(commandBuffer);
         }
 
-        if (modelIndex != 0)
+        if (modelIdx != 0)
         {
+            const auto model = mModels.at(modelIdx - 1);
+
             vkCmdDrawIndexed(
                 commandBuffer,
                 static_cast<uint32_t>(model->indexCount),
@@ -343,9 +344,9 @@ void Renderer::createVertexIndexBuffer()
 
 void Renderer::updateUniformData(const math::Mat4& cameraMatrix, RenderProcess* renderProcess)
 {
-    for (size_t modelIndex{}; modelIndex < mModels.size(); ++modelIndex)
+    for (size_t modelIdx{}; modelIdx < mModels.size(); ++modelIdx)
     {
-        renderProcess->mDynamicVertexUniformData.at(modelIndex).worldMatrix = mModels.at(modelIndex)->worldMatrix;
+        renderProcess->mDynamicVertexUniformData.at(modelIdx).worldMatrixrix = mModels.at(modelIdx)->worldMatrix;
     }
 
     renderProcess->mStaticVertexUniformData2.cameraMatrix = cameraMatrix;

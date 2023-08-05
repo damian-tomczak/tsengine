@@ -4,6 +4,32 @@
 #include "tsengine/logger.h"
 #include "khronos_utils.h"
 
+namespace
+{
+void loadShaderFromFile(const VkDevice device, const std::string& fileName, VkShaderModule& shaderModule)
+{
+    std::ifstream file(fileName, std::ios::ate | std::ios::binary);
+    if (!file.is_open())
+    {
+        LOGGER_ERR(("Can not open shader file: " + fileName).c_str());
+    }
+
+    const auto fileSize = static_cast<size_t>(file.tellg());
+    std::vector<char> code(fileSize);
+    file.seekg(0);
+    file.read(code.data(), fileSize);
+    file.close();
+
+    VkShaderModuleCreateInfo shaderModuleCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = code.size(),
+        .pCode = reinterpret_cast<const uint32_t*>(code.data())
+    };
+
+    LOGGER_VK(vkCreateShaderModule, device, &shaderModuleCreateInfo, nullptr, &shaderModule);
+}
+}
+
 namespace ts
 {
 Pipeline::Pipeline(const Context& ctx) : mCtx{ctx}
@@ -81,7 +107,6 @@ void Pipeline::createPipeline(
         .rasterizationSamples = mCtx.getVkMultisampleCount()
     };
 
-
     const VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState{
         .blendEnable = VK_TRUE,
         .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
@@ -141,28 +166,5 @@ void Pipeline::createPipeline(
 void Pipeline::bind(const VkCommandBuffer commandBuffer) const
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
-}
-
-void Pipeline::loadShaderFromFile(const VkDevice device, const std::string& fileName, VkShaderModule& shaderModule)
-{
-    std::ifstream file(fileName, std::ios::ate | std::ios::binary);
-    if (!file.is_open())
-    {
-        LOGGER_ERR(("Can not open shader file: " + fileName).c_str());
-    }
-
-    const auto fileSize = static_cast<size_t>(file.tellg());
-    std::vector<char> code(fileSize);
-    file.seekg(0);
-    file.read(code.data(), fileSize);
-    file.close();
-
-    VkShaderModuleCreateInfo shaderModuleCreateInfo{
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = code.size(),
-        .pCode = reinterpret_cast<const uint32_t*>(code.data())
-    };
-
-    LOGGER_VK(vkCreateShaderModule, device, &shaderModuleCreateInfo, nullptr, &shaderModule);
 }
 }

@@ -48,7 +48,7 @@ void RenderProcess::createRendererProcess(
     mDynamicVertexUniformData.resize(modelCount);
     for (size_t modelIndex{}; modelIndex < modelCount; ++modelIndex)
     {
-        mDynamicVertexUniformData.at(modelIndex).worldMatrix = math::Mat4(1.f);
+        mDynamicVertexUniformData.at(modelIndex).worldMatrixrix = math::Mat4(1.f);
     }
 
     mStaticVertexUniformData2.cameraMatrix = math::Mat4(1.f);

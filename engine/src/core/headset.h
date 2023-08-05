@@ -21,7 +21,7 @@ class Headset final
     static constexpr VkFormat depthFormat{VK_FORMAT_D32_SFLOAT};
 
 public:
-    Headset(const Context* ctx);
+    Headset(const Context& ctx);
     ~Headset();
 
     enum class BeginFrameResult
@@ -39,7 +39,7 @@ public:
     void createXrSession();
     void createXrSpace();
     void createXrSwapchain();
-    void endFrame() const;
+    void endFrame(bool skipReleaseSwapchainImage) const;
 
     [[nodiscard]] XrSession getXrSession() const { return mXrSession; }
     [[nodiscard]] VkRenderPass getVkRenderPass() const { return mVkRenderPass; }
@@ -57,7 +57,7 @@ private:
     void beginSession() const;
     void endSession() const;
 
-    const Context* mCtx{};
+    const Context& mCtx;
     VkRenderPass mVkRenderPass{};
     XrSession mXrSession{};
     XrSpace mXrSpace{};

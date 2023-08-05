@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: impl rotate func
+
 namespace ts::math
 {
 struct Vec3;

@@ -23,8 +23,6 @@ public:
     void bind(const VkCommandBuffer commandBuffer) const;
 
 private:
-    void loadShaderFromFile(const VkDevice device, const std::string& fileName, VkShaderModule& shaderModule);
-
     const Context& mCtx;
     VkPipeline mPipeline{};
 };

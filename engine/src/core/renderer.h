@@ -22,7 +22,7 @@ class Renderer
     static constexpr size_t framesInFlightCount{2};
 
 public:
-    Renderer(const Context& ctx, const Headset& headset, const std::vector<Model*>& models, std::unique_ptr<MeshData>&& meshData);
+    Renderer(const Context& ctx, const Headset& headset, const std::vector<std::shared_ptr<Model>>& models, std::unique_ptr<MeshData>&& meshData);
     virtual ~Renderer();
 
     void createRenderer();
@@ -49,6 +49,6 @@ private:
     DataBuffer* mVertexIndexBuffer{};
     size_t mCurrentRenderProcessIndex{};
     std::unique_ptr<MeshData> mMeshData;
-    const std::vector<Model*>& mModels;
+    const std::vector<std::shared_ptr<Model>>& mModels;
 };
 }

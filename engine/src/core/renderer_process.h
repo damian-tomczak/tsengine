@@ -27,7 +27,7 @@ public:
 
     struct DynamicVertexUniformData
     {
-        math::Mat4 worldMatrix;
+        math::Mat4 worldMatrixrix;
     };
     std::vector<DynamicVertexUniformData> mDynamicVertexUniformData;
 

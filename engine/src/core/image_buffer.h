@@ -13,7 +13,7 @@ class ImageBuffer final
     NOT_COPYABLE_AND_MOVEABLE(ImageBuffer);
 
 public:
-    ImageBuffer(const Context* ctx) : mCtx(ctx)
+    ImageBuffer(const Context& ctx) : mCtx{ctx}
     {}
     ~ImageBuffer();
 
@@ -28,7 +28,7 @@ public:
     [[nodiscard]] VkImageView getVkImageView() const { return mImageView; }
 
 private:
-    const Context* mCtx{};
+    const Context& mCtx;
     VkImage mImage{};
     VkDeviceMemory mDeviceMemory{};
     VkImageView mImageView{};

@@ -57,45 +57,27 @@ int run(Engine* const engine) try
     MirrorView mirrorView{ctx, window};
     mirrorView.createSurface();
     ctx.createVkDevice(mirrorView.getSurface());
-    Headset headset{&ctx};
+    Headset headset{ctx};
     headset.init();
     Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
     controllers.setupControllers();
 
-    Model
-        gridModel,
-        ruinsModel,
-        carModelLeft,
-        carModelRight,
-        beetleModel,
-        handModelLeft,
-        handModelRight,
-        logoModel;
+    std::shared_ptr<Model> ruins = std::make_shared<Model>(Model{
+        .worldMatrix = math::Mat4(1.f),
+    });
 
-    std::vector<Model*> models{
-        &gridModel,
-        &ruinsModel,
-        &carModelLeft,
-        &carModelRight,
-        &beetleModel,
-        &handModelLeft,
-        &handModelRight,
-        &logoModel
+    std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
+        .worldMatrix = math::translate(math::Mat4(1.f), {0.f, 0.f, -5.f})
+    });
+
+    const std::vector<std::shared_ptr<Model>> models{
+        ruins,
+        polonez,
     };
 
-    gridModel.worldMatrix = ruinsModel.worldMatrix = math::Mat4(1.f);
-    carModelLeft.worldMatrix = math::translate(math::Mat4(1.f), {-3.5f, 0.f, -7.f});
-    carModelRight.worldMatrix = math::translate(math::Mat4(1.f), {8.f, 0.f, -15.f});
-    beetleModel.worldMatrix = math::translate(math::Mat4(1.f), {-3.5f, 0.f, -0.5f});
-    logoModel.worldMatrix = math::translate(math::Mat4(1.f), {0.f, 3.f, -10.f});
-
     auto meshData = std::make_unique<MeshData>();
-    meshData->loadModel("assets/models/Grid.obj", models, 1);
-    meshData->loadModel("assets/models/Ruins.obj", models, 1);
-    meshData->loadModel("assets/models/Car.obj", models, 2);
-    meshData->loadModel("assets/models/Beetle.obj", models, 1);
-    meshData->loadModel("assets/models/Hand.obj", models, 2);
-    meshData->loadModel("assets/models/Logo.obj", models, 1);
+    meshData->loadModel("assets/models/ruins.obj", models, 1);
+    meshData->loadModel("assets/models/polonez.obj", models, 1);
 
     Renderer renderer{ctx, headset, models, std::move(meshData)};
     renderer.createRenderer();
@@ -166,28 +148,8 @@ int run(Engine* const engine) try
         if ((frameResult == Headset::BeginFrameResult::RENDER_FULLY) ||
             (frameResult == Headset::BeginFrameResult::RENDER_SKIP_PARTIALLY))
         {
-            headset.endFrame();
+            headset.endFrame(frameResult == Headset::BeginFrameResult::RENDER_SKIP_PARTIALLY);
         }
-
-        //if (false)
-        //{
-        //    engine->onMouseMove(-1, -1, -1, -1);
-        //}
-
-        //if (false)
-        //{
-        //    engine->onMouseButtonClick({}, false);
-        //}
-
-        //if (false)
-        //{
-        //    engine->onKeyPressed({});
-        //}
-
-        //if (false)
-        //{
-        //    engine->onKeyReleased({});
-        //}
     }
 
     engine->close();

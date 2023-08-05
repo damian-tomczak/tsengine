@@ -9,7 +9,7 @@ namespace ts
 {
 ImageBuffer::~ImageBuffer()
 {
-    const auto device = mCtx->getVkDevice();
+    const auto device = mCtx.getVkDevice();
     if (mImageView != nullptr)
     {
         vkDestroyImageView(device, mImageView, nullptr);
@@ -52,7 +52,7 @@ void ImageBuffer::createImage(
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    const auto device = mCtx->getVkDevice();
+    const auto device = mCtx.getVkDevice();
 
     LOGGER_VK(vkCreateImage, device, &imageCreateInfo, nullptr, &mImage);
 
@@ -61,12 +61,12 @@ void ImageBuffer::createImage(
 
     uint32_t suitableMemoryTypeIndex{};
     if (!khronos_utils::findSuitableMemoryTypeIndex(
-        mCtx->getVkPhysicalDevice(),
+        mCtx.getVkPhysicalDevice(),
         memoryRequirements,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         suitableMemoryTypeIndex))
     {
-        LOGGER_ERR("suitable memory type couldn't be found");
+        LOGGER_ERR("Suitable memory type can not be found");
     }
 
     const VkMemoryAllocateInfo memoryAllocateInfo{

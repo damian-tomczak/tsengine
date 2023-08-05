@@ -66,8 +66,8 @@ void Controllers::setupControllers()
     }
 
     const std::array<XrActionSuggestedBinding, 4> bindings{{
-        { mPoseAction , stringToXrPath(mInstance, "/user/hand/left/input/aim/pose")      },
-        { mPoseAction , stringToXrPath(mInstance, "/user/hand/right/input/aim/pose")     },
+        { mPoseAction , stringToXrPath(mInstance, "/user/hand/left/input/aim/pose")    },
+        { mPoseAction , stringToXrPath(mInstance, "/user/hand/right/input/aim/pose")   },
         { mFlyAction, stringToXrPath(mInstance, "/user/hand/left/input/select/click")  },
         { mFlyAction, stringToXrPath(mInstance, "/user/hand/right/input/select/click") },
     }};

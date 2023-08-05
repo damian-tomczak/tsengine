@@ -9,7 +9,7 @@
 
 namespace ts
 {
-Headset::Headset(const Context* ctx) : mCtx(ctx)
+Headset::Headset(const Context& ctx) : mCtx(ctx)
 {}
 
 Headset::~Headset()
@@ -34,7 +34,7 @@ Headset::~Headset()
         xrDestroySession(mXrSession);
     }
 
-    const auto device = mCtx->getVkDevice();
+    const auto device = mCtx.getVkDevice();
     if (device != nullptr && mVkRenderPass != nullptr)
     {
         vkDestroyRenderPass(device, mVkRenderPass, nullptr);
@@ -52,7 +52,7 @@ void Headset::init()
 Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
 {
     XrEventDataBuffer buffer{XR_TYPE_EVENT_DATA_BUFFER};
-    while (xrPollEvent(mCtx->getXrInstance(), &buffer) == XR_SUCCESS)
+    while (xrPollEvent(mCtx.getXrInstance(), &buffer) == XR_SUCCESS)
     {
         switch (buffer.type)
         {
@@ -83,8 +83,6 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
             break;
         }
         }
-
-        buffer.type = XR_TYPE_EVENT_DATA_BUFFER;
     }
 
     if ((mXrSessionState != XR_SESSION_STATE_READY) &&
@@ -110,7 +108,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
     mXrViewState.type = XR_TYPE_VIEW_STATE;
     XrViewLocateInfo viewLocateInfo{
         .type = XR_TYPE_VIEW_LOCATE_INFO,
-        .viewConfigurationType = mCtx->xrViewType,
+        .viewConfigurationType = mCtx.xrViewType,
         .displayTime = mXrFrameState.predictedDisplayTime,
         .space = mXrSpace
     };
@@ -165,7 +163,7 @@ void Headset::createVkRenderPass()
         .pCorrelationMasks = &correlationMask
     };
 
-    const auto multisampleCount{mCtx->getVkMultisampleCount()};
+    const auto multisampleCount{mCtx.getVkMultisampleCount()};
     const VkAttachmentDescription colorAttachmentDescription{
         .format = colorFormat,
         .samples = multisampleCount,
@@ -237,7 +235,7 @@ void Headset::createVkRenderPass()
         .pSubpasses = &subpassDescription
     };
 
-    const auto vkDevice{mCtx->getVkDevice()};
+    const auto vkDevice = mCtx.getVkDevice();
     LOGGER_VK(vkCreateRenderPass, vkDevice, &renderPassCreateInfo, nullptr, &mVkRenderPass);
 }
 
@@ -245,20 +243,20 @@ void Headset::createXrSession()
 {
     const XrGraphicsBindingVulkanKHR graphicsBinding{
         .type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR,
-        .instance = mCtx->getVkInstance(),
-        .physicalDevice = mCtx->getVkPhysicalDevice(),
-        .device = mCtx->getVkDevice(),
-        .queueFamilyIndex = mCtx->getVkGraphicsQueueFamilyIndex(),
+        .instance = mCtx.getVkInstance(),
+        .physicalDevice = mCtx.getVkPhysicalDevice(),
+        .device = mCtx.getVkDevice(),
+        .queueFamilyIndex = mCtx.getVkGraphicsQueueFamilyIndex(),
         .queueIndex = 0
     };
 
     const XrSessionCreateInfo sessionCreateInfo{
         .type = XR_TYPE_SESSION_CREATE_INFO,
         .next = &graphicsBinding,
-        .systemId = mCtx->getXrSystemId()
+        .systemId = mCtx.getXrSystemId()
     };
 
-    const auto pXrInstance{mCtx->getXrInstance()};
+    const auto pXrInstance{mCtx.getXrInstance()};
     LOGGER_XR(xrCreateSession, pXrInstance, &sessionCreateInfo, &mXrSession);
 }
 
@@ -277,9 +275,9 @@ void Headset::createXrSpace()
 void Headset::createViews()
 {
     LOGGER_XR(xrEnumerateViewConfigurationViews,
-        mCtx->getXrInstance(),
-        mCtx->getXrSystemId(),
-        mCtx->xrViewType,
+        mCtx.getXrInstance(),
+        mCtx.getXrSystemId(),
+        mCtx.xrViewType,
         0,
         reinterpret_cast<uint32_t*>(&mEyeCount), nullptr);
 
@@ -291,9 +289,9 @@ void Headset::createViews()
     }
 
     LOGGER_XR(xrEnumerateViewConfigurationViews,
-        mCtx->getXrInstance(),
-        mCtx->getXrSystemId(),
-        mCtx->xrViewType,
+        mCtx.getXrInstance(),
+        mCtx.getXrSystemId(),
+        mCtx.xrViewType,
         static_cast<uint32_t>(mEyeViewInfos.size()),
         reinterpret_cast<uint32_t*>(&mEyeCount),
         mEyeViewInfos.data());
@@ -337,7 +335,7 @@ void Headset::createXrSwapchain()
         eyeResolution,
         colorFormat,
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        mCtx->getVkMultisampleCount(),
+        mCtx.getVkMultisampleCount(),
         VK_IMAGE_ASPECT_COLOR_BIT,
         2);
 
@@ -347,7 +345,7 @@ void Headset::createXrSwapchain()
         eyeResolution,
         depthFormat,
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-        mCtx->getVkMultisampleCount(),
+        mCtx.getVkMultisampleCount(),
         VK_IMAGE_ASPECT_DEPTH_BIT,
         2);
 
@@ -389,7 +387,7 @@ void Headset::createXrSwapchain()
         auto& pRenderTarget = mSwapchainRenderTargets.at(renderTargetIndex);
 
         const auto vkSwapchainImage = swapchainImages.at(renderTargetIndex).image;
-        pRenderTarget = std::make_shared<RenderTarget>(mCtx->getVkDevice(), vkSwapchainImage);
+        pRenderTarget = std::make_shared<RenderTarget>(mCtx.getVkDevice(), vkSwapchainImage);
         pRenderTarget->createRenderTarget(
             mColorBuffer->getVkImageView(),
             mDepthBuffer->getVkImageView(),
@@ -419,14 +417,17 @@ void Headset::createXrSwapchain()
     mEyeProjectionMatrices.resize(mEyeCount);
 }
 
-void Headset::endFrame() const
+void Headset::endFrame(bool skipReleaseSwapchainImage) const
 {
-    XrSwapchainImageReleaseInfo swapchainImageReleaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
-    auto result = xrReleaseSwapchainImage(mXrSwapchain, &swapchainImageReleaseInfo);
-    if (XR_FAILED(result))
+    if (!skipReleaseSwapchainImage)
     {
-        // TODO: investigate the problem (probably problem with the main loop code architecture)
-        LOGGER_WARN(("(KNOWN ISSUE) xrReleaseSwapchainImage failed with status: " + khronos_utils::xrResultToString(result)).c_str());
+        XrSwapchainImageReleaseInfo swapchainImageReleaseInfo{ XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
+        auto result = xrReleaseSwapchainImage(mXrSwapchain, &swapchainImageReleaseInfo);
+        if (XR_FAILED(result))
+        {
+            // TODO: investigate the problem (probably problem with the main loop code architecture)
+            LOGGER_WARN(("(KNOWN ISSUE) xrReleaseSwapchainImage failed with status: " + khronos_utils::xrResultToString(result)).c_str());
+        }
     }
 
     XrCompositionLayerProjection compositionLayerProjection{
@@ -465,7 +466,7 @@ void Headset::beginSession() const
 {
     XrSessionBeginInfo sessionBeginInfo{
         .type = XR_TYPE_SESSION_BEGIN_INFO,
-        .primaryViewConfigurationType = mCtx->xrViewType
+        .primaryViewConfigurationType = mCtx.xrViewType
     };
     LOGGER_XR(xrBeginSession, mXrSession, &sessionBeginInfo);
 }
