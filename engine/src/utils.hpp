@@ -35,3 +35,19 @@ class TSException : public std::exception
 public:
     TSException() {}
 };
+
+template<>
+struct std::hash<std::string_view> final
+{
+    constexpr size_t operator()(std::string_view s) const noexcept
+    {
+        return fnv1a_32(s, s.length());
+    }
+
+private:
+    // Inspired by https://gist.github.com/Lee-R/3839813?permalink_comment_id=4018536#gistcomment-4018536
+    constexpr size_t fnv1a_32(std::string_view s, size_t count) const noexcept
+    {
+        return count ? (fnv1a_32(s, count - 1) ^ s[count - 1]) * 16777619u : 2166136261u;
+    }
+};

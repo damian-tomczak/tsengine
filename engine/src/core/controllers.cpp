@@ -3,7 +3,7 @@
 
 namespace
 {
-XrPath str2xrPath(XrInstance instance, std::string_view str)
+XrPath stringToXrPath(XrInstance instance, std::string_view str)
 {
     XrPath path;
     LOGGER_XR(xrStringToPath, instance, str.data(), &path);
@@ -41,16 +41,17 @@ void Controllers::setupControllers()
 {
     XrActionSetCreateInfo actionSetCreateInfo{XR_TYPE_ACTION_SET_CREATE_INFO};
 
-    memcpy(actionSetCreateInfo.actionSetName, actionSetName.data(), actionSetName.length() + 1);
-    memcpy(actionSetCreateInfo.localizedActionSetName, localizedActionSetName.data(), localizedActionSetName.length() + 1);
+    strcpy(actionSetCreateInfo.actionSetName, actionSetName.data());
+    strcpy(actionSetCreateInfo.localizedActionSetName, localizedActionSetName.data());
 
     LOGGER_XR(xrCreateActionSet, mInstance, &actionSetCreateInfo, &mActionSet);
 
-    mPaths.at(0) = str2xrPath(mInstance, "/user/hand/left");
-    mPaths.at(1) = str2xrPath(mInstance, "/user/hand/right");
+    mPaths.at(0) = stringToXrPath(mInstance, "/user/hand/left");
+    mPaths.at(1) = stringToXrPath(mInstance, "/user/hand/right");
 
     createAction("handpose", "Hand Pose", XR_ACTION_TYPE_POSE_INPUT, mPoseAction);
     createAction("fly", "Fly", XR_ACTION_TYPE_FLOAT_INPUT, mFlyAction);
+    createAction("trigget_action", "Trigger Action", XR_ACTION_TYPE_BOOLEAN_INPUT, mTriggerAction);
 
     for (size_t controllerIndex{}; controllerIndex < controllerCount; ++controllerIndex)
     {
@@ -65,15 +66,15 @@ void Controllers::setupControllers()
     }
 
     const std::array<XrActionSuggestedBinding, 4> bindings{{
-        { mPoseAction, str2xrPath(mInstance, "/user/hand/left/input/aim/pose")      },
-        { mPoseAction, str2xrPath(mInstance, "/user/hand/right/input/aim/pose")     },
-        { mFlyAction,  str2xrPath(mInstance, "/user/hand/left/input/select/click")  },
-        { mFlyAction,  str2xrPath(mInstance, "/user/hand/right/input/select/click") }
+        { mPoseAction , stringToXrPath(mInstance, "/user/hand/left/input/aim/pose")    },
+        { mPoseAction , stringToXrPath(mInstance, "/user/hand/right/input/aim/pose")   },
+        { mFlyAction, stringToXrPath(mInstance, "/user/hand/left/input/select/click")  },
+        { mFlyAction, stringToXrPath(mInstance, "/user/hand/right/input/select/click") },
     }};
 
     XrInteractionProfileSuggestedBinding interactionProfileSuggestedBinding{
         .type = XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING,
-        .interactionProfile = str2xrPath(mInstance, "/interaction_profiles/khr/simple_controller"),
+        .interactionProfile = stringToXrPath(mInstance, interactionProfile),
         .countSuggestedBindings = static_cast<uint32_t>(bindings.size()),
         .suggestedBindings = bindings.data(),
     };
@@ -163,15 +164,15 @@ void Controllers::updateActionStateFloat(const XrSession session, const XrAction
 
 void Controllers::createAction(const std::string& actionName, const std::string& localizedActionName, const XrActionType type, XrAction& action)
 {
-    XrActionCreateInfo actionCreateInfo{
+    const XrActionCreateInfo actionCreateInfo{
         .type = XR_TYPE_ACTION_CREATE_INFO,
         .actionType = type,
         .countSubactionPaths = static_cast<uint32_t>(mPaths.size()),
         .subactionPaths = mPaths.data()
     };
 
-    memcpy(actionCreateInfo.actionName, actionName.data(), actionName.length() + 1);
-    memcpy(actionCreateInfo.localizedActionName, localizedActionName.data(), localizedActionName.length() + 1);
+    strcpy(const_cast<char*>(actionCreateInfo.actionName), actionName.data());
+    strcpy(const_cast<char*>(actionCreateInfo.localizedActionName), localizedActionName.data());
 
     LOGGER_XR(xrCreateAction, mActionSet, &actionCreateInfo, &action);
 }

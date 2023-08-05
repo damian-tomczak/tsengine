@@ -17,7 +17,7 @@ enum class Color
     RED
 };
 
-constexpr std::string_view colorToString(Color color)
+consteval std::string_view colorToString(Color color)
 {
     switch (color)
     {
@@ -32,7 +32,7 @@ constexpr std::string_view colorToString(Color color)
     }
 }
 
-std::string currentDateTimeToString()
+inline std::string currentDateTimeToStr()
 {
     return std::format("{:%d-%m-%Y %H:%M:%OS}",
         std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::system_clock::now()));
@@ -64,7 +64,7 @@ inline auto debugInfo(std::string fileName, std::string functionName, int lineNu
 
     return ss.str();
 }
-#endif // DEBUG
+#endif // !NDEBUG
 } // namespace
 
 namespace ts::logger
@@ -79,10 +79,10 @@ void log(
 
     std::cout
         << colorToString(Color::GREEN)
-        << "[INFO][" + currentDateTimeToString()
+        << "[INFO][" + currentDateTimeToStr()
 #ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
-#endif // NDEBUG
+#endif // !NDEBUG
         + "]: "
         << formatingEnd
         << message
@@ -99,10 +99,10 @@ void warning(
 
     std::cout
         << colorToString(Color::YELLOW)
-        << "[WARNING][" + currentDateTimeToString()
+        << "[WARNING][" + currentDateTimeToStr()
 #ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
-#endif // NDEBUG
+#endif // !NDEBUG
         + "]: "
         << formatingEnd
         << message
@@ -114,28 +114,32 @@ void error(
     const char* fileName,
     const char* functionName,
     int lineNumber,
-    bool throwException)
+    bool throwException,
+    bool debugBreak)
 {
     std::lock_guard<std::mutex> _{loggerMutex};
 
     std::cerr
         << colorToString(Color::RED)
-        << "[ERROR][" << currentDateTimeToString()
+        << "[ERROR][" << currentDateTimeToStr()
 #ifndef NDEBUG
         << debugInfo(fileName, functionName, lineNumber)
-#endif // NDEBUG
+#endif // !NDEBUG
         << "]: "
         << formatingEnd
         << message
         << "\n";
 
 #ifndef NDEBUG
+if (debugBreak)
+{
 #ifdef _WIN32
     DebugBreak();
 #else
 #error not implemented
 #endif // _WIN32
-#endif // DEBUG
+}
+#endif // !NDEBUG
 
     if (throwException)
     {

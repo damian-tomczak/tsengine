@@ -9,14 +9,14 @@ namespace ts
 {
 class Context;
 class DataBuffer;
+class Headset;
 
 class RenderProcess final
 {
     NOT_COPYABLE_AND_MOVEABLE(RenderProcess);
 
 public:
-    RenderProcess(const Context* ctx) : mCtx{ ctx }
-    {}
+    RenderProcess(const Context& ctx, const Headset& headset);
     ~RenderProcess();
 
     void createRendererProcess(
@@ -27,35 +27,33 @@ public:
 
     struct DynamicVertexUniformData
     {
-        math::Mat4 worldMatrix;
+        math::Mat4 worldMatrixrix;
     };
     std::vector<DynamicVertexUniformData> mDynamicVertexUniformData;
 
     struct StaticVertexUniformData
     {
-        std::array<math::Mat4, 2> viewProjectionMatrices;
-    } mStaticVertexUniformData;
-
-    struct StaticFragmentUniformData
-    {
-        float time;
-    } mStaticFragmentUniformData;
+        math::Mat4 cameraMatrix;
+        std::vector<math::Mat4> viewMatrices;
+        std::vector<math::Mat4> projectionMatrices;
+    } mStaticVertexUniformData2;
 
     void updateUniformBufferData() const;
 
-    VkCommandBuffer getCommandBuffer() const { return mCommandBuffer; }
-    VkFence getFence() const { return mFence; }
-    VkDescriptorSet getDescriptorSet() const { return mDescriptorSet; }
-    VkSemaphore getDrawableSemaphore() const { return mDrawableSemaphore; }
-    VkSemaphore getPresentableSemaphore() const { return mPresentableSemaphore; }
+    [[nodiscard]] VkCommandBuffer getCommandBuffer() const { return mCommandBuffer; }
+    [[nodiscard]] VkFence getFence() const { return mFence; }
+    [[nodiscard]] VkDescriptorSet getDescriptorSet() const { return mDescriptorSet; }
+    [[nodiscard]] VkSemaphore getDrawableSemaphore() const { return mDrawableSemaphore; }
+    [[nodiscard]] VkSemaphore getPresentableSemaphore() const { return mPresentableSemaphore; }
 
 private:
-    const Context* mCtx{};
+    const Context& mCtx;
     VkCommandBuffer mCommandBuffer{};
     VkSemaphore mDrawableSemaphore{}, mPresentableSemaphore{};
     VkFence mFence{};
     DataBuffer* mUniformBuffer{};
     void* mUniformBufferMemory{};
     VkDescriptorSet mDescriptorSet{};
+    const Headset& mHeadset;
 };
 }

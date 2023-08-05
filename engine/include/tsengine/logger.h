@@ -41,6 +41,7 @@ void error(
     const char* fileName,
     const char* functionName,
     int lineNumber,
-    bool throwException = true);
+    bool throwException = true,
+    bool debugBreak = true);
 } // namespace logger
 } // namespace ts

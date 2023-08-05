@@ -1,28 +1,33 @@
-#version 450
+#version 460
 
+#extension GL_GOOGLE_include_directive : enable
 #extension GL_EXT_multiview : enable
 
-layout(binding = 0) uniform World
+#include "assets/shaders/grid_params.h"
+
+layout (location=0) out vec2 uv;
+layout (location=1) out vec2 cameraPos;
+
+layout(binding = 1) uniform Ubo
 {
-    mat4 matrix;
-} world;
-
-layout(binding = 1) uniform ViewProjection
-{
-    mat4 matrices[2];
-} viewProjection;
-
-layout(location = 0) in vec3 inPosition;
-layout(location = 2) in vec3 inColor;
-
-layout(location = 0) out vec3 position;
-layout(location = 1) out vec3 color;
+    mat4 camera;
+    mat4 view[2];
+    mat4 proj[2];
+} ubo;
 
 void main()
 {
-    vec4 pos = world.matrix * vec4(inPosition, 1.0);
-    gl_Position = viewProjection.matrices[gl_ViewIndex] * pos;
-    position = pos.xyz;
+    mat4 MVP = ubo.proj[gl_ViewIndex] * ubo.view[gl_ViewIndex];
 
-    color = inColor;
+	int idx = indices[gl_VertexIndex];
+	vec3 position = pos[idx] * gridSize;
+
+	mat4 iview = inverse(ubo.view[gl_ViewIndex]);
+	cameraPos = vec2(iview[3][0], iview[3][2]);
+
+	position.x += cameraPos.x;
+	position.z += cameraPos.y;
+
+	gl_Position = MVP * vec4(position, 1.0);
+	uv = position.xz;
 }

@@ -32,73 +32,54 @@ int run(Engine* const engine) try
 
     if (!engine)
     {
-        LOGGER_ERR("game is unallocated");
+        LOGGER_ERR("Game pointer is invalid");
     }
 
     if (isAlreadyInitiated)
     {
-        LOGGER_ERR("game is already initiated");
+        LOGGER_ERR("Game is already initiated");
     }
 
-    unsigned width{1280}, height{720};
+    unsigned width{1280u}, height{720u};
     engine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
     {
-        LOGGER_ERR("assets can not be found");
+        LOGGER_ERR("Assets can not be found");
     }
 
     compileShaders("assets/shaders");
 
     Context ctx;
-    ctx.createOpenXrContext();
-    ctx.createVulkanContext();
+    ctx.createOpenXrContext().createVulkanContext();
 
     auto window = Window::createWindowInstance(width, height);
-    MirrorView mirrorView{&ctx, window};
+    MirrorView mirrorView{ctx, window};
     mirrorView.createSurface();
     ctx.createVkDevice(mirrorView.getSurface());
-    Headset headset{&ctx};
+    Headset headset{ctx};
     headset.init();
     Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
     controllers.setupControllers();
 
-    Model
-        gridModel,
-        ruinsModel,
-        carModelLeft,
-        carModelRight,
-        beetleModel,
-        handModelLeft,
-        handModelRight,
-        logoModel;
+    std::shared_ptr<Model> ruins = std::make_shared<Model>(Model{
+        .worldMatrix = math::Mat4(1.f),
+    });
 
-    std::vector<Model*> models{
-        &gridModel,
-        &ruinsModel,
-        &carModelLeft,
-        &carModelRight,
-        &beetleModel,
-        &handModelLeft,
-        &handModelRight,
-        &logoModel
+    std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
+        .worldMatrix = math::translate(math::Mat4(1.f), {0.f, 0.f, -5.f})
+    });
+
+    const std::vector<std::shared_ptr<Model>> models{
+        ruins,
+        polonez,
     };
 
-    gridModel.worldMatrix = ruinsModel.worldMatrix = math::Mat4::makeScalarMat(1.f);
-    carModelLeft.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.f), {-3.5f, 0.0f, -7.0f});
-    carModelRight.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.f), {8.0f, 0.0f, -15.0f});
-    beetleModel.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.f), {-3.5f, 0.0f, -0.5f});
-    logoModel.worldMatrix = math::translate(math::Mat4::makeScalarMat(1.f), {0.0f, 3.0f, -10.0f});
+    auto meshData = std::make_unique<MeshData>();
+    meshData->loadModel("assets/models/ruins.obj", models, 1);
+    meshData->loadModel("assets/models/polonez.obj", models, 1);
 
-    auto meshData{std::make_unique<MeshData>()};
-    meshData->loadModel("assets/models/Grid.obj", models, 1);
-    meshData->loadModel("assets/models/Ruins.obj", models, 1);
-    meshData->loadModel("assets/models/Car.obj", models, 2);
-    meshData->loadModel("assets/models/Beetle.obj", models, 1);
-    meshData->loadModel("assets/models/Hand.obj", models, 2);
-    meshData->loadModel("assets/models/Logo.obj", models, 1);
-
-    Renderer renderer{&ctx, &headset, models, std::move(meshData)};
+    Renderer renderer{ctx, headset, models, std::move(meshData)};
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
 
@@ -106,10 +87,10 @@ int run(Engine* const engine) try
     LOGGER_LOG("tsengine initialization completed successfully");
 
     window->show();
-
-    auto cameraMatrix = math::Mat4::makeScalarMat(1.f);
+    auto cameraMatrix = math::Mat4(1.f);
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
+    // TODO: Display message to wear the headset
     while (loop)
     {
         if (headset.isExitRequested())
@@ -131,7 +112,8 @@ int run(Engine* const engine) try
         const auto nowTime = std::chrono::high_resolution_clock::now();
         const long long elapsedNanoseconds =
             std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - previousTime).count();
-        const float deltaTime = static_cast<float>(elapsedNanoseconds) / 1e9f;
+        constexpr auto nanosecondsPerSecond = 1e9f;
+        const auto deltaTime = static_cast<float>(elapsedNanoseconds) / nanosecondsPerSecond;
         previousTime = nowTime;
 
         uint32_t swapchainImageIndex;
@@ -140,32 +122,24 @@ int run(Engine* const engine) try
         {
             controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
 
-            static float time{0.f};
-            time += deltaTime;
-
             for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
             {
                 const auto flySpeed = controllers.getFlySpeed(controllerIndex);
-                if (flySpeed > 0.0f)
+                if (flySpeed > 0.f)
                 {
-                    const math::Vec3 forward(math::normalize(controllers.getPose(controllerIndex)[2]));
+                    const math::Vec3 forward{math::normalize(controllers.getPose(controllerIndex)[2])};
                     math::Vec3 t = forward * flySpeed * flySpeedMultiplier * deltaTime;
                     cameraMatrix = math::translate(cameraMatrix, t);
                 }
             }
 
-            //const auto inversecameraMatrix = glm::inverse(cameraMatrix);
-            //handModelLeft.worldMatrix = inversecameraMatrix * controllers.getPose(0);
-            //handModelRight.worldMatrix = inversecameraMatrix * controllers.getPose(1);
-            //handModelRight.worldMatrix = math::scale(handModelRight.worldMatrix, { -1.0f, 1.0f, 1.0f });
-
-            renderer.render(cameraMatrix, swapchainImageIndex, time);
+            renderer.render(cameraMatrix, swapchainImageIndex);
             const auto mirrorResult = mirrorView.render(swapchainImageIndex);
 
-            const auto mirrorViewVisible = (mirrorResult == MirrorView::RenderResult::VISIBLE);
-            renderer.submit(mirrorViewVisible);
+            const auto isMirrorViewVisible = (mirrorResult == MirrorView::RenderResult::VISIBLE);
+            renderer.submit(isMirrorViewVisible);
 
-            if (mirrorViewVisible)
+            if (isMirrorViewVisible)
             {
                 mirrorView.present();
             }
@@ -174,28 +148,8 @@ int run(Engine* const engine) try
         if ((frameResult == Headset::BeginFrameResult::RENDER_FULLY) ||
             (frameResult == Headset::BeginFrameResult::RENDER_SKIP_PARTIALLY))
         {
-            headset.endFrame();
+            headset.endFrame(frameResult == Headset::BeginFrameResult::RENDER_SKIP_PARTIALLY);
         }
-
-        //if (false)
-        //{
-        //    engine->onMouseMove(-1, -1, -1, -1);
-        //}
-
-        //if (false)
-        //{
-        //    engine->onMouseButtonClick({}, false);
-        //}
-
-        //if (false)
-        //{
-        //    engine->onKeyPressed({});
-        //}
-
-        //if (false)
-        //{
-        //    engine->onKeyReleased({});
-        //}
     }
 
     engine->close();

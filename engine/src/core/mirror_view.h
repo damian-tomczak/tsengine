@@ -21,7 +21,7 @@ class MirrorView final
     static constexpr size_t mirrorEyeIndex{1};
 
 public:
-    MirrorView(const Context* ctx, const std::shared_ptr<Window> window);
+    MirrorView(const Context& ctx, const std::shared_ptr<Window> window);
     ~MirrorView();
 
     enum class RenderResult
@@ -37,7 +37,7 @@ public:
 
     void onWindowResize() { mIsResizeDetected = true; }
 
-    VkSurfaceKHR getSurface() const { return mSurface; }
+    [[nodiscard]] VkSurfaceKHR getSurface() const { return mSurface; }
 
 private:
     void recreateXrSwapchain();
@@ -46,10 +46,10 @@ private:
     void pickSurfaceFormat();
     void createSwapchain();
 
-    const Context* mCtx{};
+    const Context& mCtx;
     const std::weak_ptr<Window> mWindow;
-    VkSurfaceKHR mSurface{};
     const Headset* mHeadset;
+    VkSurfaceKHR mSurface{};
     const Renderer* mRenderer;
     VkSurfaceCapabilitiesKHR mSurfaceCapabilities{};
     VkSwapchainKHR mSwapchain{};

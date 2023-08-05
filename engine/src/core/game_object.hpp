@@ -1,6 +1,5 @@
 #pragma once
 
-// ACHTUNG --- ONLY FOR DEVELOPMENT PURPOSES --- ACHTUNG
 // TODO: refactor it to the ecs
 
 #include "utils.hpp"
@@ -32,7 +31,7 @@ class MeshData final
 public:
     MeshData() = default;
 
-    void loadModel(const std::string& fileName, std::vector<Model*>& models, size_t count)
+    void loadModel(const std::string& fileName, const std::vector<std::shared_ptr<Model>>& models, size_t count)
     {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
@@ -48,12 +47,12 @@ public:
             for (const auto& index : shape.mesh.indices)
             {
                 Vertex vertex{
-                    .position = {
+                    .position =
+                    {
                         attrib.vertices[3 * index.vertex_index + 0],
                         attrib.vertices[3 * index.vertex_index + 1],
                         attrib.vertices[3 * index.vertex_index + 2]
                     },
-                    .color = {1.f, 1.f, 1.f}
                 };
 
                 if (index.normal_index >= 0)
@@ -64,6 +63,8 @@ public:
                         attrib.normals[3 * index.normal_index + 2]
                     };
                 }
+
+                vertex.color = vertex.normal;
 
                 mVertices.emplace_back(std::move(vertex));
                 mIndices.emplace_back(static_cast<uint32_t>(mIndices.size()));

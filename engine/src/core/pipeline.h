@@ -9,7 +9,7 @@ class Context;
 class Pipeline final
 {
 public:
-    Pipeline(const Context* ctx);
+    Pipeline(const Context& ctx);
     ~Pipeline();
 
     void createPipeline(
@@ -17,15 +17,13 @@ public:
         VkRenderPass renderPass,
         const std::string& vertexFilename,
         const std::string& fragmentFilename,
-        const std::vector<VkVertexInputBindingDescription>& vertexInputBindingDescriptions,
-        const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions);
+        const std::vector<VkVertexInputBindingDescription>& vertexInputBindingDescriptions = {},
+        const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions = {});
 
     void bind(const VkCommandBuffer commandBuffer) const;
 
 private:
-    void loadShaderFromFile(const VkDevice device, const std::string& fileName, VkShaderModule& shaderModule);
-
-    const Context* mCtx{};
+    const Context& mCtx;
     VkPipeline mPipeline{};
 };
 }
