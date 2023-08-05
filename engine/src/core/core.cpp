@@ -53,7 +53,7 @@ int run(Engine* const engine) try
     Context ctx;
     ctx.createOpenXrContext().createVulkanContext();
 
-    auto window = Window::createWindowInstance(width, height);
+    auto window = Window::createWindowInstance(GAME_NAME, width, height);
     MirrorView mirrorView{ctx, window};
     mirrorView.createSurface();
     ctx.createVkDevice(mirrorView.getSurface());
@@ -62,12 +62,10 @@ int run(Engine* const engine) try
     Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
     controllers.setupControllers();
 
-    std::shared_ptr<Model> ruins = std::make_shared<Model>(Model{
-        .worldMatrix = math::Mat4(1.f),
-    });
+    std::shared_ptr<Model> ruins = std::make_shared<Model>();
 
     std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
-        .worldMatrix = math::translate(math::Mat4(1.f), {0.f, 0.f, -5.f})
+        .pos = math::Vec3{0.f, 0.f, -5.f}
     });
 
     const std::vector<std::shared_ptr<Model>> models{
@@ -128,7 +126,7 @@ int run(Engine* const engine) try
                 if (flySpeed > 0.f)
                 {
                     const math::Vec3 forward{math::normalize(controllers.getPose(controllerIndex)[2])};
-                    math::Vec3 t = forward * flySpeed * flySpeedMultiplier * deltaTime;
+                    const math::Vec3 t = forward * flySpeed * flySpeedMultiplier * deltaTime;
                     cameraMatrix = math::translate(cameraMatrix, t);
                 }
             }

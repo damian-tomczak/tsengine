@@ -108,7 +108,7 @@ void Pipeline::createPipeline(
     };
 
     const VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState{
-        .blendEnable = VK_TRUE,
+        .blendEnable = true,
         .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
         .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
         .colorBlendOp = VK_BLEND_OP_ADD,
@@ -137,8 +137,8 @@ void Pipeline::createPipeline(
 
     const VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-        .depthTestEnable = VK_TRUE,
-        .depthWriteEnable = VK_TRUE,
+        .depthTestEnable = true,
+        .depthWriteEnable = true,
         .depthCompareOp = VK_COMPARE_OP_LESS
     };
 

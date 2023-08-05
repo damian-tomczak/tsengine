@@ -8,7 +8,7 @@
 
 namespace ts
 {
-RenderProcess::RenderProcess(const Context& ctx, const Headset& headset) : mCtx{ ctx }, mHeadset{ headset }
+RenderProcess::RenderProcess(const Context& ctx, const Headset& headset) : mCtx{ctx}, mHeadset{headset}
 {}
 
 RenderProcess::~RenderProcess()
@@ -45,19 +45,6 @@ void RenderProcess::createRendererProcess(
     VkDescriptorSetLayout descriptorSetLayout,
     size_t modelCount)
 {
-    mDynamicVertexUniformData.resize(modelCount);
-    for (size_t modelIndex{}; modelIndex < modelCount; ++modelIndex)
-    {
-        mDynamicVertexUniformData.at(modelIndex).worldMatrixrix = math::Mat4(1.f);
-    }
-
-    mStaticVertexUniformData2.cameraMatrix = math::Mat4(1.f);
-    for (size_t eyeIndex{}; eyeIndex < mHeadset.getEyeCount(); ++eyeIndex)
-    {
-        mStaticVertexUniformData2.viewMatrices.emplace_back(1.f);
-        mStaticVertexUniformData2.projectionMatrices.emplace_back(1.f);
-    }
-
     const auto device = mCtx.getVkDevice();
 
     const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
@@ -81,16 +68,12 @@ void RenderProcess::createRendererProcess(
 
     const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
 
-    std::array<VkDescriptorBufferInfo, 2> descriptorBufferInfos;
-    descriptorBufferInfos.at(0).offset = 0;
-    descriptorBufferInfos.at(0).range = sizeof(DynamicVertexUniformData);
-
-    descriptorBufferInfos.at(1).offset =
-        khronos_utils::align(descriptorBufferInfos.at(0).range, uniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(modelCount);
-    descriptorBufferInfos.at(1).range =
-        sizeof(math::Mat4) +
-        sizeof(math::Mat4) * mStaticVertexUniformData2.viewMatrices.size() +
-        sizeof(math::Mat4) * mStaticVertexUniformData2.viewMatrices.size();
+    std::array descriptorBufferInfos{
+        VkDescriptorBufferInfo{
+            .offset = 0,
+            .range = sizeof(mStaticVertexUniformData)
+        },
+    };
 
     const auto uniformBufferSize = descriptorBufferInfos.back().offset + descriptorBufferInfos.back().range;
     mUniformBuffer = new DataBuffer{mCtx};
@@ -118,26 +101,17 @@ void RenderProcess::createRendererProcess(
         descriptorBufferInfo.buffer = mUniformBuffer->getBuffer();
     }
 
-    std::array<VkWriteDescriptorSet, 2> writeDescriptorSets{{
-        {
+    std::array writeDescriptorSets{
+        VkWriteDescriptorSet{
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = mDescriptorSet,
             .dstBinding = 0,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .pBufferInfo = &descriptorBufferInfos.at(0),
         },
-        {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = mDescriptorSet,
-            .dstBinding = 1,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pBufferInfo = &descriptorBufferInfos.at(1),
-        },
-    }};
+    };
 
     vkUpdateDescriptorSets(
         device,
@@ -157,24 +131,19 @@ void RenderProcess::updateUniformBufferData() const
     const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
 
     auto offset = static_cast<char*>(mUniformBufferMemory);
-    VkDeviceSize length = sizeof(DynamicVertexUniformData);
-    for (const auto& dynamicData : mDynamicVertexUniformData)
-    {
-        memcpy(offset, &dynamicData, length);
-        offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
-    }
 
-    length = sizeof(math::Mat4);
-    memcpy(offset, &mStaticVertexUniformData2.cameraMatrix, length);
+    VkDeviceSize length = sizeof(mStaticVertexUniformData.cameraPos);
+    memcpy(offset, &mStaticVertexUniformData.cameraPos, length);
     offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
 
-    for (const auto& viewMatrix : mStaticVertexUniformData2.viewMatrices)
+    length = sizeof(math::Mat4);
+    for (const auto& viewMatrix : mStaticVertexUniformData.viewMatrices)
     {
         memcpy(offset, &viewMatrix, length);
         offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
     }
 
-    for (const auto& projectionMatrix : mStaticVertexUniformData2.projectionMatrices)
+    for (const auto& projectionMatrix : mStaticVertexUniformData.projectionMatrices)
     {
         memcpy(offset, &projectionMatrix, length);
         offset += khronos_utils::align(length, uniformBufferOffsetAlignment);

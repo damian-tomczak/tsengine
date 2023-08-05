@@ -66,16 +66,12 @@ void Renderer::createRenderer()
     };
     LOGGER_VK(vkCreateCommandPool, device, &commandPoolCreateInfo, nullptr, &mCommandPool);
 
-    const std::array<VkDescriptorPoolSize, 2> descriptorPoolSizes{{
-        {
-            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-            .descriptorCount = static_cast<uint32_t>(framesInFlightCount),
-        },
-        {
+    const std::array descriptorPoolSizes{
+        VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = static_cast<uint32_t>(framesInFlightCount * 2)
-        }
-    }};
+            .descriptorCount = static_cast<uint32_t>(framesInFlightCount)
+        },
+    };
 
     const VkDescriptorPoolCreateInfo descriptorPoolCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -85,20 +81,22 @@ void Renderer::createRenderer()
     };
     LOGGER_VK(vkCreateDescriptorPool, device, &descriptorPoolCreateInfo, nullptr, &mDescriptorPool);
 
-    const std::array<VkDescriptorSetLayoutBinding, 2> descriptorSetLayoutBindings{{
-        {
+    const std::array descriptorSetLayoutBindings{
+        VkDescriptorSetLayoutBinding{
             .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-        },
-        {
-            .binding = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-        }
-    }};
+        },
+    };
+
+    const std::array pushConstantRanges{
+        VkPushConstantRange{
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+            .offset = 0,
+            .size = sizeof(Model::pos),
+        },
+    };
 
     const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -111,6 +109,8 @@ void Renderer::createRenderer()
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = 1,
         .pSetLayouts = &mDescriptorSetLayout,
+        .pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.size()),
+        .pPushConstantRanges = pushConstantRanges.data(),
     };
     LOGGER_VK(vkCreatePipelineLayout, device, &pipelineLayoutCreateInfo, nullptr, &mPipelineLayout);
 
@@ -168,7 +168,7 @@ void Renderer::createRenderer()
     mIndexOffset = mMeshData->getIndexOffset();
 }
 
-void Renderer::render(const math::Mat4& cameraMatrix, const size_t swapchainImageIndex)
+void Renderer::render(const math::Mat4 cameraMatrix, const size_t swapchainImageIndex)
 {
     mCurrentRenderProcessIndex = (mCurrentRenderProcessIndex + 1) % mRenderProcesses.size();
     auto renderProcess = mRenderProcesses.at(mCurrentRenderProcessIndex);
@@ -183,10 +183,10 @@ void Renderer::render(const math::Mat4& cameraMatrix, const size_t swapchainImag
 
     updateUniformData(cameraMatrix, renderProcess);
 
-    const std::array<VkClearValue, 2> clearValues{{
-        {.color = {1.f, 1.f, 1.f, 1.f}},
-        {.depthStencil = {1.0f, 0}}
-    }};
+    const std::array clearValues{
+        VkClearValue{.color = {1.f, 1.f, 1.f, 1.f}},
+        VkClearValue{.depthStencil = {1.0f, 0}}
+    };
 
     VkRenderPassBeginInfo renderPassBeginInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -227,11 +227,6 @@ void Renderer::render(const math::Mat4& cameraMatrix, const size_t swapchainImag
     // TODO: it beggs for the refactor
     for (size_t modelIdx{}; modelIdx < mModels.size() + 1; ++modelIdx)
     {
-        const auto uniformBufferOffset = static_cast<uint32_t>(
-            khronos_utils::align(
-                static_cast<VkDeviceSize>(sizeof(RenderProcess::DynamicVertexUniformData)),
-                mCtx.getUniformBufferOffsetAlignment()) * static_cast<VkDeviceSize>((modelIdx != 0) ? modelIdx - 1 : 0));
-
         vkCmdBindDescriptorSets(
             commandBuffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -239,16 +234,18 @@ void Renderer::render(const math::Mat4& cameraMatrix, const size_t swapchainImag
             0,
             1,
             &descriptorSet,
-            1,
-            &uniformBufferOffset);
+            0,
+            nullptr);
 
-        if (modelIdx == 0)
-        {
-            mGridPipeline->bind(commandBuffer);
-        }
-        else if (modelIdx >= 1)
+
+        if (modelIdx >= 1)
         {
             mDiffusePipeline->bind(commandBuffer);
+            vkCmdPushConstants(commandBuffer, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(math::Vec3), &mModels.at(modelIdx - 1)->pos);
+        }
+        else
+        {
+            mGridPipeline->bind(commandBuffer);
         }
 
         if (modelIdx != 0)
@@ -342,18 +339,13 @@ void Renderer::createVertexIndexBuffer()
     delete stagingBuffer;
 }
 
-void Renderer::updateUniformData(const math::Mat4& cameraMatrix, RenderProcess* renderProcess)
+void Renderer::updateUniformData(const math::Mat4 cameraPos, RenderProcess* renderProcess)
 {
-    for (size_t modelIdx{}; modelIdx < mModels.size(); ++modelIdx)
-    {
-        renderProcess->mDynamicVertexUniformData.at(modelIdx).worldMatrixrix = mModels.at(modelIdx)->worldMatrix;
-    }
-
-    renderProcess->mStaticVertexUniformData2.cameraMatrix = cameraMatrix;
+    renderProcess->mStaticVertexUniformData.cameraPos = cameraPos;
     for (size_t eyeIndex{}; eyeIndex < mHeadset.getEyeCount(); ++eyeIndex)
     {
-        renderProcess->mStaticVertexUniformData2.viewMatrices.at(eyeIndex) = mHeadset.getEyeViewMatrix(eyeIndex);
-        renderProcess->mStaticVertexUniformData2.projectionMatrices.at(eyeIndex) = mHeadset.getEyeProjectionMatrix(eyeIndex);
+        renderProcess->mStaticVertexUniformData.viewMatrices.at(eyeIndex) = mHeadset.getEyeViewMatrix(eyeIndex);
+        renderProcess->mStaticVertexUniformData.projectionMatrices.at(eyeIndex) = mHeadset.getEyeProjectionMatrix(eyeIndex);
     }
 
     renderProcess->updateUniformBufferData();

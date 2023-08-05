@@ -16,7 +16,8 @@ class Window
     NOT_COPYABLE_AND_MOVEABLE(Window);
 
 public:
-    Window(size_t width, size_t height) : mWidth{width}, mHeight{height}
+    Window(const std::string& windowName, const size_t width, const size_t height) :
+        mWindowName{windowName}, mWidth{width}, mHeight{height}
     {}
 
     enum class Message
@@ -35,13 +36,14 @@ public:
     virtual Message peekMessage() = 0;
     virtual void dispatchMessage() = 0;
 
-    static std::shared_ptr<Window> createWindowInstance(size_t width, size_t height);
+    static std::shared_ptr<Window> createWindowInstance(const std::string& windowName, const size_t width, const size_t height);
 
     [[nodiscard]] size_t getWidth() { return mWidth; }
     [[nodiscard]] size_t getHeight() { return mHeight;}
 
 protected:
-    size_t mWidth;
-    size_t mHeight;
+    const size_t mWidth;
+    const size_t mHeight;
+    const std::string mWindowName;
 };
 } // namespace ts

@@ -25,18 +25,12 @@ public:
         VkDescriptorSetLayout descriptorSetLayout,
         size_t modelCount);
 
-    struct DynamicVertexUniformData
-    {
-        math::Mat4 worldMatrixrix;
-    };
-    std::vector<DynamicVertexUniformData> mDynamicVertexUniformData;
-
     struct StaticVertexUniformData
     {
-        math::Mat4 cameraMatrix;
-        std::vector<math::Mat4> viewMatrices;
-        std::vector<math::Mat4> projectionMatrices;
-    } mStaticVertexUniformData2;
+        math::Mat4 cameraPos;
+        std::array<math::Mat4, 2> viewMatrices;
+        std::array<math::Mat4, 2> projectionMatrices;
+    } mStaticVertexUniformData;
 
     void updateUniformBufferData() const;
 

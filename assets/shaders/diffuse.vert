@@ -2,17 +2,15 @@
 
 #extension GL_EXT_multiview : enable
 
-layout(binding = 0) uniform World
-{
-    mat4 matrix;
-} world;
-
-layout(binding = 1) uniform Ubo
-{
-    mat4 cameraMatrix;
-    mat4 viewMatrices[2];
-    mat4 projMatrices[2];
+layout(binding = 0) uniform Ubo{
+    mat4 cameraMat;
+    mat4 viewMats[2];
+    mat4 projMats[2];
 } ubo;
+
+layout(push_constant) uniform PushConsts {
+    vec3 objPos;
+} pushConsts;
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
@@ -24,11 +22,11 @@ layout(location = 1) out vec3 color;
 void main()
 {
     gl_Position =
-        ubo.projMatrices[gl_ViewIndex] *
-        ubo.viewMatrices[gl_ViewIndex] *
-        ubo.cameraMatrix * world.matrix *
-        vec4(inPosition, 1.0);
+        ubo.projMats[gl_ViewIndex] *
+        ubo.viewMats[gl_ViewIndex] *
+        ubo.cameraMat *
+        vec4(pushConsts.objPos + inPosition, 1.f);
 
-    normal = normalize(vec3(world.matrix * vec4(inNormal, 0.0)));
+    normal = normalize(inNormal);
     color = inColor;
 }

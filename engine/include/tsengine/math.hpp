@@ -11,65 +11,39 @@ struct Vec2 final
 {
     float x{}, y{};
 
-    Vec2();
-    Vec2(const float x_, const float y_);
-    Vec2 operator*(const float scalar) const;
+    constexpr Vec2();
+    constexpr Vec2(const float v);
+    constexpr Vec2(const Vec3& vec3);
+    constexpr Vec2(const Vec4& vec4);
+    constexpr Vec2(const float x_, const float y_);
+    [[nodiscard]] constexpr Vec2 operator*(const float scalar) const;
 };
 
 struct Vec3 final
 {
     float x{}, y{}, z{};
 
-    Vec3();
-    Vec3(const Vec4& vec4);
-    Vec3(const float x_, const float y_, const float z_);
-    Vec3 operator*(const float scalar) const;
+    constexpr Vec3();
+    constexpr Vec3(const float v);
+    constexpr Vec3(const Vec4& vec4);
+    constexpr Vec3(const float x_, const float y_, const float z_);
+    [[nodiscard]] constexpr Vec3 operator*(const float scalar) const;
 };
 
 struct Vec4 final
 {
     float x{}, y{}, z{}, w{};
 
-    Vec4();
-    Vec4(const float x_, const float y_, const float z_, const float w_);
+    constexpr Vec4();
+    constexpr Vec4(const float v);
+    constexpr Vec4(const float x_, const float y_, const float z_, const float w_);
+    [[nodiscard]] constexpr Vec4 operator*(const float scalar) const;
 };
 
 struct Quat
 {
     float w{}, x{}, y{}, z{};
 };
-
-inline Vec2::Vec2()
-{}
-
-inline Vec2::Vec2(const float x_, const float y_) : x{x_}, y{y_}
-{}
-
-inline Vec2 Vec2::operator*(const float scalar) const
-{
-    return {x * scalar, y * scalar};
-}
-
-inline Vec3::Vec3()
-{}
-
-inline Vec3::Vec3(const Vec4& vec4) : x{vec4.x}, y{vec4.y}, z{vec4.z}
-{}
-
-inline Vec3::Vec3(const float x_, const float y_, const float z_) : x{x_}, y{y_}, z{z_}
-{}
-
-inline Vec3 Vec3::operator*(const float scalar) const
-{
-    return {x * scalar, y * scalar, z * scalar};
-}
-
-inline Vec4::Vec4()
-{}
-
-inline Vec4::Vec4(const float x_, const float y_, const float z_, const float w_) :
-    x{x_}, y{y_}, z{z_}, w{w_}
-{}
 
 struct BaseMatrix {};
 
@@ -112,13 +86,13 @@ struct Mat4 : public Matrix<4, 4>
         }}
     {}
 
-    explicit Mat4(const float value) :
+    explicit Mat4(const float v) :
         data
         {{
-            {value, 0.f  , 0.f  , 0.f  },
-            {0.f  , value, 0.f  , 0.f  },
-            {0.f  , 0.f  , value, 0.f  },
-            {0.f  , 0.f  , 0.f  , value}
+            {v  , 0.f, 0.f, 0.f},
+            {0.f, v  , 0.f, 0.f},
+            {0.f, 0.f, v  , 0.f},
+            {0.f, 0.f, 0.f, v  }
         }}
     {}
 
@@ -210,10 +184,10 @@ inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
 {
     Mat4 scaleMatrix
     {
-        scaleVec.x, 0            , 0         , 0,
-        0         , scaleVec.y   , 0         , 0,
-        0         , 0            , scaleVec.z, 0,
-        0         , 0            , 0         , 1.f
+        scaleVec.x, 0         , 0         , 0  ,
+        0         , scaleVec.y, 0         , 0  ,
+        0         , 0         , scaleVec.z, 0  ,
+        0         , 0         , 0         , 1.f
     };
 
     return matrix * scaleMatrix;
@@ -355,5 +329,57 @@ inline void _adjoint(const Mat& referenceMat, Mat& adjMat)
             }
         }
     }
+}
+
+inline constexpr Vec2::Vec2()
+{}
+
+inline constexpr Vec2::Vec2(const float v) : x{v}, y{v}
+{}
+
+inline constexpr Vec2::Vec2(const Vec3& vec3) : x{vec3.x}, y{vec3.y}
+{}
+
+inline constexpr Vec2::Vec2(const Vec4& vec4) : x{vec4.x}, y{vec4.y}
+{}
+
+inline constexpr Vec2::Vec2(const float x_, const float y_) : x{x_}, y{y_}
+{}
+
+inline constexpr Vec2 Vec2::operator*(const float scalar) const
+{
+    return {x * scalar, y * scalar};
+}
+
+inline constexpr Vec3::Vec3()
+{}
+
+inline constexpr Vec3::Vec3(const float v) : x{v}, y{v}, z{v}
+{}
+
+inline constexpr Vec3::Vec3(const Vec4& vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }
+{}
+
+inline constexpr Vec3::Vec3(const float x_, const float y_, const float z_) : x{ x_ }, y{ y_ }, z{ z_ }
+{}
+
+inline constexpr Vec3 Vec3::operator*(const float scalar) const
+{
+    return {x * scalar, y * scalar, z * scalar};
+}
+
+inline constexpr Vec4::Vec4()
+{}
+
+inline constexpr Vec4::Vec4(const float v) : x{v}, y{v}, z{v}, w{v}
+{}
+
+inline constexpr Vec4::Vec4(const float x_, const float y_, const float z_, const float w_) :
+    x{x_}, y{y_}, z{z_}, w{w_}
+{}
+
+inline constexpr Vec4 Vec4::operator*(const float scalar) const
+{
+    return {x * scalar, y * scalar, z * scalar, w * scalar};
 }
 } // namespace ts

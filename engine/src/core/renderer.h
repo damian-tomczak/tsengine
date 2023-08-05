@@ -26,7 +26,7 @@ public:
     virtual ~Renderer();
 
     void createRenderer();
-    void render(const math::Mat4& cameraMatrix, size_t swapchainImageIndex);
+    void render(const math::Mat4 cameraMatrix, size_t swapchainImageIndex);
     void submit(bool useSemaphores) const;
 
     [[nodiscard]] VkSemaphore getCurrentDrawableSemaphore() const;
@@ -35,7 +35,7 @@ public:
 
 private:
     void createVertexIndexBuffer();
-    void updateUniformData(const math::Mat4& cameraMatrix, RenderProcess* renderProcess);
+    void updateUniformData(const math::Mat4 cameraMatrix, RenderProcess* renderProcess);
 
     const Context& mCtx;
     const Headset& mHeadset;

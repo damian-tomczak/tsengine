@@ -220,7 +220,7 @@ void Headset::createVkRenderPass()
         .pDepthStencilAttachment = &depthAttachmentReference,
     };
 
-    const std::array attachments {
+    const std::array attachments{
         colorAttachmentDescription,
         depthAttachmentDescription,
         resolveAttachmentDescription
@@ -422,12 +422,7 @@ void Headset::endFrame(bool skipReleaseSwapchainImage) const
     if (!skipReleaseSwapchainImage)
     {
         XrSwapchainImageReleaseInfo swapchainImageReleaseInfo{ XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
-        auto result = xrReleaseSwapchainImage(mXrSwapchain, &swapchainImageReleaseInfo);
-        if (XR_FAILED(result))
-        {
-            // TODO: investigate the problem (probably problem with the main loop code architecture)
-            LOGGER_WARN(("(KNOWN ISSUE) xrReleaseSwapchainImage failed with status: " + khronos_utils::xrResultToString(result)).c_str());
-        }
+        LOGGER_XR(xrReleaseSwapchainImage, mXrSwapchain, &swapchainImageReleaseInfo);
     }
 
     XrCompositionLayerProjection compositionLayerProjection{

@@ -14,7 +14,7 @@ struct Model final
 {
     size_t firstIndex;
     size_t indexCount;
-    math::Mat4 worldMatrix;
+    math::Vec3 pos;
 };
 
 struct Vertex final
@@ -37,7 +37,7 @@ public:
         std::vector<tinyobj::shape_t> shapes;
         if (!tinyobj::LoadObj(&attrib, &shapes, nullptr, nullptr, nullptr, fileName.data()))
         {
-            LOGGER_ERR(("can not open the model: " + fileName).c_str());
+            LOGGER_ERR(("Can not open the model: " + fileName).c_str());
         }
 
         const auto oldIndexCount = mIndices.size();
@@ -94,5 +94,33 @@ public:
 private:
     std::vector<Vertex> mVertices;
     std::vector<uint32_t> mIndices;
+};
+
+struct Material final
+{
+    std::string_view name;
+
+    struct Params final
+    {
+        math::Vec3 color;
+        float roughness;
+        float metallic;
+    } params;
+};
+
+// Setup some default materials (source: https://seblagarde.wordpress.com/2011/08/17/feeding-a-physical-based-lighting-mode/)
+inline constexpr std::array materials
+{
+    Material{.name = "White"   , .params{.color = {1.0f},                            .roughness = 0.1f, .metallic = 1.0f}},
+    Material{.name = "Red"     , .params{.color = {1.0f, 0.0f, 0.0f},                .roughness = 0.1f, .metallic = 1.0f}},
+    Material{.name = "Blue"    , .params{.color = {0.0f, 0.0f, 1.0f},                .roughness = 0.1f, .metallic = 1.0f}},
+    Material{.name = "Black"   , .params{.color = {0.0f},                            .roughness = 0.1f, .metallic = 1.0f}},
+    Material{.name = "Gold"    , .params{.color = {1.0f, 0.765557f, 0.336057f},      .roughness = 0.1f, .metallic = 1.0f}},
+    Material{.name = "Copper"  , .params{.color = {0.955008f, 0.637427f, 0.538163f}, .roughness = 0.1f, .metallic = 1.0f}},
+    Material{.name = "Chromium", .params{.color = {0.549585f, 0.556114f, 0.554256f}, .roughness = 0.1f, .metallic = 1.0f}},
+    Material{.name = "Nickel"  , .params{.color = {0.659777f, 0.608679f, 0.525649f}, .roughness = 0.1f, .metallic = 1.0f}},
+    Material{.name = "Titanium", .params{.color = {0.541931f, 0.496791f, 0.449419f}, .roughness = 0.1f, .metallic = 1.0f}},
+    Material{.name = "Cobalt"  , .params{.color = {0.662124f, 0.654864f, 0.633732f}, .roughness = 0.1f, .metallic = 1.0f}},
+    Material{.name = "Platinum", .params{.color = {0.672411f, 0.637331f, 0.585456f}, .roughness = 0.1f, .metallic = 1.0f}},
 };
 }
