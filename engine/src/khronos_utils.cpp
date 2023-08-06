@@ -205,13 +205,22 @@ VkBool32 vkCallback(
 
         if (!throwException)
         {
-            static std::optional<size_t> warnedXrDevice;
+            static std::optional<XrDeviceId> warnedXrDeviceId;
 
-            if ((warnedXrDevice == std::nullopt) || warnedXrDevice != gXrDeviceId)
+            if ((warnedXrDeviceId == std::nullopt) || warnedXrDeviceId != gXrDeviceId)
             {
-                warnedXrDevice = std::make_optional<size_t>(gXrDeviceId);
+                warnedXrDeviceId = std::make_optional<XrDeviceId>(gXrDeviceId);
 
-                LOGGER_WARN(("Unstable xr device in use (" + std::string{knownXrDevicesIdToName[*warnedXrDevice].second.data()} + ")." +
+                const auto it = std::ranges::find_if(knownXrDevicesIdToName, [](const auto& deviceInfo) -> bool {
+                    return deviceInfo.first == warnedXrDeviceId;
+                });
+
+                if (it == knownXrDevicesIdToName.end())
+                {
+                    LOGGER_ERR("Your xr device is marked by the engine as the unstable, but can not find its name.");
+                }
+
+                LOGGER_WARN(("Unstable OpenXr device in use ("s + it->second.data() + "). " +
                     "Vulkan validation layers's errors won't stop the program.").c_str());
             }
         }
