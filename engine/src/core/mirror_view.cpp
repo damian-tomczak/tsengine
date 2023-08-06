@@ -10,20 +10,20 @@
 
 namespace ts
 {
-MirrorView::MirrorView(const Context& ctx, const std::shared_ptr<Window> window) :
-    mCtx{ctx},
+MirrorView::MirrorView(const Context& context, const std::shared_ptr<Window> window) :
+    mContext{context},
     mWindow{window}
 {}
 
 MirrorView::~MirrorView()
 {
-    const auto vkDevice = mCtx.getVkDevice();
+    const auto vkDevice = mContext.getVkDevice();
     if ((vkDevice != nullptr) && (mSwapchain != nullptr))
     {
         vkDestroySwapchainKHR(vkDevice, mSwapchain, nullptr);
     }
 
-    const auto vkinstance = mCtx.getVkInstance();
+    const auto vkinstance = mContext.getVkInstance();
     if ((vkinstance != nullptr) && (mSurface != nullptr))
     {
         vkDestroySurfaceKHR(vkinstance, mSurface, nullptr);
@@ -55,7 +55,7 @@ MirrorView::RenderResult MirrorView::render(uint32_t swapchainImageIndex)
 
     const auto result =
         vkAcquireNextImageKHR(
-            mCtx.getVkDevice(),
+            mContext.getVkDevice(),
             mSwapchain,
             UINT64_MAX,
             mRenderer->getCurrentDrawableSemaphore(),
@@ -249,7 +249,7 @@ void MirrorView::present()
         .pImageIndices = &mDestinationImageIndex
     };
 
-    const auto result = vkQueuePresentKHR(mCtx.getVkPresentQueue(), &presentInfo);
+    const auto result = vkQueuePresentKHR(mContext.getVkPresentQueue(), &presentInfo);
     if ((result == VK_ERROR_OUT_OF_DATE_KHR) || (result == VK_SUBOPTIMAL_KHR))
     {
         recreateXrSwapchain();
@@ -285,7 +285,7 @@ void MirrorView::createSurface()
         .hwnd = winWindow->getHwnd()
     };
 
-    LOGGER_VK(vkCreateWin32SurfaceKHR, mCtx.getVkInstance(), &ci, nullptr, &mSurface);
+    LOGGER_VK(vkCreateWin32SurfaceKHR, mContext.getVkInstance(), &ci, nullptr, &mSurface);
 #else
 #error not implemented
 #endif
@@ -293,7 +293,7 @@ void MirrorView::createSurface()
 
 void MirrorView::recreateXrSwapchain()
 {
-    mCtx.sync();
+    mContext.sync();
 
     getSurfaceCapabilitiesAndExtent();
 
@@ -318,7 +318,7 @@ bool MirrorView::isWindowMinimize()
 
 void MirrorView::getSurfaceCapabilitiesAndExtent()
 {
-    const auto physicalDevice = mCtx.getVkPhysicalDevice();
+    const auto physicalDevice = mContext.getVkPhysicalDevice();
 
     LOGGER_VK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR, physicalDevice, mSurface, &mSurfaceCapabilities);
 
@@ -352,7 +352,7 @@ void MirrorView::getSurfaceCapabilitiesAndExtent()
 
 void MirrorView::pickSurfaceFormat()
 {
-    const auto physicalDevice = mCtx.getVkPhysicalDevice();
+    const auto physicalDevice = mContext.getVkPhysicalDevice();
 
     uint32_t surfaceFormatCount{};
     LOGGER_VK(vkGetPhysicalDeviceSurfaceFormatsKHR, physicalDevice, mSurface, &surfaceFormatCount, nullptr);
@@ -379,7 +379,7 @@ void MirrorView::pickSurfaceFormat()
 
 void MirrorView::createSwapchain()
 {
-    const auto device = mCtx.getVkDevice();
+    const auto device = mContext.getVkDevice();
 
     if (mSwapchain != nullptr)
     {

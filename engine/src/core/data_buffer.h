@@ -2,7 +2,7 @@
 
 #include "utils.hpp"
 
-#include <vulkan/vulkan.h>
+#include "vulkan/vulkan.h"
 
 namespace ts
 {
@@ -13,7 +13,7 @@ class DataBuffer final
     NOT_COPYABLE_AND_MOVEABLE(DataBuffer);
 
 public:
-    DataBuffer(const Context& ctx);
+    DataBuffer(const Context& context);
     ~DataBuffer();
 
     void createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryPropertyFlags memoryProperties, VkDeviceSize size);
@@ -25,7 +25,7 @@ public:
     void unmap() const;
 
 private:
-    const Context& mCtx;
+    const Context& mContext;
     VkBuffer mBuffer{};
     VkDeviceMemory mDeviceMemory{};
     VkDeviceSize mSize{};

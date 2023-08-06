@@ -16,7 +16,7 @@ class RenderProcess final
     NOT_COPYABLE_AND_MOVEABLE(RenderProcess);
 
 public:
-    RenderProcess(const Context& ctx, const Headset& headset);
+    RenderProcess(const Context& context, const Headset& headset);
     ~RenderProcess();
 
     void createRendererProcess(
@@ -25,14 +25,29 @@ public:
         VkDescriptorSetLayout descriptorSetLayout,
         size_t modelCount);
 
-    struct StaticVertexUniformData
+    struct IndivialData final
     {
-        math::Mat4 cameraPos;
-        std::array<math::Mat4, 2> viewMatrices;
-        std::array<math::Mat4, 2> projectionMatrices;
-    } mStaticVertexUniformData;
+        math::Mat4 model;
+    };
+    std::vector<IndivialData> mIndividualUniformData;
 
-    void updateUniformBufferData() const;
+    struct CommonUniformData final
+    {
+        math::Vec3 cameraPosition;
+        alignas(16) std::array<math::Mat4, 2> viewMatrices;
+        std::array<math::Mat4, 2> projectionMatrices;
+    } mCommonUniformData;
+
+    // TODO: deffered lighting
+    struct LightData final
+    {
+        std::array<math::Vec3, 2> lightPositions{
+            math::Vec3{0, 5.f, -10.f},
+            math::Vec3{5.f, 5.f, -10.f}
+        };
+    } mLightUniformData;
+
+    void updateUniformBufferData();
 
     [[nodiscard]] VkCommandBuffer getCommandBuffer() const { return mCommandBuffer; }
     [[nodiscard]] VkFence getFence() const { return mFence; }
@@ -41,12 +56,12 @@ public:
     [[nodiscard]] VkSemaphore getPresentableSemaphore() const { return mPresentableSemaphore; }
 
 private:
-    const Context& mCtx;
+    const Context& mContext;
     VkCommandBuffer mCommandBuffer{};
     VkSemaphore mDrawableSemaphore{}, mPresentableSemaphore{};
     VkFence mFence{};
-    DataBuffer* mUniformBuffer{};
-    void* mUniformBufferMemory{};
+    std::unique_ptr<DataBuffer> mUniformBuffer;
+    void* mUniformBufferMemory;
     VkDescriptorSet mDescriptorSet{};
     const Headset& mHeadset;
 };

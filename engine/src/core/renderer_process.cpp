@@ -8,7 +8,7 @@
 
 namespace ts
 {
-RenderProcess::RenderProcess(const Context& ctx, const Headset& headset) : mCtx{ctx}, mHeadset{headset}
+RenderProcess::RenderProcess(const Context& context, const Headset& headset) : mContext{context}, mHeadset{headset}
 {}
 
 RenderProcess::~RenderProcess()
@@ -17,9 +17,9 @@ RenderProcess::~RenderProcess()
     {
         mUniformBuffer->unmap();
     }
-    delete mUniformBuffer;
+    mUniformBuffer.reset();
 
-    const auto device = mCtx.getVkDevice();
+    const auto device = mContext.getVkDevice();
     if (device != nullptr)
     {
         if (mFence != nullptr)
@@ -45,7 +45,9 @@ void RenderProcess::createRendererProcess(
     VkDescriptorSetLayout descriptorSetLayout,
     size_t modelCount)
 {
-    const auto device = mCtx.getVkDevice();
+    mIndividualUniformData.resize(modelCount);
+
+    const auto device = mContext.getVkDevice();
 
     const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -66,17 +68,31 @@ void RenderProcess::createRendererProcess(
     };
     LOGGER_VK(vkCreateFence, device, &fenceCreateInfo, nullptr, &mFence);
 
-    const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
+    const auto uniformBufferOffsetAlignment = mContext.getUniformBufferOffsetAlignment();
 
-    std::array descriptorBufferInfos{
-        VkDescriptorBufferInfo{
-            .offset = 0,
-            .range = sizeof(mStaticVertexUniformData)
-        },
-    };
+    std::vector<VkDescriptorBufferInfo> descriptorBufferInfos;
+    descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
+        .offset = 0,
+        .range = sizeof(decltype(mIndividualUniformData)::value_type),
+    });
+
+    descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
+        .offset = descriptorBufferInfos.at(0).offset + khronos_utils::align(descriptorBufferInfos.at(0).range, uniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(modelCount),
+        .range = sizeof(mCommonUniformData),
+    });
+
+    descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
+        .offset = descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment),
+        .range = sizeof(mLightUniformData),
+    });
+
+    if (descriptorBufferInfos.empty())
+    {
+        LOGGER_ERR("path not yet prepared");
+    }
 
     const auto uniformBufferSize = descriptorBufferInfos.back().offset + descriptorBufferInfos.back().range;
-    mUniformBuffer = new DataBuffer{mCtx};
+    mUniformBuffer = std::make_unique<DataBuffer>(mContext);
     mUniformBuffer->createDataBuffer(
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -108,8 +124,26 @@ void RenderProcess::createRendererProcess(
             .dstBinding = 0,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
             .pBufferInfo = &descriptorBufferInfos.at(0),
+        },
+        VkWriteDescriptorSet{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = mDescriptorSet,
+            .dstBinding = 1,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &descriptorBufferInfos.at(1),
+        },
+        VkWriteDescriptorSet{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = mDescriptorSet,
+            .dstBinding = 2,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &descriptorBufferInfos.at(2),
         },
     };
 
@@ -121,31 +155,32 @@ void RenderProcess::createRendererProcess(
         nullptr);
 }
 
-void RenderProcess::updateUniformBufferData() const
+void RenderProcess::updateUniformBufferData()
 {
     if (mUniformBufferMemory == nullptr)
     {
-        return;
+        LOGGER_ERR("Uniform buffer wasn't allocated");
     }
 
-    const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
+    const auto uniformBufferOffsetAlignment = mContext.getUniformBufferOffsetAlignment();
 
     auto offset = static_cast<char*>(mUniformBufferMemory);
 
-    VkDeviceSize length = sizeof(mStaticVertexUniformData.cameraPos);
-    memcpy(offset, &mStaticVertexUniformData.cameraPos, length);
-    offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
-
-    length = sizeof(math::Mat4);
-    for (const auto& viewMatrix : mStaticVertexUniformData.viewMatrices)
+    VkDeviceSize length = sizeof(decltype(mIndividualUniformData)::value_type);
+    for (const auto& individualData : mIndividualUniformData)
     {
-        memcpy(offset, &viewMatrix, length);
+        memcpy(offset, &individualData, length);
         offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
     }
 
-    for (const auto& projectionMatrix : mStaticVertexUniformData.projectionMatrices)
+    length = sizeof(decltype(mCommonUniformData));
+    memcpy(offset, &mCommonUniformData, length);
+    offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+
+    length = sizeof(decltype(mLightUniformData.lightPositions)::value_type);
+    for (const auto& lightPos : mLightUniformData.lightPositions)
     {
-        memcpy(offset, &projectionMatrix, length);
+        memcpy(offset, &lightPos, length);
         offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
     }
 }

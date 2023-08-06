@@ -38,8 +38,8 @@ public:
 
     static std::shared_ptr<Window> createWindowInstance(const std::string& windowName, const size_t width, const size_t height);
 
-    [[nodiscard]] size_t getWidth() { return mWidth; }
-    [[nodiscard]] size_t getHeight() { return mHeight;}
+    [[nodiscard]] size_t getWidth() const { return mWidth; }
+    [[nodiscard]] size_t getHeight() const { return mHeight;}
 
 protected:
     const size_t mWidth;

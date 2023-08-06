@@ -19,7 +19,7 @@ PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
 
 namespace ts
 {
-void Context::createVkDevice(VkSurfaceKHR vkMirrorSurface)
+void Context::createVkDevice(const VkSurfaceKHR vkMirrorSurface)
 {
     createPhysicalDevice();
     getGraphicsQueue();

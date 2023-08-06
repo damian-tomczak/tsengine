@@ -12,15 +12,10 @@ file(GLOB_RECURSE HPP_FILES
     *.hpp
 )
 
-file(GLOB_RECURSE SHADER_FILES
-    ${ASSETS_DIR}/shaders/*
-)
-
 add_executable(${PROJECT_NAME}
     ${SRC_FILES}
     ${H_FILES}
     ${HPP_FILES}
-    ${SHADER_FILES}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -35,10 +30,6 @@ source_group(TREE ${CMAKE_SOURCE_DIR} FILES
     ${SRC_FILES}
     ${H_FILES}
     ${HPP_FILES}
-)
-
-source_group(TREE ${ASSETS_DIR} FILES
-    ${SHADER_FILES}
 )
 
 set(OUTPUT_DIR_DEBUG ${CMAKE_BINARY_DIR}/output/${PROJECT_NAME}/Debug)

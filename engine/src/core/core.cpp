@@ -17,8 +17,10 @@ constexpr float flySpeedMultiplier{2.5f};
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
-}
+} // namespace
 
+
+// TODO: maybe would be possible to fancy implement singletons here?
 namespace ts
 {
 unsigned getTickCount()
@@ -50,38 +52,60 @@ int run(Engine* const engine) try
 
     compileShaders("assets/shaders");
 
-    Context ctx;
-    ctx.createOpenXrContext().createVulkanContext();
+    Context context;
+    context.createOpenXrContext().createVulkanContext();
 
     auto window = Window::createWindowInstance(GAME_NAME, width, height);
-    MirrorView mirrorView{ctx, window};
+    MirrorView mirrorView{context, window};
     mirrorView.createSurface();
-    ctx.createVkDevice(mirrorView.getSurface());
-    Headset headset{ctx};
+    context.createVkDevice(mirrorView.getSurface());
+    Headset headset{context};
     headset.init();
-    Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
+    Controllers controllers(context.getXrInstance(), headset.getXrSession());
     controllers.setupControllers();
 
-    std::shared_ptr<Model> ruins = std::make_shared<Model>();
-    std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
-        .pos = {0.f, 0.f, -10.f}
+    std::shared_ptr<Model> ruins = std::make_shared<Model>(Model{
+        .model = math::Mat4(1.f),
+        .pipeline = PipelineType::NORMAL_LIGHTING,
     });
-    std::shared_ptr<Model> sphere = std::make_shared<Model>(Model{
-        .pos = {0.f, 5.f, -5.f}
+    std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
+        .pos = {0.f, 0.f, -10.f},
+        .model = math::Mat4(1.f),
+        .pipeline = PipelineType::NORMAL_LIGHTING,
+    });
+    std::shared_ptr<Model> sphere1 = std::make_shared<Model>(Model{
+        .pos = {-5.f, 3.f, -5.f},
+        .model = math::Mat4(1.f),
+        .pipeline = PipelineType::PBR,
+        .material = Materials::at("Red"),
+    });
+    std::shared_ptr<Model> sphere2 = std::make_shared<Model>(Model{
+        .pos = {0.f, 3.f, -5.f},
+        .model = math::Mat4(1.f),
+        .pipeline = PipelineType::PBR,
+        .material = Materials::at("White"),
+    });
+    std::shared_ptr<Model> sphere3 = std::make_shared<Model>(Model{
+        .pos = {5.f, 3.f, -5.f},
+        .model = math::Mat4(1.f),
+        .pipeline = PipelineType::PBR,
+        .material = Materials::at("Gold"),
     });
 
     const std::vector<std::shared_ptr<Model>> models{
         ruins,
         polonez,
-        sphere
+        sphere1,
+        sphere2,
+        sphere3,
     };
 
     auto meshData = std::make_unique<MeshData>();
     meshData->loadModel("assets/models/ruins.obj", models, 1);
     meshData->loadModel("assets/models/polonez.obj", models, 1);
-    meshData->loadModel("assets/models/sphere.obj", models, 1);
+    meshData->loadModel("assets/models/sphere.obj", models, 3);
 
-    Renderer renderer{ctx, headset, models, std::move(meshData)};
+    Renderer renderer{context, headset, models, std::move(meshData)};
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
 
@@ -89,10 +113,11 @@ int run(Engine* const engine) try
     LOGGER_LOG("tsengine initialization completed successfully");
 
     window->show();
-    auto cameraMatrix = math::Mat4(1.f);
+    math::Vec3 cameraPosition{1.f, 1.f, 1.f};
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     // TODO: Display message to wear the headset
+    // PS: remember this todo will screw up easy debugging in renderdoc
     while (loop)
     {
         if (headset.isExitRequested())
@@ -130,12 +155,11 @@ int run(Engine* const engine) try
                 if (flySpeed > 0.f)
                 {
                     const math::Vec3 forward{math::normalize(controllers.getPose(controllerIndex)[2])};
-                    const math::Vec3 t = forward * flySpeed * flySpeedMultiplier * deltaTime;
-                    cameraMatrix = math::translate(cameraMatrix, t);
+                    cameraPosition = forward * flySpeed * flySpeedMultiplier * deltaTime;
                 }
             }
 
-            renderer.render(cameraMatrix, swapchainImageIndex);
+            renderer.render(cameraPosition, swapchainImageIndex);
             const auto mirrorResult = mirrorView.render(swapchainImageIndex);
 
             const auto isMirrorViewVisible = (mirrorResult == MirrorView::RenderResult::VISIBLE);
@@ -155,7 +179,7 @@ int run(Engine* const engine) try
     }
 
     engine->close();
-    ctx.sync();
+    context.sync();
     isAlreadyInitiated = false;
 
     return EXIT_SUCCESS;
