@@ -4,9 +4,9 @@
 
 struct RigidBodyComponent
 {
-    ts::Vec2 velocity;
+    ts::math::Vec2 velocity;
 
-    RigidBodyComponent(ts::Vec2 velocity_ = {}) : velocity{ velocity_ }
+    RigidBodyComponent(ts::math::Vec2 velocity_) : velocity{velocity_}
     {
     }
 };

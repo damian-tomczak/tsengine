@@ -2,11 +2,8 @@
 
 #include "utils.hpp"
 
-#include "vulkan/shaders_compiler.h"
-#include "vulkan/vulkan_loader.h"
+#include "vulkan/vulkan.h"
 #include "openxr/openxr.h"
-#include "tsengine/logger.h"
-#include "os.h"
 
 namespace ts
 {
@@ -14,30 +11,45 @@ class Context final
 {
     NOT_COPYABLE_AND_MOVEABLE(Context);
 
+    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
+
 public:
     Context() = default;
     ~Context();
 
-    void createOpenXrContext();
-    void createVulkanContext();
-    void createDevice(VkSurfaceKHR pMirrorSurface);
+    static constexpr XrViewConfigurationType xrViewType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
 
-    VkInstance getVkInstance() { return mpVkInstance; }
+    Context& createOpenXrContext();
+    void createVulkanContext();
+    void createVkDevice(VkSurfaceKHR vkMirrorSurface);
+    void sync() const;
+
+    [[nodiscard]] XrInstance getXrInstance() const { return mXrInstance; }
+    [[nodiscard]] VkInstance getVkInstance() const { return mVkInstance; }
+    [[nodiscard]] VkPhysicalDevice getVkPhysicalDevice() const { return mPhysicalDevice; }
+    [[nodiscard]] VkDevice getVkDevice() const { return mVkDevice; }
+    [[nodiscard]] VkSampleCountFlagBits getVkMultisampleCount() const { return mVkMultisampleCount; }
+    [[nodiscard]] uint32_t getVkGraphicsQueueFamilyIndex() const;
+    [[nodiscard]] uint32_t getVkPresentQueueFamilyIndex() const;
+    [[nodiscard]] XrSystemId getXrSystemId() const { return mXrSystemId; }
+    [[nodiscard]] VkQueue getVkGraphicsQueue() const { return mVkGraphicsQueue; }
+    [[nodiscard]] VkQueue getVkPresentQueue() const { return mVkPresentQueue; }
+    [[nodiscard]] VkDeviceSize getUniformBufferOffsetAlignment() const { return mVkUniformBufferOffsetAlignment; }
 
 private:
 #ifndef NDEBUG
     void createXrDebugMessenger();
     void createVkDebugMessenger();
 
-    XrDebugUtilsMessengerEXT mpXrDebugMessenger{};
-    static constexpr std::array vkLayers = { "VK_LAYER_KHRONOS_validation" };
-
-    VkDebugUtilsMessengerEXT mpVkDebugMessenger{};
+    XrDebugUtilsMessengerEXT mXrDebugMessenger{};
+    VkDebugUtilsMessengerEXT mVkDebugMessenger{};
+    static constexpr std::array vkLayers{"VK_LAYER_KHRONOS_validation"};
 #endif // DEBUG
 
     void createXrInstance();
     void loadXrExtensions();
     void initXrSystemId();
+    void getXrSystemInfo();
     void isXrBlendModeAvailable();
 
     void getRequiredVulkanInstanceExtensions(std::vector<std::string>& requiredVulkanInstanceExtensions);
@@ -46,7 +58,7 @@ private:
     void createVulkanInstance(const std::vector<std::string>& vulkanInstanceExtensions);
     void createPhysicalDevice();
     void getGraphicsQueue();
-    void getPresentQueue(VkSurfaceKHR pMirrorSurface);
+    void getPresentQueue(const VkSurfaceKHR mirrorSurface);
     void isVulkanDeviceExtensionsAvailable(
         std::vector<std::string>& requiredVulkanDeviceExtensions,
         VkPhysicalDeviceFeatures& physicalDeviceFeatures,
@@ -61,15 +73,16 @@ private:
         std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
     void createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
 
-    static constexpr XrViewConfigurationType xrViewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-    static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-
-    XrInstance mpXrInstance{};
+    XrInstance mXrInstance{};
     XrSystemId mXrSystemId{};
 
-    VkInstance mpVkInstance{};
-    VkPhysicalDevice mpPhysicalDevice{};
-    std::optional<uint32_t> mpGraphicsQueueFamilyIndex, mpPresentQueueFamilyIndex;
-    VkDevice mpDevice{};
+    VkInstance mVkInstance{};
+    VkPhysicalDevice mPhysicalDevice{};
+    std::optional<uint32_t> mVkGraphicsQueueFamilyIndex, mVkPresentQueueFamilyIndex;
+    VkDevice mVkDevice{};
+    VkQueue mVkGraphicsQueue{}, mVkPresentQueue{};
+    VkSampleCountFlagBits mVkMultisampleCount{};
+    VkDeviceSize mVkUniformBufferOffsetAlignment{};
+    std::string mXrDeviceName;
 };
 } // namespace ts

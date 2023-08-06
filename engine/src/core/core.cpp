@@ -1,14 +1,23 @@
 #include "tsengine/core.h"
 #include "context.h"
 #include "window.h"
-#include "vulkan/vulkan_functions.h"
 #include "tsengine/logger.h"
 #include "mirror_view.h"
+#include "headset.h"
+#include "controllers.h"
+#include "vulkan_tools/shaders_compiler.h"
+#include "game_object.hpp"
+#include "renderer.h"
+
+std::mutex engineInit;
+
+namespace
+{
+constexpr float flySpeedMultiplier{2.5f};
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
-
-std::mutex engineInit;
+}
 
 namespace ts
 {
@@ -17,84 +26,137 @@ unsigned getTickCount()
     return tickCount;
 }
 
-int run(Engine* const pEngine) try
+int run(Engine* const engine) try
 {
     std::lock_guard<std::mutex> _{engineInit};
 
-    if (!pEngine)
+    if (!engine)
     {
-        LOGGER_ERR("game is unallocated");
+        LOGGER_ERR("Game pointer is invalid");
     }
 
     if (isAlreadyInitiated)
     {
-        LOGGER_ERR("game is already initiated");
+        LOGGER_ERR("Game is already initiated");
     }
 
-    unsigned width{ 1280 }, height{ 720 };
-    pEngine->init(width, height);
+    unsigned width{1280u}, height{720u};
+    engine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
     {
-        LOGGER_ERR("assets can not be found");
+        LOGGER_ERR("Assets can not be found");
     }
 
     compileShaders("assets/shaders");
 
     Context ctx;
-    ctx.createOpenXrContext();
-    ctx.createVulkanContext();
+    ctx.createOpenXrContext().createVulkanContext();
 
-    auto pWindow{ Window::createWindow(width, height) };
-    pWindow->show();
-    MirrorView mirrorView{ctx, pWindow};
-    ctx.createDevice(mirrorView.getSurface());
+    auto window = Window::createWindowInstance(width, height);
+    MirrorView mirrorView{ctx, window};
+    mirrorView.createSurface();
+    ctx.createVkDevice(mirrorView.getSurface());
+    Headset headset{ctx};
+    headset.init();
+    Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
+    controllers.setupControllers();
+
+    std::shared_ptr<Model> ruins = std::make_shared<Model>(Model{
+        .worldMatrix = math::Mat4(1.f),
+    });
+
+    std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
+        .worldMatrix = math::translate(math::Mat4(1.f), {0.f, 0.f, -5.f})
+    });
+
+    const std::vector<std::shared_ptr<Model>> models{
+        ruins,
+        polonez,
+    };
+
+    auto meshData = std::make_unique<MeshData>();
+    meshData->loadModel("assets/models/ruins.obj", models, 1);
+    meshData->loadModel("assets/models/polonez.obj", models, 1);
+
+    Renderer renderer{ctx, headset, models, std::move(meshData)};
+    renderer.createRenderer();
+    mirrorView.connect(&headset, &renderer);
 
     isAlreadyInitiated = true;
-
     LOGGER_LOG("tsengine initialization completed successfully");
 
-    while (!pEngine->tick())
+    window->show();
+    auto cameraMatrix = math::Mat4(1.f);
+    auto loop = true;
+    auto previousTime = std::chrono::high_resolution_clock::now();
+    // TODO: Display message to wear the headset
+    while (loop)
     {
-        auto message{ pWindow->peekMessage() };
-        (void)message;
-        if (false)
+        if (headset.isExitRequested())
         {
-            pEngine->onMouseMove(-1, -1, -1, -1);
+            loop = false;
         }
 
-        if (false)
+        auto message = window->peekMessage();
+        if (message == Window::Message::QUIT)
         {
-            pEngine->onMouseButtonClick({}, false);
+            loop = false;
+        }
+        else if (message == Window::Message::RESIZE)
+        {
+            mirrorView.onWindowResize();
+        }
+        window->dispatchMessage();
+
+        const auto nowTime = std::chrono::high_resolution_clock::now();
+        const long long elapsedNanoseconds =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - previousTime).count();
+        constexpr auto nanosecondsPerSecond = 1e9f;
+        const auto deltaTime = static_cast<float>(elapsedNanoseconds) / nanosecondsPerSecond;
+        previousTime = nowTime;
+
+        uint32_t swapchainImageIndex;
+        const auto frameResult = headset.beginFrame(swapchainImageIndex);
+        if (frameResult == Headset::BeginFrameResult::RENDER_FULLY)
+        {
+            controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
+
+            for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
+            {
+                const auto flySpeed = controllers.getFlySpeed(controllerIndex);
+                if (flySpeed > 0.f)
+                {
+                    const math::Vec3 forward{math::normalize(controllers.getPose(controllerIndex)[2])};
+                    math::Vec3 t = forward * flySpeed * flySpeedMultiplier * deltaTime;
+                    cameraMatrix = math::translate(cameraMatrix, t);
+                }
+            }
+
+            renderer.render(cameraMatrix, swapchainImageIndex);
+            const auto mirrorResult = mirrorView.render(swapchainImageIndex);
+
+            const auto isMirrorViewVisible = (mirrorResult == MirrorView::RenderResult::VISIBLE);
+            renderer.submit(isMirrorViewVisible);
+
+            if (isMirrorViewVisible)
+            {
+                mirrorView.present();
+            }
         }
 
-        if (false)
+        if ((frameResult == Headset::BeginFrameResult::RENDER_FULLY) ||
+            (frameResult == Headset::BeginFrameResult::RENDER_SKIP_PARTIALLY))
         {
-            pEngine->onKeyPressed({});
-        }
-
-        if (false)
-        {
-            pEngine->onKeyReleased({});
+            headset.endFrame(frameResult == Headset::BeginFrameResult::RENDER_SKIP_PARTIALLY);
         }
     }
 
-    pEngine->close();
+    engine->close();
+    ctx.sync();
     isAlreadyInitiated = false;
 
     return EXIT_SUCCESS;
 }
-catch (const TSException&)
-{
-    return TS_FAILURE;
-}
-catch (const std::exception& e)
-{
-    LOGGER_ERR_WO_EXC(e.what());
-    return STL_FAILURE;
-}
-catch (...)
-{
-    return UNKNOWN_FAILURE;
-}
+TS_CATCH_FALLBACK
 } // namespace ts

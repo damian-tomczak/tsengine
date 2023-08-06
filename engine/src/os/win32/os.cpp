@@ -3,17 +3,16 @@
 
 namespace ts
 {
-Win32Window::Win32Window(uint32_t width, uint32_t height) : Window{width, height}
+void Win32Window::createWindow()
 {
-    const WNDCLASSEX wc
-    {
-        .cbSize{ sizeof(WNDCLASSEX) },
-        .style{ CS_HREDRAW | CS_VREDRAW },
-        .lpfnWndProc{ windowProcedure },
-        .hInstance{ mpHInstance },
-        .hCursor{ LoadCursor(nullptr, IDC_ARROW) },
-        .hbrBackground{ reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1) },
-        .lpszClassName{ ENGINE_NAME },
+    const WNDCLASSEX wc{
+        .cbSize = sizeof(WNDCLASSEX),
+        .style = CS_HREDRAW | CS_VREDRAW,
+        .lpfnWndProc = windowProcedure,
+        .hInstance = mHInstance,
+        .hCursor = LoadCursor(nullptr, IDC_ARROW),
+        .hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1),
+        .lpszClassName = ENGINE_NAME,
     };
 
     if (!RegisterClassEx(&wc))
@@ -21,20 +20,20 @@ Win32Window::Win32Window(uint32_t width, uint32_t height) : Window{width, height
         LOGGER_ERR("WNDCLASSEX registration failure");
     }
 
-    mpHwnd = CreateWindow(
+    mHwnd = CreateWindow(
         ENGINE_NAME,
         GAME_NAME,
         WS_OVERLAPPEDWINDOW,
-        (GetSystemMetrics(SM_CXSCREEN) - mWidth) / 2,
-        (GetSystemMetrics(SM_CYSCREEN) - mHeight) / 2,
-        mWidth,
-        mHeight,
+        static_cast<int>((GetSystemMetrics(SM_CXSCREEN) - mWidth) / 2),
+        static_cast<int>((GetSystemMetrics(SM_CYSCREEN) - mHeight) / 2),
+        static_cast<int>(mWidth),
+        static_cast<int>(mHeight),
         nullptr,
         nullptr,
-        mpHInstance,
+        mHInstance,
         nullptr);
 
-    if (mpHwnd == nullptr)
+    if (mHwnd == nullptr)
     {
         LOGGER_ERR("Window creation failure");
     }
@@ -42,52 +41,55 @@ Win32Window::Win32Window(uint32_t width, uint32_t height) : Window{width, height
 
 Win32Window::~Win32Window()
 {
-    puts("tomczak");
-    if (mpHwnd)
+    if (mHwnd != nullptr)
     {
-        DestroyWindow(mpHwnd);
+        DestroyWindow(mHwnd);
     }
 
-    if (mpHInstance)
+    if (mHInstance != nullptr)
     {
-        UnregisterClass("tsengine", mpHInstance);
+        UnregisterClass("tsengine", mHInstance);
     }
 }
 
 void Win32Window::show()
 {
-    ShowWindow(mpHwnd, SW_SHOWDEFAULT);
-    UpdateWindow(mpHwnd);
+    ShowWindow(mHwnd, SW_SHOWDEFAULT);
+    UpdateWindow(mHwnd);
 }
 
 Window::Message Win32Window::peekMessage()
 {
-    MSG msg{};
-    PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
+    PeekMessage(&mMsg, NULL, 0, 0, PM_REMOVE);
 
-    return static_cast<Message>(msg.message);
+    return static_cast<Message>(mMsg.message);
 }
 
-LRESULT CALLBACK Win32Window::windowProcedure(HWND pHwnd, UINT msg, WPARAM pWParam, LPARAM pLParam)
+void Win32Window::dispatchMessage()
 {
-    // TODO: investigate switch cases
+    TranslateMessage(&mMsg);
+    DispatchMessage(&mMsg);
+}
+
+LRESULT Win32Window::windowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
     switch (msg)
     {
     case WM_SIZE:
     case WM_EXITSIZEMOVE:
-        PostMessage(pHwnd, static_cast<UINT>(Message::RESIZE), pWParam, pLParam);
+        PostMessage(hwnd, static_cast<UINT32>(Message::RESIZE), wParam, lParam);
         break;
     case WM_KEYDOWN:
-        if (pWParam == VK_ESCAPE)
+        if (VK_ESCAPE == wParam)
         {
-            PostMessage(pHwnd, static_cast<UINT>(Message::QUIT), pWParam, pLParam);
+            PostMessage(hwnd, static_cast<UINT32>(Message::QUIT), wParam, lParam);
         }
         break;
     case WM_CLOSE:
-        PostMessage(pHwnd, static_cast<UINT>(Message::QUIT), pWParam, pLParam);
+        PostMessage(hwnd, static_cast<UINT32>(Message::QUIT), wParam, lParam);
         break;
     default:
-        return DefWindowProc(pHwnd, msg, pWParam, pLParam);
+        return DefWindowProc(hwnd, msg, wParam, lParam);
     }
 
     return 0;

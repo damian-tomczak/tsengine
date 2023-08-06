@@ -2,11 +2,13 @@
 
 #include "tsengine/math.hpp"
 
+using namespace ts::math;
+
 struct TransformComponent
 {
-    ts::Vec2 position;
+    Vec2 position;
 
-    TransformComponent(ts::Vec2 position_ = {}) : position{ position_ }
+    TransformComponent(Vec2 position_) : position{position_}
     {
     }
 };

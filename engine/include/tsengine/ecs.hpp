@@ -223,12 +223,12 @@ inline void Registry::update()
 
 inline Entity Registry::createEntity()
 {
-    auto entityId{ mNumEntities++ };
+    auto entityId = mNumEntities++;
     if (entityId >= mEntitySignatures.size())
     {
         mEntitySignatures.resize(entityId + 1);
     }
-    Entity entity{ entityId, this };
+    Entity entity(entityId, this);
     mEntitiesToBeAdded.insert(entity);
     return entity;
 }
@@ -261,7 +261,7 @@ inline void Registry::addComponent(Entity entity, TArgs&&... args)
     {
         mComponentPools.emplace_back(std::make_unique<TPool>());
     }
-    mComponentPools.at(componentId)->emplace_back(entityId, TComponent{ std::forward<TArgs>(args)... });
+    //mComponentPools.at(componentId)->emplace_back(entityId, TComponent{ std::forward<TArgs>(args)... });
     mEntitySignatures.at(entityId).set(componentId);
 }
 
