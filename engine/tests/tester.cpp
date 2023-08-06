@@ -14,15 +14,7 @@ class Game final : public ts::Engine
 public:
     Game() = default;
 
-    void preInit(const char*& pGameName, int& width, int& height, bool& isFullscreen) override 
-    {
-        pGameName = "Awesome Game!";
-        width = 1280;
-        height = 720;
-        isFullscreen = true;
-    }
-
-    bool init() override { return true; }
+    bool init(unsigned& width, unsigned& height) override { return true; }
 
     void close() override
     {}
