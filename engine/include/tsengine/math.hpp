@@ -80,6 +80,185 @@ struct Matrix : BaseMatrix
     static constexpr size_t colsNum{matColumns};
 };
 
+struct Mat2 : public Matrix<2, 2>
+{
+    std::array<Vec2, 2> data{};
+
+    Mat2()
+    {}
+
+    Mat2(
+        const float x1, const float y1,
+        const float x2, const float y2)
+        :
+        data
+        { {
+            {x1, y1},
+            {x2, y2}
+        } }
+    {}
+
+    explicit Mat2(const float value) :
+        data
+    { {
+        {value, 0.f  },
+        {0.f  , value}
+    } }
+    {}
+
+    Vec2& operator[](const size_t index)
+    {
+        if ((index < 0) || (index > 2))
+        {
+            throw std::runtime_error("invalid index specified");
+        }
+
+        return data[index];
+    }
+
+    const Vec2& operator[](const size_t index) const
+    {
+        if ((index < 0) || (index > 2))
+        {
+            throw std::runtime_error("invalid index specified");
+        }
+
+        return data[index];
+    }
+};
+
+inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs)
+{
+    return
+    {
+        rhs.data[0].x * lhs.data[0].x + rhs.data[0].y * lhs.data[1].x,
+        rhs.data[0].x * lhs.data[0].y + rhs.data[0].y * lhs.data[1].y,
+
+        rhs.data[1].x * lhs.data[0].x + rhs.data[1].y * lhs.data[1].x,
+        rhs.data[1].x * lhs.data[0].y + rhs.data[1].y * lhs.data[1].y,
+
+    };
+}
+
+inline Vec2 normalize(const Vec2 vec)
+{
+    const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y);
+    return { vec.x / mag, vec.y / mag };
+}
+
+inline std::string to_string(const Mat2 mat)
+{
+    return std::format("\n"
+        "{:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}\n",
+        mat[0].x, mat[0].y,
+        mat[1].x, mat[1].y);
+}
+
+struct Mat3 : public Matrix<3, 3>
+{
+    std::array<Vec3, 3> data{};
+
+    Mat3()
+    {}
+
+    Mat3(
+        const float x1, const float y1, const float z1,
+        const float x2, const float y2, const float z2,
+        const float x3, const float y3, const float z3)
+        :
+        data
+        { {
+            {x1, y1, z1},
+            {x2, y2, z2},
+            {x3, y3, z3}
+        } }
+    {}
+
+    Mat3(const Quat& quat) :
+        data
+        {{
+            {1 - 2 * (quat.y * quat.y + quat.z * quat.z), 2 * (quat.x * quat.y + quat.z * quat.w)    , 2 * (quat.x * quat.z - quat.y * quat.w)    },
+            {2 * (quat.x * quat.y - quat.z * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.z * quat.z), 2 * (quat.y * quat.z + quat.x * quat.w)    },
+            {2 * (quat.x * quat.z + quat.y * quat.w)    , 2 * (quat.y * quat.z - quat.x * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.y * quat.y)},
+        }}
+    {}
+
+    explicit Mat3(const float value) :
+        data
+    { {
+        {value, 0.f  , 0.f  },
+        {0.f  , value, 0.f  },
+        {0.f  , 0.f  , value}
+    } }
+    {}
+
+    Vec3& operator[](const size_t index)
+    {
+        if ((index < 0) || (index > 3))
+        {
+            throw std::runtime_error("invalid index specified");
+        }
+
+        return data[index];
+    }
+
+    const Vec3& operator[](const size_t index) const
+    {
+        if ((index < 0) || (index > 3))
+        {
+            throw std::runtime_error("invalid index specified");
+        }
+
+        return data[index];
+    }
+};
+
+inline Mat3 operator*(const Mat3& lhs, const Mat3& rhs)
+{
+    return
+    {
+        rhs.data[0].x * lhs.data[0].x + rhs.data[0].y * lhs.data[1].x + rhs.data[0].z * lhs.data[2].x,
+        rhs.data[0].x * lhs.data[0].y + rhs.data[0].y * lhs.data[1].y + rhs.data[0].z * lhs.data[2].y,
+        rhs.data[0].x * lhs.data[0].z + rhs.data[0].y * lhs.data[1].z + rhs.data[0].z * lhs.data[2].z,
+
+        rhs.data[1].x * lhs.data[0].x + rhs.data[1].y * lhs.data[1].x + rhs.data[1].z * lhs.data[2].x,
+        rhs.data[1].x * lhs.data[0].y + rhs.data[1].y * lhs.data[1].y + rhs.data[1].z * lhs.data[2].y,
+        rhs.data[1].x * lhs.data[0].z + rhs.data[1].y * lhs.data[1].z + rhs.data[1].z * lhs.data[2].z,
+
+        rhs.data[2].x * lhs.data[0].x + rhs.data[2].y * lhs.data[1].x + rhs.data[2].z * lhs.data[2].x,
+        rhs.data[2].x * lhs.data[0].y + rhs.data[2].y * lhs.data[1].y + rhs.data[2].z * lhs.data[2].y,
+        rhs.data[2].x * lhs.data[0].z + rhs.data[2].y * lhs.data[1].z + rhs.data[2].z * lhs.data[2].z,
+    };
+}
+
+inline Mat3 translate(const Mat3& matrix, Vec2 translation)
+{
+    return
+    {
+        matrix[0].x                , matrix[0].y                , matrix[0].z,
+        matrix[1].x                , matrix[1].y                , matrix[1].z,
+        matrix[2].x + translation.x, matrix[2].y + translation.y, matrix[2].z,
+    };
+}
+
+inline Vec3 normalize(const Vec3 vec)
+{
+    const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+    return { vec.x / mag, vec.y / mag, vec.z / mag };
+}
+
+inline std::string to_string(const Mat3 mat)
+{
+    return std::format("\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f}\n",
+        mat[0].x, mat[0].y, mat[0].z,
+        mat[1].x, mat[1].y, mat[1].z,
+        mat[2].x, mat[2].y, mat[2].z);
+}
+
 struct Mat4 : public Matrix<4, 4>
 {
     std::array<Vec4, 4> data{};
@@ -219,141 +398,82 @@ inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
     return matrix * scaleMatrix;
 }
 
+inline Mat2 inverse(const Mat2& mat)
+{
+    const auto det = mat[0].x * mat[1].y - mat[0].y * mat[1].x;
 
-template<typename Mat>
-inline float _determinant(const Mat& mat, size_t depth);
+    if (det == 0)
+    {
+        throw std::runtime_error{"singular matrix, can't find its inverse"};
+    }
+    return
+    {
+       (+mat[1].y) / det, (-mat[0].y) / det,
+       (-mat[1].x) / det, (+mat[0].x) / det,
+    };
+}
 
-template<typename Mat>
-inline void _adjoint(const Mat& referenceMat, Mat& adjMat);
+inline Mat3 inverse(const Mat3& mat)
+{
+    const auto det =
+        +mat[0].x * (mat[1].y * mat[2].z - mat[1].z * mat[2].y)
+        - mat[0].y * (mat[1].x * mat[2].z - mat[1].z * mat[2].x)
+        + mat[0].z * (mat[1].x * mat[2].y - mat[1].y * mat[2].x);
+    if (det == 0)
+    {
+        throw std::runtime_error{"singular matrix, can't find its inverse"};
+    }
+    return
+    {
+        (+(mat[1].y * mat[2].z - mat[2].y * mat[1].z)) / det, (-(mat[0].y * mat[2].z - mat[2].y * mat[0].z)) / det, (+(mat[0].y * mat[1].z - mat[1].y * mat[0].z)) / det,
+        (-(mat[1].x * mat[2].z - mat[2].x * mat[1].z)) / det, (+(mat[0].x * mat[2].z - mat[2].x * mat[0].z)) / det, (-(mat[0].x * mat[1].z - mat[1].x * mat[0].z)) / det,
+        (+(mat[1].x * mat[2].y - mat[2].x * mat[1].y)) / det, (-(mat[0].x * mat[2].y - mat[2].x * mat[0].y)) / det, (+(mat[0].x * mat[1].y - mat[1].x * mat[0].y)) / det,
+    };
+}
 
-// TODO: refactor
 inline Mat4 inverse(const Mat4& mat)
 {
-    const auto det = _determinant(mat, 4);
+    const auto det23zw = mat[2].z * mat[3].w - mat[3].z * mat[2].w;
+    const auto det23yw = mat[2].y * mat[3].w - mat[3].y * mat[2].w;
+    const auto det23yz = mat[2].y * mat[3].z - mat[3].y * mat[2].z;
+    const auto det23xw = mat[2].x * mat[3].w - mat[3].x * mat[2].w;
+    const auto det23xz = mat[2].x * mat[3].z - mat[3].x * mat[2].z;
+    const auto det23xy = mat[2].x * mat[3].y - mat[3].x * mat[2].y;
+    const auto det13zw = mat[1].z * mat[3].w - mat[3].z * mat[1].w;
+    const auto det13yw = mat[1].y * mat[3].w - mat[3].y * mat[1].w;
+    const auto det13yz = mat[1].y * mat[3].z - mat[3].y * mat[1].z;
+    const auto det13xw = mat[1].x * mat[3].w - mat[3].x * mat[1].w;
+    const auto det13xz = mat[1].x * mat[3].z - mat[3].x * mat[1].z;
+    const auto det13xy = mat[1].x * mat[3].y - mat[3].x * mat[1].y;
+    const auto det12zw = mat[1].z * mat[2].w - mat[2].z * mat[1].w;
+    const auto det12yw = mat[1].y * mat[2].w - mat[2].y * mat[1].w;
+    const auto det12yz = mat[1].y * mat[2].z - mat[2].y * mat[1].z;
+    const auto det12xw = mat[1].x * mat[2].w - mat[2].x * mat[1].w;
+    const auto det12xz = mat[1].x * mat[2].z - mat[2].x * mat[1].z;
+    const auto det12xy = mat[1].x * mat[2].y - mat[2].x * mat[1].y;
+
+    const auto tempInverse00 = +(mat[1].y * det23zw - mat[1].z * det23yw + mat[1].w * det23yz);
+    const auto tempInverse01 = -(mat[1].x * det23zw - mat[1].z * det23xw + mat[1].w * det23xz);
+    const auto tempInverse02 = +(mat[1].x * det23yw - mat[1].y * det23xw + mat[1].w * det23xy);
+    const auto tempInverse03 = -(mat[1].x * det23yz - mat[1].y * det23xz + mat[1].z * det23xy);
+
+    const auto det =
+        + mat[0].x * tempInverse00
+        + mat[0].y * tempInverse01
+        + mat[0].z * tempInverse02
+        + mat[0].w * tempInverse03;
+
     if (det == 0)
     {
         throw std::runtime_error{"singular matrix, can't find its inverse"};
     }
 
-    Mat4 adjMat;
-    _adjoint(mat, adjMat);
-
     return
     {
-        adjMat[0].x / det, adjMat[0].y / det, adjMat[0].z / det, adjMat[0].w / det,
-        adjMat[1].x / det, adjMat[1].y / det, adjMat[1].z / det, adjMat[1].w / det,
-        adjMat[2].x / det, adjMat[2].y / det, adjMat[2].z / det, adjMat[2].w / det,
-        adjMat[3].x / det, adjMat[3].y / det, adjMat[3].z / det, adjMat[3].w / det,
+        tempInverse00 / det, (-(mat[0].y * det23zw - mat[0].z * det23yw + mat[0].w * det23yz)) / det, (+(mat[0].y * det13zw - mat[0].z * det13yw + mat[0].w * det13yz)) / det, (-(mat[0].y * det12zw - mat[0].z * det12yw + mat[0].w * det12yz)) / det,
+        tempInverse01 / det, (+(mat[0].x * det23zw - mat[0].z * det23xw + mat[0].w * det23xz)) / det, (-(mat[0].x * det13zw - mat[0].z * det13xw + mat[0].w * det13xz)) / det, (+(mat[0].x * det12zw - mat[0].z * det12xw + mat[0].w * det12xz)) / det,
+        tempInverse02 / det, (-(mat[0].x * det23yw - mat[0].y * det23xw + mat[0].w * det23xy)) / det, (+(mat[0].x * det13yw - mat[0].y * det13xw + mat[0].w * det13xy)) / det, (-(mat[0].x * det12yw - mat[0].y * det12xw + mat[0].w * det12xy)) / det,
+        tempInverse03 / det, (+(mat[0].x * det23yz - mat[0].y * det23xz + mat[0].z * det23xy)) / det, (-(mat[0].x * det13yz - mat[0].y * det13xz + mat[0].z * det13xy)) / det, (+(mat[0].x * det12yz - mat[0].y * det12xz + mat[0].z * det12xy)) / det,
     };
-}
-
-template<typename Mat>
-inline void _getCofactor(
-    const Mat& referenceMat,
-    Mat& newMat,
-    size_t referenceRow,
-    size_t referenceColumn,
-    size_t depth)
-{
-    static_assert(std::is_base_of_v<BaseMatrix, Mat>, "invalid template parameter");
-
-    for (size_t row{}, newMatRow{}; row < depth; ++row)
-    {
-        for (size_t col{}, newMatCol{}; col < depth; ++col)
-        {
-            if ((row != referenceRow) && (col != referenceColumn))
-            {
-                float referenceValue{};
-                switch(col)
-                {
-                case 0: referenceValue = referenceMat[row].x; break;
-                case 1: referenceValue = referenceMat[row].y; break;
-                case 2: referenceValue = referenceMat[row].z; break;
-                case 3: referenceValue = referenceMat[row].w; break;
-                }
-
-                switch (newMatCol)
-                {
-                case 0: newMat[newMatRow].x = referenceValue; break;
-                case 1: newMat[newMatRow].y = referenceValue; break;
-                case 2: newMat[newMatRow].z = referenceValue; break;
-                case 3: newMat[newMatRow].w = referenceValue; break;
-                default:
-                    throw std::runtime_error{"invalid depth"};
-                }
-                newMatCol++;
-
-                if (newMatCol == depth - 1)
-                {
-                    newMatCol = 0;
-                    newMatRow++;
-                }
-            }
-        }
-    }
-}
-
-template<typename Mat>
-inline float _determinant(const Mat& mat, size_t depth)
-{
-    static_assert(std::is_base_of_v<BaseMatrix, Mat>, "invalid template parameter");
-
-    float det{};
-
-    if (depth == 1)
-    {
-        return mat[0].x;
-    }
-
-    int32_t sign = 1;
-    Mat temp;
-    for (size_t f{}; f < depth; ++f)
-    {
-        _getCofactor(mat, temp, 0, f, depth);
-        float major{};
-        switch (f)
-        {
-        case 0: major = mat[0].x; break;
-        case 1: major = mat[0].y; break;
-        case 2: major = mat[0].z; break;
-        case 3: major = mat[0].w; break;
-        default:
-            throw std::runtime_error{ "invalid depth" };
-        }
-
-        det += sign * major * _determinant(temp, depth - 1);
-
-        sign = -sign;
-    }
-
-    return det;
-}
-
-
-template<typename Mat>
-inline void _adjoint(const Mat& referenceMat, Mat& adjMat)
-{
-    static_assert(std::is_base_of_v<BaseMatrix, Mat>, "invalid template parameter");
-
-    Mat temp;
-    for (size_t row{}; row < Mat::rowsNum ; ++row)
-    {
-        for (size_t col{}; col < Mat::colsNum; ++col)
-        {
-            _getCofactor(referenceMat, temp, row, col, Mat::rowsNum);
-
-            const auto sign = ((row + col) % 2 == 0) ? 1 : -1;
-
-            switch(row)
-            {
-            case 0: adjMat[col].x = sign * (_determinant(temp, Mat::rowsNum - 1)); break;
-            case 1: adjMat[col].y = sign * (_determinant(temp, Mat::rowsNum - 1)); break;
-            case 2: adjMat[col].z = sign * (_determinant(temp, Mat::rowsNum - 1)); break;
-            case 3: adjMat[col].w = sign * (_determinant(temp, Mat::rowsNum - 1)); break;
-            default:
-                throw std::runtime_error{"invalid component"};
-            }
-        }
-    }
 }
 } // namespace ts
