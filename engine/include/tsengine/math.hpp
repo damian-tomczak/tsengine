@@ -71,10 +71,8 @@ inline Vec4::Vec4(const float x_, const float y_, const float z_, const float w_
     x{x_}, y{y_}, z{z_}, w{w_}
 {}
 
-struct BaseMatrix {};
-
 template<size_t matRows, size_t matColumns>
-struct Matrix : BaseMatrix
+struct Matrix
 {
     static constexpr size_t rowsNum{matRows};
     static constexpr size_t colsNum{matColumns};
@@ -92,18 +90,18 @@ struct Mat2 : public Matrix<2, 2>
         const float x2, const float y2)
         :
         data
-        { {
+        {{
             {x1, y1},
             {x2, y2}
-        } }
+        }}
     {}
 
     explicit Mat2(const float value) :
         data
-    { {
+    {{
         {value, 0.f  },
         {0.f  , value}
-    } }
+    }}
     {}
 
     Vec2& operator[](const size_t index)
@@ -136,14 +134,13 @@ inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs)
 
         rhs.data[1].x * lhs.data[0].x + rhs.data[1].y * lhs.data[1].x,
         rhs.data[1].x * lhs.data[0].y + rhs.data[1].y * lhs.data[1].y,
-
     };
 }
 
 inline Vec2 normalize(const Vec2 vec)
 {
     const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y);
-    return { vec.x / mag, vec.y / mag };
+    return {vec.x / mag, vec.y / mag};
 }
 
 inline std::string to_string(const Mat2 mat)
@@ -168,11 +165,11 @@ struct Mat3 : public Matrix<3, 3>
         const float x3, const float y3, const float z3)
         :
         data
-        { {
+        {{
             {x1, y1, z1},
             {x2, y2, z2},
             {x3, y3, z3}
-        } }
+        }}
     {}
 
     Mat3(const Quat& quat) :
@@ -245,7 +242,7 @@ inline Mat3 translate(const Mat3& matrix, Vec2 translation)
 inline Vec3 normalize(const Vec3 vec)
 {
     const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
-    return { vec.x / mag, vec.y / mag, vec.z / mag };
+    return {vec.x / mag, vec.y / mag, vec.z / mag};
 }
 
 inline std::string to_string(const Mat3 mat)
@@ -362,7 +359,7 @@ inline Mat4 translate(const Mat4& matrix, Vec3 translation)
 inline Vec4 normalize(const Vec4 vec)
 {
     const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w);
-    return { vec.x / mag, vec.y / mag, vec.z / mag, vec.w / mag };
+    return {vec.x / mag, vec.y / mag, vec.z / mag, vec.w / mag};
 }
 
 inline std::string to_string(const Mat4 mat)
@@ -416,7 +413,7 @@ inline Mat2 inverse(const Mat2& mat)
 inline Mat3 inverse(const Mat3& mat)
 {
     const auto det =
-        +mat[0].x * (mat[1].y * mat[2].z - mat[1].z * mat[2].y)
+        + mat[0].x * (mat[1].y * mat[2].z - mat[1].z * mat[2].y)
         - mat[0].y * (mat[1].x * mat[2].z - mat[1].z * mat[2].x)
         + mat[0].z * (mat[1].x * mat[2].y - mat[1].y * mat[2].x);
     if (det == 0)
