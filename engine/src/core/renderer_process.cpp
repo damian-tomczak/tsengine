@@ -8,7 +8,7 @@
 
 namespace ts
 {
-RenderProcess::RenderProcess(const Context& context, const Headset& headset) : mContext{context}, mHeadset{headset}
+RenderProcess::RenderProcess(const Context& ctx, const Headset& headset) : mCtx{ctx}, mHeadset{headset}
 {}
 
 RenderProcess::~RenderProcess()
@@ -19,7 +19,7 @@ RenderProcess::~RenderProcess()
     }
     mUniformBuffer.reset();
 
-    const auto device = mContext.getVkDevice();
+    const auto device = mCtx.getVkDevice();
     if (device != nullptr)
     {
         if (mFence != nullptr)
@@ -47,7 +47,7 @@ void RenderProcess::createRendererProcess(
 {
     mIndividualUniformData.resize(modelCount);
 
-    const auto device = mContext.getVkDevice();
+    const auto device = mCtx.getVkDevice();
 
     const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -68,7 +68,7 @@ void RenderProcess::createRendererProcess(
     };
     LOGGER_VK(vkCreateFence, device, &fenceCreateInfo, nullptr, &mFence);
 
-    const auto uniformBufferOffsetAlignment = mContext.getUniformBufferOffsetAlignment();
+    const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
 
     std::vector<VkDescriptorBufferInfo> descriptorBufferInfos;
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
@@ -92,7 +92,7 @@ void RenderProcess::createRendererProcess(
     }
 
     const auto uniformBufferSize = descriptorBufferInfos.back().offset + descriptorBufferInfos.back().range;
-    mUniformBuffer = std::make_unique<DataBuffer>(mContext);
+    mUniformBuffer = std::make_unique<DataBuffer>(mCtx);
     mUniformBuffer->createDataBuffer(
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -142,7 +142,7 @@ void RenderProcess::createRendererProcess(
             .dstBinding = 2,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, // TODO: SBBO
             .pBufferInfo = &descriptorBufferInfos.at(2),
         },
     };
@@ -162,11 +162,11 @@ void RenderProcess::updateUniformBufferData()
         LOGGER_ERR("Uniform buffer wasn't allocated");
     }
 
-    const auto uniformBufferOffsetAlignment = mContext.getUniformBufferOffsetAlignment();
+    const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
 
     auto offset = static_cast<char*>(mUniformBufferMemory);
 
-    VkDeviceSize length = sizeof(decltype(mIndividualUniformData)::value_type);
+    VkDeviceSize length{sizeof(decltype(mIndividualUniformData)::value_type)};
     for (const auto& individualData : mIndividualUniformData)
     {
         memcpy(offset, &individualData, length);
@@ -177,11 +177,8 @@ void RenderProcess::updateUniformBufferData()
     memcpy(offset, &mCommonUniformData, length);
     offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
 
-    length = sizeof(decltype(mLightUniformData.lightPositions)::value_type);
-    for (const auto& lightPos : mLightUniformData.lightPositions)
-    {
-        memcpy(offset, &lightPos, length);
-        offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
-    }
+    length = sizeof(mLightUniformData);
+    memcpy(offset, &mLightUniformData, length);
+    offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
 }
 }

@@ -1,8 +1,13 @@
 #version 450
 
 #extension GL_GOOGLE_include_directive : enable
+#extension GL_EXT_debug_printf : enable
 
 #include "assets/shaders/grid_params.h"
+
+layout (location=0) in vec2 uv;
+layout (location=1) in vec2 cameraPosition;
+layout (location=0) out vec4 outColor;
 
 float log10(float x)
 {
@@ -54,10 +59,6 @@ vec4 gridColor(vec2 uv, vec2 cameraPosition)
 
     return c;
 }
-
-layout (location=0) in vec2 uv;
-layout (location=1) in vec2 cameraPosition;
-layout (location=0) out vec4 outColor;
 
 void main()
 {

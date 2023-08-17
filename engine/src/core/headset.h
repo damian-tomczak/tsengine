@@ -21,7 +21,7 @@ class Headset final
     static constexpr VkFormat depthFormat{VK_FORMAT_D32_SFLOAT};
 
 public:
-    Headset(const Context& context);
+    Headset(const Context& ctx);
     ~Headset();
 
     enum class BeginFrameResult
@@ -57,7 +57,7 @@ private:
     void beginSession() const;
     void endSession() const;
 
-    const Context& mContext;
+    const Context& mCtx;
     VkRenderPass mVkRenderPass{};
     XrSession mXrSession{};
     XrSpace mXrSpace{};

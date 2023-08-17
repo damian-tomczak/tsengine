@@ -32,12 +32,12 @@ void loadShaderFromFile(const VkDevice device, const std::string& fileName, VkSh
 
 namespace ts
 {
-Pipeline::Pipeline(const Context& context) : mContext{context}
+Pipeline::Pipeline(const Context& ctx) : mCtx{ctx}
 {}
 
 Pipeline::~Pipeline()
 {
-    const auto device = mContext.getVkDevice();
+    const auto device = mCtx.getVkDevice();
     if ((device != nullptr) && (mPipeline != nullptr))
     {
         vkDestroyPipeline(device, mPipeline, nullptr);
@@ -52,7 +52,7 @@ void Pipeline::createPipeline(
     const std::vector<VkVertexInputBindingDescription>& vertexInputBindingDescriptions,
     const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions)
 {
-    const auto device = mContext.getVkDevice();
+    const auto device = mCtx.getVkDevice();
 
     VkShaderModule vertexShaderModule;
     loadShaderFromFile(device, vertexFilename, vertexShaderModule);
@@ -98,13 +98,14 @@ void Pipeline::createPipeline(
     const VkPipelineRasterizationStateCreateInfo pipelinelineRasterizationStateCreateInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .polygonMode = VK_POLYGON_MODE_FILL,
-        .cullMode = VK_CULL_MODE_NONE,
+        .cullMode = VK_CULL_MODE_BACK_BIT,
+        .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
         .lineWidth = 1.f,
     };
 
     const VkPipelineMultisampleStateCreateInfo pipelinelineMultisampleStateCreateInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-        .rasterizationSamples = mContext.getVkMultisampleCount()
+        .rasterizationSamples = mCtx.getVkMultisampleCount()
     };
 
     const VkPipelineColorBlendAttachmentState pipelinelineColorBlendAttachmentState{
@@ -143,7 +144,7 @@ void Pipeline::createPipeline(
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
         .depthTestEnable = true,
         .depthWriteEnable = true,
-        .depthCompareOp = VK_COMPARE_OP_LESS
+        .depthCompareOp = VK_COMPARE_OP_LESS,
     };
 
     const VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo{

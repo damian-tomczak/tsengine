@@ -12,8 +12,8 @@
 
 namespace ts
 {
-Renderer::Renderer(const Context& context, const Headset& headset, const std::vector<std::shared_ptr<Model>>& models, std::unique_ptr<MeshData>&& meshData) :
-    mContext{context},
+Renderer::Renderer(const Context& ctx, const Headset& headset, const std::vector<std::shared_ptr<Model>>& models, std::unique_ptr<MeshData>&& meshData) :
+    mCtx{ctx},
     mHeadset{headset},
     mModels{models},
     mMeshData{std::move(meshData)}
@@ -26,7 +26,7 @@ Renderer::~Renderer()
     mGridPipeline.reset();
     mPbrPipeline.reset();
 
-    const auto device = mContext.getVkDevice();
+    const auto device = mCtx.getVkDevice();
     if (device != nullptr)
     {
         if (mPipelineLayout != nullptr)
@@ -58,12 +58,12 @@ Renderer::~Renderer()
 
 void Renderer::createRenderer()
 {
-    const auto device = mContext.getVkDevice();
+    const auto device = mCtx.getVkDevice();
 
     const VkCommandPoolCreateInfo commandPoolCreateInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = mContext.getVkGraphicsQueueFamilyIndex()
+        .queueFamilyIndex = mCtx.getVkGraphicsQueueFamilyIndex()
     };
     LOGGER_VK(vkCreateCommandPool, device, &commandPoolCreateInfo, nullptr, &mCommandPool);
 
@@ -137,11 +137,11 @@ void Renderer::createRenderer()
 
     for (auto& renderProcess : mRenderProcesses)
     {
-        renderProcess = std::make_unique<RenderProcess>(mContext, mHeadset);
+        renderProcess = std::make_unique<RenderProcess>(mCtx, mHeadset);
         renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, mModels.size());
     }
 
-    mGridPipeline = std::make_unique<Pipeline>(mContext);
+    mGridPipeline = std::make_unique<Pipeline>(mCtx);
     mGridPipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
@@ -175,7 +175,7 @@ void Renderer::createRenderer()
         .offset = offsetof(Vertex, color),
     };
 
-    mNormalLightingPipeline = std::make_unique<Pipeline>(mContext);
+    mNormalLightingPipeline = std::make_unique<Pipeline>(mCtx);
     mNormalLightingPipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
@@ -184,7 +184,7 @@ void Renderer::createRenderer()
         {vertexInputBindingDescription},
         {vertexInputAttributePosition, vertexInputAttributeNormal});
 
-    mPbrPipeline = std::make_unique<Pipeline>(mContext);
+    mPbrPipeline = std::make_unique<Pipeline>(mCtx);
     mPbrPipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
@@ -204,8 +204,8 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
     auto& renderProcess = mRenderProcesses.at(mCurrentRenderProcessIndex);
 
     const auto busyFence = renderProcess->getFence();
-    LOGGER_VK(vkWaitForFences, mContext.getVkDevice(), 1, &busyFence, true, std::numeric_limits<int64_t>::max());
-    LOGGER_VK(vkResetFences, mContext.getVkDevice(), 1, &busyFence);
+    LOGGER_VK(vkWaitForFences, mCtx.getVkDevice(), 1, &busyFence, true, std::numeric_limits<int64_t>::max());
+    LOGGER_VK(vkResetFences, mCtx.getVkDevice(), 1, &busyFence);
 
     const auto commandBuffer = renderProcess->getCommandBuffer();
     const VkCommandBufferBeginInfo commandBufferBeginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
@@ -262,7 +262,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
         const auto uniformBufferOffset = static_cast<uint32_t>(
             khronos_utils::align(
                 static_cast<VkDeviceSize>(sizeof(decltype(RenderProcess::mIndividualUniformData)::value_type)),
-                mContext.getUniformBufferOffsetAlignment()) * static_cast<VkDeviceSize>(modelIndexWithoutGridDraw));
+                mCtx.getUniformBufferOffsetAlignment()) * static_cast<VkDeviceSize>(modelIndexWithoutGridDraw));
 
         vkCmdBindDescriptorSets(
             commandBuffer,
@@ -283,6 +283,13 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
         }
 
         const auto& model = mModels.at(modelIndexWithoutGridDraw);
+        vkCmdPushConstants(commandBuffer,
+            mPipelineLayout,
+            VK_SHADER_STAGE_VERTEX_BIT,
+            0,
+            sizeof(math::Vec3),
+            &model->pos);
+
         switch(model->pipeline)
         {
         case PipelineType::NORMAL_LIGHTING:
@@ -304,13 +311,6 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
         default:
             LOGGER_ERR("Invalid pipelineline type");
         }
-
-        vkCmdPushConstants(commandBuffer,
-            mPipelineLayout,
-            VK_SHADER_STAGE_VERTEX_BIT,
-            0,
-            sizeof(math::Vec3),
-            &model->pos);
 
         vkCmdDrawIndexed(commandBuffer,
             static_cast<uint32_t>(model->indexCount),
@@ -344,7 +344,7 @@ void Renderer::submit(bool useSemaphores) const
         .pSignalSemaphores = useSemaphores ? &presentableSemaphore : nullptr
     };
 
-    LOGGER_VK(vkQueueSubmit, mContext.getVkGraphicsQueue(), 1, &submitInfo, renderProcess->getFence());
+    LOGGER_VK(vkQueueSubmit, mCtx.getVkGraphicsQueue(), 1, &submitInfo, renderProcess->getFence());
 }
 
 VkSemaphore Renderer::getCurrentDrawableSemaphore() const
@@ -365,7 +365,7 @@ VkCommandBuffer Renderer::getCurrentCommandBuffer() const
 void Renderer::createVertexIndexBuffer()
 {
     const auto bufferSize = static_cast<VkDeviceSize>(mMeshData->getSize());
-    auto stagingBuffer = std::make_unique<DataBuffer>(mContext);
+    auto stagingBuffer = std::make_unique<DataBuffer>(mCtx);
     stagingBuffer->createDataBuffer(
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -380,7 +380,7 @@ void Renderer::createVertexIndexBuffer()
     mMeshData->writeTo(bufferData);
     stagingBuffer->unmap();
 
-    mVertexIndexBuffer = std::make_unique<DataBuffer>(mContext);
+    mVertexIndexBuffer = std::make_unique<DataBuffer>(mCtx);
     mVertexIndexBuffer->createDataBuffer(
         VK_BUFFER_USAGE_TRANSFER_DST_BIT |
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
@@ -393,7 +393,7 @@ void Renderer::createVertexIndexBuffer()
         LOGGER_ERR("Render processes weren't created");
     }
 
-    stagingBuffer->copyTo(*mVertexIndexBuffer, mRenderProcesses.at(0)->getCommandBuffer(), mContext.getVkGraphicsQueue());
+    stagingBuffer->copyTo(*mVertexIndexBuffer, mRenderProcesses.at(0)->getCommandBuffer(), mCtx.getVkGraphicsQueue());
 
     stagingBuffer.reset();
 }
@@ -409,7 +409,7 @@ void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::un
     for (size_t eyeIndex{}; eyeIndex < mHeadset.getEyeCount(); ++eyeIndex)
     {
         renderProcess->mCommonUniformData.viewMatrices.at(eyeIndex) = mHeadset.getEyeViewMatrix(eyeIndex);
-        renderProcess->mCommonUniformData.projectionMatrices.at(eyeIndex) = mHeadset.getEyeProjectionMatrix(eyeIndex);
+        renderProcess->mCommonUniformData.projMat.at(eyeIndex) = mHeadset.getEyeProjectionMatrix(eyeIndex);
     }
 
     renderProcess->updateUniformBufferData();

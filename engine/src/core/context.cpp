@@ -14,7 +14,7 @@ PFN_xrGetVulkanGraphicsRequirementsKHR xrGetVulkanGraphicsRequirementsKHR{};
 #ifndef NDEBUG
 PFN_xrCreateDebugUtilsMessengerEXT xrCreateDebugUtilsMessengerEXT{};
 PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
-#endif // DEBUG
+#endif // !NDEBUG
 } // namespace
 
 namespace ts
@@ -347,7 +347,7 @@ void Context::getGraphicsQueue()
         queueFamilyIndexCandidate < queueFamilies.size();
         ++queueFamilyIndexCandidate)
     {
-        const auto& queueFamilyCandidate{queueFamilies.at(queueFamilyIndexCandidate)};
+        const auto& queueFamilyCandidate = queueFamilies.at(queueFamilyIndexCandidate);
 
         if (queueFamilyCandidate.queueCount == 0)
         {
@@ -364,7 +364,7 @@ void Context::getGraphicsQueue()
 
     if (mVkGraphicsQueueFamilyIndex == std::nullopt)
     {
-        LOGGER_ERR("graphics queue couldn't be found");
+        LOGGER_ERR("Graphics queue couldn't be found");
     }
 }
 
@@ -452,7 +452,7 @@ void Context::isVulkanDeviceExtensionsAvailable(
     vkGetPhysicalDeviceFeatures(mPhysicalDevice, &physicalDeviceFeatures);
     if (!physicalDeviceFeatures.shaderStorageImageMultisample)
     {
-        LOGGER_ERR("multisampling feature isn't available");
+        LOGGER_ERR("Multisampling feature isn't available");
     }
 
     vkGetPhysicalDeviceFeatures(mPhysicalDevice, &physicalDeviceFeatures);
@@ -460,7 +460,7 @@ void Context::isVulkanDeviceExtensionsAvailable(
     vkGetPhysicalDeviceFeatures2(mPhysicalDevice, &physicalDeviceFeatures2);
     if (!physicalDeviceMultiviewFeatures.multiview)
     {
-        LOGGER_ERR("multview feature isn't available");
+        LOGGER_ERR("Multview feature isn't available");
     }
 }
 

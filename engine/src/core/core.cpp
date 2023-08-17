@@ -13,14 +13,14 @@ std::mutex engineInit;
 
 namespace
 {
-constexpr float flySpeedMultiplier{2.5f};
+constexpr float flySpeedMultiplier{15.5f};
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
 } // namespace
 
 
-// TODO: maybe would be possible to fancy implement singletons here?
+// TODO: maybe would be possible to fancy implement individualtons here?
 namespace ts
 {
 unsigned getTickCount()
@@ -52,16 +52,16 @@ int run(Engine* const engine) try
 
     compileShaders("assets/shaders");
 
-    Context context;
-    context.createOpenXrContext().createVulkanContext();
+    Context ctx;
+    ctx.createOpenXrContext().createVulkanContext();
 
     auto window = Window::createWindowInstance(GAME_NAME, width, height);
-    MirrorView mirrorView{context, window};
+    MirrorView mirrorView{ctx, window};
     mirrorView.createSurface();
-    context.createVkDevice(mirrorView.getSurface());
-    Headset headset{context};
+    ctx.createVkDevice(mirrorView.getSurface());
+    Headset headset{ctx};
     headset.init();
-    Controllers controllers(context.getXrInstance(), headset.getXrSession());
+    Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
     controllers.setupControllers();
 
     std::shared_ptr<Model> ruins = std::make_shared<Model>(Model{
@@ -74,38 +74,24 @@ int run(Engine* const engine) try
         .pipeline = PipelineType::NORMAL_LIGHTING,
     });
     std::shared_ptr<Model> sphere1 = std::make_shared<Model>(Model{
-        .pos = {-5.f, 3.f, -5.f},
-        .model = math::Mat4(1.f),
-        .pipeline = PipelineType::PBR,
-        .material = Materials::at("Red"),
-    });
-    std::shared_ptr<Model> sphere2 = std::make_shared<Model>(Model{
-        .pos = {0.f, 3.f, -5.f},
+        .pos = {0.f, 1.5f, -5.f},
         .model = math::Mat4(1.f),
         .pipeline = PipelineType::PBR,
         .material = Materials::at("White"),
-    });
-    std::shared_ptr<Model> sphere3 = std::make_shared<Model>(Model{
-        .pos = {5.f, 3.f, -5.f},
-        .model = math::Mat4(1.f),
-        .pipeline = PipelineType::PBR,
-        .material = Materials::at("Gold"),
     });
 
     const std::vector<std::shared_ptr<Model>> models{
         ruins,
         polonez,
         sphere1,
-        sphere2,
-        sphere3,
     };
 
     auto meshData = std::make_unique<MeshData>();
     meshData->loadModel("assets/models/ruins.obj", models, 1);
     meshData->loadModel("assets/models/polonez.obj", models, 1);
-    meshData->loadModel("assets/models/sphere.obj", models, 3);
+    meshData->loadModel("assets/models/sphere.obj", models, 1);
 
-    Renderer renderer{context, headset, models, std::move(meshData)};
+    Renderer renderer{ctx, headset, models, std::move(meshData)};
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
 
@@ -113,7 +99,7 @@ int run(Engine* const engine) try
     LOGGER_LOG("tsengine initialization completed successfully");
 
     window->show();
-    math::Vec3 cameraPosition{1.f, 1.f, 1.f};
+    math::Vec3 cameraPosition;
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     // TODO: Display message to wear the headset
@@ -155,7 +141,8 @@ int run(Engine* const engine) try
                 if (flySpeed > 0.f)
                 {
                     const math::Vec3 forward{math::normalize(controllers.getPose(controllerIndex)[2])};
-                    cameraPosition = forward * flySpeed * flySpeedMultiplier * deltaTime;
+                    auto var = forward * flySpeed * flySpeedMultiplier * deltaTime;
+                    cameraPosition += var;
                 }
             }
 
@@ -179,7 +166,7 @@ int run(Engine* const engine) try
     }
 
     engine->close();
-    context.sync();
+    ctx.sync();
     isAlreadyInitiated = false;
 
     return EXIT_SUCCESS;

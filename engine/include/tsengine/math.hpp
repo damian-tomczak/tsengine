@@ -1,6 +1,7 @@
 #pragma once
 
 // TODO: impl rotate func
+// TODO: implement +* operators overloading
 
 namespace ts::math
 {
@@ -19,7 +20,7 @@ struct Vec2 final
     [[nodiscard]] constexpr Vec2 operator*(const float scalar) const;
 };
 
-struct Vec3 final
+struct alignas(16) Vec3 final
 {
     float x{}, y{}, z{};
 
@@ -28,6 +29,8 @@ struct Vec3 final
     constexpr Vec3(const Vec4& vec4);
     constexpr Vec3(const float x_, const float y_, const float z_);
     [[nodiscard]] constexpr Vec3 operator*(const float scalar) const;
+    [[nodiscard]] constexpr Vec3 operator+(const Vec3& vec3) const;
+    constexpr Vec3& operator+=(const Vec3& rhs);
 };
 
 struct Vec4 final
@@ -366,6 +369,19 @@ inline constexpr Vec3::Vec3(const float x_, const float y_, const float z_) : x{
 inline constexpr Vec3 Vec3::operator*(const float scalar) const
 {
     return {x * scalar, y * scalar, z * scalar};
+}
+
+inline constexpr Vec3 Vec3::operator+(const Vec3& rhs) const
+{
+    return { x + rhs.x, y * rhs.y, z + rhs.z };
+}
+
+inline constexpr Vec3& Vec3::operator+=(const Vec3& rhs)
+{
+    x += rhs.x;
+    y += rhs.y;
+    z += rhs.z;
+    return *this;
 }
 
 inline constexpr Vec4::Vec4()

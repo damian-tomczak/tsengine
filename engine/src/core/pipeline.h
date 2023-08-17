@@ -12,7 +12,7 @@ class Pipeline final
     NOT_COPYABLE_AND_MOVEABLE(Pipeline);
 
 public:
-    Pipeline(const Context& context);
+    Pipeline(const Context& ctx);
     ~Pipeline();
 
     void createPipeline(
@@ -26,7 +26,7 @@ public:
     void bind(const VkCommandBuffer commandBuffer) const;
 
 private:
-    const Context& mContext;
+    const Context& mCtx;
     VkPipeline mPipeline{};
 };
 }

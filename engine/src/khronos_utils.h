@@ -96,7 +96,7 @@ bool findSuitableMemoryTypeIndex(
     VkMemoryRequirements pRequirements,
     VkMemoryPropertyFlags pProperties,
     uint32_t& typeIndex);
-VkDeviceSize align(VkDeviceSize value, VkDeviceSize alignment);
+VkDeviceSize align(const VkDeviceSize value, const VkDeviceSize alignment);
 math::Mat4 createXrProjectionMatrix(const XrFovf fov, const float nearClip, const float farClip);
 math::Mat4 xrPoseToMatrix(const XrPosef& pose);
 } // namespace ts::utils

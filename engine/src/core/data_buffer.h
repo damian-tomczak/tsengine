@@ -13,7 +13,7 @@ class DataBuffer final
     NOT_COPYABLE_AND_MOVEABLE(DataBuffer);
 
 public:
-    DataBuffer(const Context& context);
+    DataBuffer(const Context& ctx);
     ~DataBuffer();
 
     void createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryPropertyFlags memoryProperties, VkDeviceSize size);
@@ -25,7 +25,7 @@ public:
     void unmap() const;
 
 private:
-    const Context& mContext;
+    const Context& mCtx;
     VkBuffer mBuffer{};
     VkDeviceMemory mDeviceMemory{};
     VkDeviceSize mSize{};

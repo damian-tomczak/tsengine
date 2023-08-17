@@ -1,6 +1,7 @@
 #version 450
 
 #extension GL_EXT_multiview : enable
+#extension GL_EXT_debug_printf : enable
 
 layout(binding = 0) uniform IndividualUbo {
     mat4 modelMat;
@@ -9,7 +10,7 @@ layout(binding = 0) uniform IndividualUbo {
 layout (binding = 1) uniform CommonUbo {
     vec3 cameraPosition;
     mat4 viewMatrices[2];
-    mat4 projectionMatrices[2];
+    mat4 projMat[2];
 } commonUbo;
 
 layout (location = 0) in vec3 inPos;
@@ -33,11 +34,10 @@ void main()
     outNormal = mat3(individualUbo.modelMat) * inNormal;
 
     gl_Position =
-        commonUbo.projectionMatrices[gl_ViewIndex] *
+        commonUbo.projMat[gl_ViewIndex] *
         commonUbo.viewMatrices[gl_ViewIndex] *
         cameraMat *
         individualUbo.modelMat *
         vec4(pushConsts.objPos + inPos, 1.0);
 
-    outNormal = mat3(individualUbo.modelMat) * normalize(inNormal);
 }

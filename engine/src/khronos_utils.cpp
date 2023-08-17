@@ -253,7 +253,7 @@ bool findSuitableMemoryTypeIndex(
     VkPhysicalDeviceMemoryProperties supportedMemoryProperties;
     vkGetPhysicalDeviceMemoryProperties(pPhysicalDevice, &supportedMemoryProperties);
 
-    const VkMemoryPropertyFlags typeFilter{ pRequirements.memoryTypeBits };
+    const VkMemoryPropertyFlags typeFilter{pRequirements.memoryTypeBits};
     for (uint32_t memoryTypeIndex{}; memoryTypeIndex < supportedMemoryProperties.memoryTypeCount; ++memoryTypeIndex)
     {
         const VkMemoryPropertyFlags propertyFlags{ supportedMemoryProperties.memoryTypes[memoryTypeIndex].propertyFlags };
@@ -267,7 +267,7 @@ bool findSuitableMemoryTypeIndex(
     return false;
 }
 
-VkDeviceSize align(VkDeviceSize value, VkDeviceSize alignment)
+VkDeviceSize align(const VkDeviceSize value, const VkDeviceSize alignment)
 {
     if (value == 0u)
     {

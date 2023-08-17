@@ -26,7 +26,7 @@ class Renderer
     static constexpr size_t framesInFlightCount{2};
 
 public:
-    Renderer(const Context& context, const Headset& headset, const std::vector<std::shared_ptr<Model>>& models, std::unique_ptr<MeshData>&& meshData);
+    Renderer(const Context& ctx, const Headset& headset, const std::vector<std::shared_ptr<Model>>& models, std::unique_ptr<MeshData>&& meshData);
     virtual ~Renderer();
 
     void createRenderer();
@@ -41,7 +41,7 @@ private:
     void createVertexIndexBuffer();
     void updateUniformData(const math::Vec3& cameraMatrix, const std::unique_ptr<RenderProcess>& renderProcess);
 
-    const Context& mContext;
+    const Context& mCtx;
     const Headset& mHeadset;
     VkCommandPool mCommandPool{};
     VkDescriptorPool mDescriptorPool{};

@@ -1,27 +1,30 @@
 #version 450
 
-const float PI = 3.14159265;
+#extension GL_EXT_multiview : enable
+#extension GL_EXT_debug_printf : enable
+
+#define PI 3.14159265359
 
 layout (location = 0) in vec3 inWorldPos;
 layout (location = 1) in vec3 inNormal;
 layout (location = 0) out vec4 outColor;
 
 layout (binding = 1) uniform CommonUbo {
-    vec3 cameraPosition;
-    mat4 viewMatrices[2];
-    mat4 projectionMatrices[2];
+    vec3 camPos;
+    mat4 viewMat[2];
+    mat4 projMat[2];
 } commonUbo;
 
 layout (binding = 2) uniform LightsUbo {
-    vec4 lights[2];
+    vec3 lights[2];
 } lightsUbo;
 
 layout(push_constant) uniform Material {
-    layout(offset = 12) float roughness;
-    layout(offset = 16) float metallic;
-    layout(offset = 20) float r;
-    layout(offset = 24) float g;
-    layout(offset = 28) float b;
+    layout(offset = 16) float roughness;
+    layout(offset = 20) float metallic;
+    layout(offset = 24) float r;
+    layout(offset = 28) float g;
+    layout(offset = 32) float b;
 } material;
 
 vec3 materialcolor()
@@ -29,7 +32,6 @@ vec3 materialcolor()
     return vec3(material.r, material.g, material.b);
 }
 
-// Normal Distribution function --------------------------------------
 float D_GGX(float dotNH, float roughness)
 {
     float alpha = roughness * roughness;
@@ -38,7 +40,6 @@ float D_GGX(float dotNH, float roughness)
     return (alpha2)/(PI * denom*denom);
 }
 
-// Geometric Shadowing function --------------------------------------
 float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
 {
     float r = (roughness + 1.0);
@@ -48,10 +49,9 @@ float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
     return GL * GV;
 }
 
-// Fresnel function ----------------------------------------------------
 vec3 F_Schlick(float cosTheta, float metallic)
 {
-    vec3 F0 = mix(vec3(0.04), materialcolor(), metallic); // * material.specular
+    vec3 F0 = mix(vec3(0.04), materialcolor(), metallic);
     vec3 F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
     return F;
 }
@@ -62,8 +62,8 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness)
 {
     // Precalculate vectors and dot products
     vec3 H = normalize (V + L);
-    float dotNV = clamp(dot(N, V), 0.0, 1.0);
-    float dotNL = clamp(dot(N, L), 0.0, 1.0);
+    float dotNV = clamp(dot(N, V), 0.1, 1.0);
+    float dotNL = clamp(dot(N, L), 0.1, 1.0);
     float dotLH = clamp(dot(L, H), 0.0, 1.0);
     float dotNH = clamp(dot(N, H), 0.0, 1.0);
 
@@ -75,11 +75,8 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness)
     if (dotNL > 0.0)
     {
         float rroughness = max(0.05, roughness);
-        // D = Normal distribution (Distribution of the microfacets)
         float D = D_GGX(dotNH, roughness);
-        // G = Geometric shadowing term (Microfacets shadowing)
         float G = G_SchlicksmithGGX(dotNL, dotNV, rroughness);
-        // F = Fresnel factor (Reflectance depending on angle of incidence)
         vec3 F = F_Schlick(dotNV, metallic);
 
         vec3 spec = D * F * G / (4.0 * dotNL * dotNV);
@@ -93,15 +90,13 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness)
 void main()
 {
     vec3 N = normalize(inNormal);
-    vec3 V = normalize(commonUbo.cameraPosition - inWorldPos);
-
-    float roughness = material.roughness;
+    vec3 V = normalize(commonUbo.camPos - inWorldPos);
 
     vec3 Lo = vec3(0.0);
-    for (int i = 0; i < lightsUbo.lights.length(); ++i)
+    for (int i = 0; i < lightsUbo.lights.length(); i++)
     {
         vec3 L = normalize(lightsUbo.lights[i].xyz - inWorldPos);
-        Lo += BRDF(L, V, N, material.metallic, roughness);
+        Lo += BRDF(L, V, N, material.metallic, material.roughness);
     };
 
     vec3 color = materialcolor() * 0.02;

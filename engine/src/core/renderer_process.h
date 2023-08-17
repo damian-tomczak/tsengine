@@ -16,7 +16,7 @@ class RenderProcess final
     NOT_COPYABLE_AND_MOVEABLE(RenderProcess);
 
 public:
-    RenderProcess(const Context& context, const Headset& headset);
+    RenderProcess(const Context& ctx, const Headset& headset);
     ~RenderProcess();
 
     void createRendererProcess(
@@ -34,16 +34,17 @@ public:
     struct CommonUniformData final
     {
         math::Vec3 cameraPosition;
-        alignas(16) std::array<math::Mat4, 2> viewMatrices;
-        std::array<math::Mat4, 2> projectionMatrices;
+        std::array<math::Mat4, 2> viewMatrices;
+        std::array<math::Mat4, 2> projMat;
     } mCommonUniformData;
 
     // TODO: deffered lighting
+    // TODO: move it to the different place
     struct LightData final
     {
         std::array<math::Vec3, 2> lightPositions{
-            math::Vec3{0, 5.f, -10.f},
-            math::Vec3{5.f, 5.f, -10.f}
+            math::Vec3{0.f, 5.f, -5.f},
+            math::Vec3{0.f, 5.f, 5.f},
         };
     } mLightUniformData;
 
@@ -56,7 +57,7 @@ public:
     [[nodiscard]] VkSemaphore getPresentableSemaphore() const { return mPresentableSemaphore; }
 
 private:
-    const Context& mContext;
+    const Context& mCtx;
     VkCommandBuffer mCommandBuffer{};
     VkSemaphore mDrawableSemaphore{}, mPresentableSemaphore{};
     VkFence mFence{};

@@ -2,6 +2,8 @@
 
 #extension GL_GOOGLE_include_directive : enable
 #extension GL_EXT_multiview : enable
+#extension GL_EXT_debug_printf : enable
+
 
 #include "assets/shaders/grid_params.h"
 
@@ -24,12 +26,12 @@ void main()
     int idx = indices[gl_VertexIndex];
     vec3 position = pos[idx] * gridSize;
 
-    mat4 iViewMat = inverse(ubo.viewMat[gl_ViewIndex]);
+    mat4 iViewMat = inverse(ubo.viewMat[gl_ViewIndex] * cameraMat);
     cameraPosition = vec2(iViewMat[3][0], iViewMat[3][2]);
 
     position.x += cameraPosition.x;
     position.z += cameraPosition.y;
 
-    gl_Position = MVP * vec4(position, 1.0);
     uv = position.xz;
+    gl_Position = MVP * vec4(position, 1.0);
 }
