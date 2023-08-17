@@ -10,9 +10,9 @@ struct Vec4;
 
 struct Vec2 final
 {
-    float x{}, y{};
+    float x, y;
 
-    constexpr Vec2();
+    constexpr Vec2() = default;
     constexpr Vec2(const float v);
     constexpr Vec2(const Vec3& vec3);
     constexpr Vec2(const Vec4& vec4);
@@ -22,9 +22,9 @@ struct Vec2 final
 
 struct alignas(16) Vec3 final
 {
-    float x{}, y{}, z{};
+    float x, y, z;
 
-    constexpr Vec3();
+    constexpr Vec3() = default;
     constexpr Vec3(const float v);
     constexpr Vec3(const Vec4& vec4);
     constexpr Vec3(const float x_, const float y_, const float z_);
@@ -35,9 +35,9 @@ struct alignas(16) Vec3 final
 
 struct Vec4 final
 {
-    float x{}, y{}, z{}, w{};
+    float x, y, z, w;
 
-    constexpr Vec4();
+    constexpr Vec4() = default;
     constexpr Vec4(const float v);
     constexpr Vec4(const float x_, const float y_, const float z_, const float w_);
     [[nodiscard]] constexpr Vec4 operator*(const float scalar) const;
@@ -45,7 +45,7 @@ struct Vec4 final
 
 struct Quat
 {
-    float w{}, x{}, y{}, z{};
+    float w, x, y, z;
 };
 
 template<size_t matRows, size_t matColumns>
@@ -57,7 +57,7 @@ struct Matrix
 
 struct Mat2 : public Matrix<2, 2>
 {
-    std::array<Vec2, 2> data{};
+    std::array<Vec2, 2> data;
 
     Mat2()
     {}
@@ -432,14 +432,14 @@ inline Mat4 inverse(const Mat4& mat)
     const auto tempInverse03 = -(mat[1].x * det23yz - mat[1].y * det23xz + mat[1].z * det23xy);
 
     const auto det =
-        + mat[0].x * tempInverse00
-        + mat[0].y * tempInverse01
-        + mat[0].z * tempInverse02
-        + mat[0].w * tempInverse03;
+        mat[0].x * tempInverse00 +
+        mat[0].y * tempInverse01 +
+        mat[0].z * tempInverse02 +
+        mat[0].w * tempInverse03;
 
     if (det == 0)
     {
-        throw std::runtime_error{"singular matrix, can't find its inverse"};
+        throw std::runtime_error{"Singular matrix, can't find its inverse"};
     }
 
     return
@@ -450,9 +450,6 @@ inline Mat4 inverse(const Mat4& mat)
         tempInverse03 / det, (+(mat[0].x * det23yz - mat[0].y * det23xz + mat[0].z * det23xy)) / det, (-(mat[0].x * det13yz - mat[0].y * det13xz + mat[0].z * det13xy)) / det, (+(mat[0].x * det12yz - mat[0].y * det12xz + mat[0].z * det12xy)) / det,
     };
 }
-
-inline constexpr Vec2::Vec2()
-{}
 
 inline constexpr Vec2::Vec2(const float v) : x{v}, y{v}
 {}
@@ -470,9 +467,6 @@ inline constexpr Vec2 Vec2::operator*(const float scalar) const
 {
     return {x * scalar, y * scalar};
 }
-
-inline constexpr Vec3::Vec3()
-{}
 
 inline constexpr Vec3::Vec3(const float v) : x{v}, y{v}, z{v}
 {}
@@ -500,9 +494,6 @@ inline constexpr Vec3& Vec3::operator+=(const Vec3& rhs)
     z += rhs.z;
     return *this;
 }
-
-inline constexpr Vec4::Vec4()
-{}
 
 inline constexpr Vec4::Vec4(const float v) : x{v}, y{v}, z{v}, w{v}
 {}

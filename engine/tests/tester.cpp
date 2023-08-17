@@ -3,6 +3,7 @@
 #include "tsengine/math.hpp"
 
 #include <memory>
+
 TEST(DummyTests, Dummytest)
 {
     const auto multiplication = 28 * 10 * 2000;

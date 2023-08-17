@@ -28,26 +28,26 @@
         return UNKNOWN_FAILURE;                                                     \
     }
 
-#define TS_CATCH_FALLBACK_WITH_CLEANER(cleanerFunction)                         \
-    catch (const TSException&)                                                  \
-    {                                                                           \
-        cleanerFunction();                                                      \
-                                                                                \
-    return TS_FAILURE;                                                          \
-    }                                                                           \
-    catch (const std::exception& e)                                             \
-    {                                                                           \
-    ts::logger::error(e.what(), __FILE__, FUNCTION_SIGNATURE, __LINE__, false); \
-                                                                                \
-        cleanerFunction();                                                      \
-                                                                                \
-    return STL_FAILURE;                                                         \
-    }                                                                           \
-    catch (...)                                                                 \
-    {                                                                           \
-        cleanerFunction();                                                      \
-                                                                                \
-        return UNKNOWN_FAILURE;                                                 \
+#define TS_CATCH_FALLBACK_WITH_CLEANER(cleanerFunction)                             \
+    catch (const TSException&)                                                      \
+    {                                                                               \
+        cleanerFunction();                                                          \
+                                                                                    \
+    return TS_FAILURE;                                                              \
+    }                                                                               \
+    catch (const std::exception& e)                                                 \
+    {                                                                               \
+        ts::logger::error(e.what(), __FILE__, FUNCTION_SIGNATURE, __LINE__, false); \
+                                                                                    \
+        cleanerFunction();                                                          \
+                                                                                    \
+        return STL_FAILURE;                                                         \
+    }                                                                               \
+    catch (...)                                                                     \
+    {                                                                               \
+        cleanerFunction();                                                          \
+                                                                                    \
+        return UNKNOWN_FAILURE;                                                     \
     }
 
 #define STR(x) XSTR(x)

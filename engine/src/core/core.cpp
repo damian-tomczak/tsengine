@@ -14,15 +14,15 @@ std::mutex engineInit;
 
 namespace
 {
-constexpr float flySpeedMultiplier{15.5f};
+    constexpr float flySpeedMultiplier{15.f};
 
-unsigned tickCount{};
-bool isAlreadyInitiated{};
+    unsigned tickCount{};
+    bool isAlreadyInitiated{};
 
-void cleanEngine()
-{
-    isAlreadyInitiated = false;
-}
+    void runCleaner()
+    {
+        isAlreadyInitiated = false;
+    }
 } // namespace
 
 
@@ -108,7 +108,7 @@ int run(Engine* const engine) try
 
     window->show();
     bool isRenderingStarted{};
-    math::Vec3 cameraPosition;
+    math::Vec3 cameraPosition{};
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::steady_clock::now();
@@ -195,5 +195,5 @@ int run(Engine* const engine) try
 
     return EXIT_SUCCESS;
 }
-TS_CATCH_FALLBACK
+TS_CATCH_FALLBACK_WITH_CLEANER(runCleaner)
 } // namespace ts
