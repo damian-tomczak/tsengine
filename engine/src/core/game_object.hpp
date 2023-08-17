@@ -37,7 +37,7 @@ public:
         std::vector<tinyobj::shape_t> shapes;
         if (!tinyobj::LoadObj(&attrib, &shapes, nullptr, nullptr, nullptr, fileName.data()))
         {
-            LOGGER_ERR(("can not open the model: " + fileName).c_str());
+            LOGGER_ERR(("Can not open the model: " + fileName).c_str());
         }
 
         const auto oldIndexCount = mIndices.size();
@@ -71,7 +71,6 @@ public:
             }
         }
 
-        static size_t offset{0};
         for (size_t modelIndex{offset}; modelIndex < (offset + count); ++modelIndex)
         {
             auto model = models.at(modelIndex);
@@ -94,5 +93,7 @@ public:
 private:
     std::vector<Vertex> mVertices;
     std::vector<uint32_t> mIndices;
+
+    size_t offset{};
 };
 }
