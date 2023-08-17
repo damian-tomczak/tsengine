@@ -9,11 +9,16 @@ bool isWindowAlreadyCreated{};
 
 namespace ts
 {
+Window::~Window()
+{
+    isWindowAlreadyCreated = false;
+}
+
 std::shared_ptr<Window> Window::createWindowInstance(size_t width, size_t height)
 {
     if (isWindowAlreadyCreated)
     {
-        LOGGER_ERR("window is already created");
+        LOGGER_ERR("Window is already created");
     }
 
     std::shared_ptr<Window> window;

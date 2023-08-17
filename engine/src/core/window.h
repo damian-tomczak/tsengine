@@ -18,7 +18,7 @@ class Window
 public:
     Window(size_t width, size_t height) : mWidth{width}, mHeight{height}
     {}
-
+    virtual ~Window();
     enum class Message
     {
 #ifdef _WIN32
