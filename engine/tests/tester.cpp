@@ -11,55 +11,6 @@ TEST(DummyTests, Dummytest)
     ASSERT_EQ(expected, multiplication);
 }
 
-class TestGame final : public ts::TesterEngine
-{
-    static constexpr std::chrono::steady_clock::duration renderingDuration{3s};
-
-public:
-    TestGame() : TesterEngine{renderingDuration}
-    {}
-
-    bool init(unsigned& width, unsigned& height) override { return true; }
-
-    void close() override
-    {}
-
-    bool tick() override { return true; }
-
-    void onMouseMove(int x, int y, int xrelative, int yrelative) override
-    {}
-
-    void onMouseButtonClick(ts::MouseButton button, bool isReleased) override
-    {}
-
-    void onKeyPressed(ts::Key k) override
-    {}
-
-    void onKeyReleased(ts::Key k) override
-    {}
-};
-
-TEST(GameTests, RunReturnsZero)
-{
-    auto p = new TestGame;
-    auto result{ ts::run(p) };
-
-    ASSERT_EQ(0, result);
-}
-
-TEST(GameTests, IsThrowsException)
-{
-    try
-    {
-        std::unique_ptr<TestGame> pGame{ new TestGame };
-        auto result{ ts::run(pGame.get()) };
-    }
-    catch (...)
-    {
-        FAIL();
-    }
-}
-
 TEST(MathTests, mat4MultiplicationTest)
 {
     const ts::math::Mat4 leftMatrix
@@ -176,6 +127,55 @@ TEST(MathTests, mat4InversionTest)
 
     const auto invertedMatrix = ts::math::inverse(matrix);
     ASSERT_EQ(ts::math::to_string(invertedMatrix), ts::math::to_string(expected));
+}
+
+class TestGame final : public ts::TesterEngine
+{
+    static constexpr std::chrono::steady_clock::duration renderingDuration{3s};
+
+public:
+    TestGame() : TesterEngine{renderingDuration}
+    {}
+
+    bool init(unsigned& width, unsigned& height) override { return true; }
+
+    void close() override
+    {}
+
+    bool tick() override { return true; }
+
+    void onMouseMove(int x, int y, int xrelative, int yrelative) override
+    {}
+
+    void onMouseButtonClick(ts::MouseButton button, bool isReleased) override
+    {}
+
+    void onKeyPressed(ts::Key k) override
+    {}
+
+    void onKeyReleased(ts::Key k) override
+    {}
+};
+
+TEST(GameTests, RunReturnsZero)
+{
+    const auto game = std::make_unique<TestGame>();
+    const auto result = ts::run(game.get());
+
+    ASSERT_EQ(0, result);
+}
+
+TEST(GameTests, IsThrowsException)
+{
+    try
+    {
+        const auto game = std::make_unique<TestGame>();
+        const auto result = ts::run(game.get());
+    }
+    catch (...)
+    {
+        FAIL();
+    }
 }
 
 int main(int argc, char** argv)
