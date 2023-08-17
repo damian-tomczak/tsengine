@@ -13,7 +13,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 add_custom_target(copy_assets_tests
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${ASSETS_DIR} $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
+        ${ASSETS_DIR} $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
 )
 
 # TODO: tests for every build type
