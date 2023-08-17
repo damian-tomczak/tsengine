@@ -19,6 +19,40 @@ PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
 
 namespace ts
 {
+Context& Context::createOpenXrContext()
+{
+    createXrInstance();
+    loadXrExtensions();
+#ifndef NDEBUG
+    createXrDebugMessenger();
+#endif
+    initXrSystemId();
+    getXrSystemInfo();
+    isXrBlendModeAvailable();
+
+    return *this;
+}
+
+void Context::createVulkanContext()
+{
+    vulkanloader::connectWithLoader();
+    vulkanloader::loadExportFunction();
+    vulkanloader::loadGlobalLevelFunctions();
+
+    std::vector<std::string> vulkanInstanceExtensions;
+    getRequiredVulkanInstanceExtensions(vulkanInstanceExtensions);
+    isVulkanInstanceExtensionsAvailable(vulkanInstanceExtensions);
+
+    createVulkanInstance(vulkanInstanceExtensions);
+
+    vulkanloader::loadInstanceLevelFunctions(mVkInstance, vulkanInstanceExtensions);
+
+#ifdef _DEBUG
+    vulkanloader::loadDebugLevelFunctions(mVkInstance);
+    createVkDebugMessenger();
+#endif
+}
+
 void Context::createVkDevice(VkSurfaceKHR vkMirrorSurface)
 {
     createPhysicalDevice();
@@ -60,6 +94,35 @@ void Context::sync() const
 {
     vkDeviceWaitIdle(mVkDevice);
 }
+
+#ifndef NDEBUG
+void Context::createXrDebugMessenger()
+{
+    const XrDebugUtilsMessengerCreateInfoEXT ci{
+        .type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .messageSeverities = khronos_utils::xrDebugMessageSeverityFlags,
+        .messageTypes = khronos_utils::xrDebugMessageTypeFlags,
+        .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(khronos_utils::xrCallback)
+    };
+
+    LOGGER_XR(xrCreateDebugUtilsMessengerEXT,
+        mXrInstance,
+        &ci,
+        &mXrDebugMessenger);
+}
+
+void Context::createVkDebugMessenger()
+{
+    const VkDebugUtilsMessengerCreateInfoEXT ci{
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .messageSeverity = khronos_utils::vkDebugMessageSeverityFlags,
+        .messageType = khronos_utils::vkDebugMessageTypeFlags,
+        .pfnUserCallback = &khronos_utils::vkCallback
+    };
+
+    LOGGER_VK(vkCreateDebugUtilsMessengerEXT, mVkInstance, &ci, nullptr, &mVkDebugMessenger);
+}
+#endif // DEBUG
 
 void Context::loadXrExtensions()
 {
@@ -114,23 +177,6 @@ uint32_t Context::getVkPresentQueueFamilyIndex() const
 
     return *mVkPresentQueueFamilyIndex;
 };
-
-#ifndef NDEBUG
-void Context::createXrDebugMessenger()
-{
-    const XrDebugUtilsMessengerCreateInfoEXT ci{
-        .type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverities = khronos_utils::xrDebugMessageSeverityFlags,
-        .messageTypes = khronos_utils::xrDebugMessageTypeFlags,
-        .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(khronos_utils::xrCallback)
-    };
-
-    LOGGER_XR(xrCreateDebugUtilsMessengerEXT,
-        mXrInstance,
-        &ci,
-        &mXrDebugMessenger);
-}
-#endif // DEBUG
 
 void Context::initXrSystemId()
 {
@@ -544,20 +590,6 @@ void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
     }
 }
 
-#ifndef NDEBUG
-void Context::createVkDebugMessenger()
-{
-    const VkDebugUtilsMessengerCreateInfoEXT ci{
-        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverity = khronos_utils::vkDebugMessageSeverityFlags,
-        .messageType = khronos_utils::vkDebugMessageTypeFlags,
-        .pfnUserCallback = &khronos_utils::vkCallback
-    };
-
-    LOGGER_VK(vkCreateDebugUtilsMessengerEXT, mVkInstance, &ci, nullptr, &mVkDebugMessenger);
-}
-#endif
-
 Context::~Context()
 {
 #ifndef NDEBUG
@@ -588,40 +620,6 @@ Context::~Context()
     {
         vkDestroyInstance(mVkInstance, nullptr);
     }
-}
-
-Context& Context::createOpenXrContext()
-{
-    createXrInstance();
-    loadXrExtensions();
-#ifndef NDEBUG
-    createXrDebugMessenger();
-#endif
-    initXrSystemId();
-    getXrSystemInfo();
-    isXrBlendModeAvailable();
-
-    return *this;
-}
-
-void Context::createVulkanContext()
-{
-    vulkanloader::connectWithLoader();
-    vulkanloader::loadExportFunction();
-    vulkanloader::loadGlobalLevelFunctions();
-
-    std::vector<std::string> vulkanInstanceExtensions;
-    getRequiredVulkanInstanceExtensions(vulkanInstanceExtensions);
-    isVulkanInstanceExtensionsAvailable(vulkanInstanceExtensions);
-
-    createVulkanInstance(vulkanInstanceExtensions);
-
-    vulkanloader::loadInstanceLevelFunctions(mVkInstance, vulkanInstanceExtensions);
-
-#ifdef _DEBUG
-    vulkanloader::loadDebugLevelFunctions(mVkInstance);
-    createVkDebugMessenger();
-#endif
 }
 
 void Context::createXrInstance()

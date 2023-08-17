@@ -67,3 +67,4 @@ set_property(TARGET glslangValidator PROPERTY FOLDER "ThirdPartyLibraries")
 set_property(TARGET spirv-remap PROPERTY FOLDER "ThirdPartyLibraries")
 
 set_property(TARGET copy_assets PROPERTY FOLDER "tools")
+set_property(TARGET copy_assets_tests PROPERTY FOLDER "tools")

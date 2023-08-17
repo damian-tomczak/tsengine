@@ -1,10 +1,13 @@
 #include "gtest/gtest.h"
+#include "tests_core_adapter.h"
 #include "tsengine/math.hpp"
 
+#include <memory>
 TEST(DummyTests, Dummytest)
 {
     const auto multiplication = 28 * 10 * 2000;
     const auto expected = 560000;
+
     ASSERT_EQ(expected, multiplication);
 }
 
@@ -33,6 +36,7 @@ TEST(MathTests, mat4MultiplicationTest)
         86, 112, 138, 164,
         86, 112, 138, 164,
     };
+
     const auto multiplication = rightMatrix * leftMatrix;
     ASSERT_EQ(ts::math::to_string(expected), ts::math::to_string(multiplication));
 }
@@ -59,13 +63,13 @@ TEST(MathTests, mat3MultiplicationTest)
         0.342f, 0.366f, 0.39f ,
         0.09f , 0.096f, 0.102f,
     };
+
     const auto multiplication = rightMatrix * leftMatrix;
     ASSERT_EQ(ts::math::to_string(expected), ts::math::to_string(multiplication));
 }
 
 TEST(MathTests, mat2InversionTest)
 {
-
     const ts::math::Mat2 matrix
     {
         1.f, 3.f,
@@ -77,6 +81,7 @@ TEST(MathTests, mat2InversionTest)
         1.f, 0.f,
         0.f, 1.f,
     };
+
     const auto invertedMatrix = ts::math::inverse(matrix);
     const auto s = matrix * invertedMatrix;
     ASSERT_EQ(ts::math::to_string(identityMatrix), ts::math::to_string(s));
@@ -84,7 +89,6 @@ TEST(MathTests, mat2InversionTest)
 
 TEST(MathTests, mat3InversionTest)
 {
-
     const ts::math::Mat3 matrix
     {
         1.f, 2.f, 3.f,
@@ -98,13 +102,13 @@ TEST(MathTests, mat3InversionTest)
         +20.f, -15.f, -4.f,
         -5.f , +4.f , +1.f,
     };
+
     const auto invertedMatrix = ts::math::inverse(matrix);
     ASSERT_EQ(ts::math::to_string(invertedMatrix), ts::math::to_string(expected));
 }
 
 TEST(MathTests, mat4InversionTest)
 {
-
     const ts::math::Mat4 matrix
     {
         3.f, 4.f, 2.f, 1.f,
@@ -120,8 +124,58 @@ TEST(MathTests, mat4InversionTest)
         +0.f , -1.f , +1.f , -2.f ,
         -0.5f, +2.5f, -0.5f, +2.5f,
     };
+
     const auto invertedMatrix = ts::math::inverse(matrix);
     ASSERT_EQ(ts::math::to_string(invertedMatrix), ts::math::to_string(expected));
+}
+
+class TestGame final : public ts::TesterEngine
+{
+    static constexpr std::chrono::steady_clock::duration renderingDuration{3s};
+
+public:
+    TestGame() : TesterEngine{renderingDuration}
+    {}
+
+    bool init(unsigned& width, unsigned& height) override { return true; }
+
+    void close() override
+    {}
+
+    bool tick() override { return true; }
+
+    void onMouseMove(int x, int y, int xrelative, int yrelative) override
+    {}
+
+    void onMouseButtonClick(ts::MouseButton button, bool isReleased) override
+    {}
+
+    void onKeyPressed(ts::Key k) override
+    {}
+
+    void onKeyReleased(ts::Key k) override
+    {}
+};
+
+TEST(GameTests, RunReturnsZero)
+{
+    const auto game = std::make_unique<TestGame>();
+    const auto result = ts::run(game.get());
+
+    ASSERT_EQ(0, result);
+}
+
+TEST(GameTests, IsThrowsException)
+{
+    try
+    {
+        const auto game = std::make_unique<TestGame>();
+        const auto result = ts::run(game.get());
+    }
+    catch (...)
+    {
+        FAIL();
+    }
 }
 
 int main(int argc, char** argv)
