@@ -7,7 +7,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     tsengine
 )
 
-add_custom_target(copy_assets_to_test
+add_custom_target(copy_assets_tests
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${ASSETS_DIR} $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
 )
@@ -17,7 +17,13 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:${PROJECT_NAME}>
 )
 
-add_dependencies(${PROJECT_NAME} copy_assets_to_test)
+add_dependencies(${PROJECT_NAME} copy_assets_tests)
 
-# TODO: run every category separately
-add_test(TestAll ${PROJECT_NAME})
+add_test(DummyTests ${PROJECT_NAME} --gtest_filter=DummyTests.*)
+add_test(MathTests ${PROJECT_NAME} --gtest_filter=MathTests.*)
+
+option(CI_RUNNING "" OFF)
+
+if(NOT CI_RUNNING)
+    add_test(GameTests ${PROJECT_NAME} --gtest_filter=GameTests.*)
+endif()
