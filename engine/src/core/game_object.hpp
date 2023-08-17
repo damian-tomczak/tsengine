@@ -97,7 +97,6 @@ public:
             }
         }
 
-        static size_t offset{0};
         for (size_t modelIndex{offset}; modelIndex < (offset + count); ++modelIndex)
         {
             auto model = models.at(modelIndex);
@@ -120,6 +119,8 @@ public:
 private:
     std::vector<Vertex> mVertices;
     std::vector<uint32_t> mIndices;
+
+    size_t offset{};
 };
 
 struct Materials final

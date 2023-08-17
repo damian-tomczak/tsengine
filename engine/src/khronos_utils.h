@@ -36,6 +36,7 @@
 
 namespace ts::khronos_utils
 {
+using XrDeviceId = size_t;
 namespace device_names
 {
     inline constexpr std::string_view HtcVivePro{"Vive OpenXR: Vive SRanipal"};
@@ -46,14 +47,14 @@ namespace device_ids
     inline constexpr auto HtcVivePro = std::hash<std::string_view>{}(device_names::HtcVivePro);
     inline constexpr auto OcuslusQuest2 = std::hash<std::string_view>{}(device_names::OculusQuest2);
 } // namespace device_ids
-constexpr std::array<std::pair<std::string_view, size_t>, 2> knownXrDevicesNameToId{{
-    {device_names::HtcVivePro, device_ids::HtcVivePro},
-    {device_names::OculusQuest2, device_ids::OcuslusQuest2},
-}};
-constexpr std::array<std::pair<size_t, std::string_view>, 2> knownXrDevicesIdToName{{
-    {device_ids::HtcVivePro, device_names::HtcVivePro},
-    {device_ids::OcuslusQuest2, device_names::OculusQuest2},
-}};
+constexpr std::array knownXrDevicesNameToId{
+    std::pair<std::string_view, XrDeviceId>{device_names::HtcVivePro, device_ids::HtcVivePro},
+    std::pair<std::string_view, XrDeviceId>{device_names::OculusQuest2, device_ids::OcuslusQuest2},
+};
+constexpr std::array knownXrDevicesIdToName{
+    std::pair<XrDeviceId, std::string_view>{device_ids::HtcVivePro, device_names::HtcVivePro},
+    std::pair<XrDeviceId, std::string_view>{device_ids::OcuslusQuest2, device_names::OculusQuest2},
+};
 
 std::string vkResultToString(const VkResult result);
 std::string xrResultToString(const XrResult result);

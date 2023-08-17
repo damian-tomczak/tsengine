@@ -8,6 +8,7 @@
 #include "vulkan_tools/shaders_compiler.h"
 #include "game_object.hpp"
 #include "renderer.h"
+#include "tests_core_adapter.h"
 
 std::mutex engineInit;
 
@@ -17,6 +18,11 @@ constexpr float flySpeedMultiplier{15.5f};
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
+
+void cleanEngine()
+{
+    isAlreadyInitiated = false;
+}
 } // namespace
 
 
@@ -41,6 +47,9 @@ int run(Engine* const engine) try
     {
         LOGGER_ERR("Game is already initiated");
     }
+    isAlreadyInitiated = true;
+
+    const auto testerAdapter = dynamic_cast<TesterEngine*>(engine);
 
     unsigned width{1280u}, height{720u};
     engine->init(width, height);
@@ -95,17 +104,27 @@ int run(Engine* const engine) try
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
 
-    isAlreadyInitiated = true;
     LOGGER_LOG("tsengine initialization completed successfully");
 
     window->show();
+    bool isRenderingStarted{};
     math::Vec3 cameraPosition;
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
-    // TODO: Display message to wear the headset
-    // PS: remember this todo will screw up easy debugging in renderdoc
+    auto startTime = std::chrono::steady_clock::now();
+    // TODO: display message to wear the headset
+    // TODO: consider if we should provide an option to render firstly to the window then copy it to the headset
     while (loop)
     {
+        // I have no idea how to better implement it.
+        if ((testerAdapter != nullptr) && isRenderingStarted)
+        {
+            if (std::chrono::steady_clock::now() >= (startTime + testerAdapter->renderingDuration))
+            {
+                loop = false;
+            }
+        }
+
         if (headset.isExitRequested())
         {
             loop = false;
@@ -133,6 +152,11 @@ int run(Engine* const engine) try
         const auto frameResult = headset.beginFrame(swapchainImageIndex);
         if (frameResult == Headset::BeginFrameResult::RENDER_FULLY)
         {
+            if (!isRenderingStarted)
+            {
+                isRenderingStarted = true;
+            }
+
             controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
 
             for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)

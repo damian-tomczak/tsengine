@@ -19,7 +19,7 @@ public:
     Window(const std::string& windowName, const size_t width, const size_t height) :
         mWindowName{windowName}, mWidth{width}, mHeight{height}
     {}
-
+    virtual ~Window();
     enum class Message
     {
 #ifdef _WIN32
