@@ -1,19 +1,23 @@
 #include "gtest/gtest.h"
-#include "tsengine/core.h"
+#include "tests_core_adapter.h"
 #include "tsengine/math.hpp"
-#include <memory>
 
+#include <memory>
 TEST(DummyTests, Dummytest)
 {
     const auto multiplication = 28 * 10 * 2000;
     const auto expected = 560000;
+
     ASSERT_EQ(expected, multiplication);
 }
 
-class Game final : public ts::Engine
+class TestGame final : public ts::TesterEngine
 {
+    static constexpr std::chrono::steady_clock::duration renderingDuration{3s};
+
 public:
-    Game() = default;
+    TestGame() : TesterEngine{renderingDuration}
+    {}
 
     bool init(unsigned& width, unsigned& height) override { return true; }
 
@@ -37,7 +41,8 @@ public:
 
 TEST(GameTests, RunReturnsZero)
 {
-    auto result{ ts::run(new Game) };
+    auto p = new TestGame;
+    auto result{ ts::run(p) };
 
     ASSERT_EQ(0, result);
 }
@@ -46,7 +51,7 @@ TEST(GameTests, IsThrowsException)
 {
     try
     {
-        std::unique_ptr<Game> pGame{ new Game };
+        std::unique_ptr<TestGame> pGame{ new TestGame };
         auto result{ ts::run(pGame.get()) };
     }
     catch (...)

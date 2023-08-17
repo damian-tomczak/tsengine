@@ -7,6 +7,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     tsengine
 )
 
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ../src
+)
+
 add_custom_target(copy_assets_to_test
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${ASSETS_DIR} $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
