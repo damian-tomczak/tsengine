@@ -14,21 +14,22 @@ std::mutex engineInit;
 
 namespace
 {
-    constexpr float flySpeedMultiplier{15.f};
+constexpr float flySpeedMultiplier{15.f};
 
-    unsigned tickCount{};
-    bool isAlreadyInitiated{};
+unsigned tickCount{};
+bool isAlreadyInitiated{};
 
-    void runCleaner()
-    {
-        isAlreadyInitiated = false;
-    }
+void runCleaner()
+{
+    isAlreadyInitiated = false;
+}
 } // namespace
 
 
 // TODO: maybe would be possible to fancy implement individualtons here?
 namespace ts
 {
+[[deprecated("not implemented yet")]]
 unsigned getTickCount()
 {
     return tickCount;
@@ -86,7 +87,7 @@ int run(Engine* const engine) try
         .pos = {0.f, 1.5f, -5.f},
         .model = math::Mat4(1.f),
         .pipeline = PipelineType::PBR,
-        .material = Materials::at("White"),
+        .material = Materials::at("Gold"),
     });
 
     const std::vector<std::shared_ptr<Model>> models{
@@ -164,9 +165,17 @@ int run(Engine* const engine) try
                 const auto flySpeed = controllers.getFlySpeed(controllerIndex);
                 if (flySpeed > 0.f)
                 {
-                    const math::Vec3 forward{math::normalize(controllers.getPose(controllerIndex)[2])};
-                    auto var = forward * flySpeed * flySpeedMultiplier * deltaTime;
-                    cameraPosition += var;
+                    const auto controllerPose = controllers.getPose(controllerIndex)[2];
+
+                    if (!controllerPose.isNan())
+                    {
+                        const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
+                        cameraPosition += forward * flySpeed * flySpeedMultiplier * deltaTime;
+                    }
+                    else
+                    {
+                        LOGGER_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
+                    }
                 }
             }
 

@@ -63,7 +63,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
         }
         case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
         {
-            auto event = reinterpret_cast<XrEventDataSessionStateChanged*>(&buffer);
+            const auto event = reinterpret_cast<XrEventDataSessionStateChanged*>(&buffer);
             mXrSessionState = event->state;
 
             if (event->state == XR_SESSION_STATE_READY)

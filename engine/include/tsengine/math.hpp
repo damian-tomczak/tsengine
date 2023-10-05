@@ -1,7 +1,8 @@
 #pragma once
 
+#include <cmath>
+
 // TODO: impl rotate func
-// TODO: implement +* operators overloading
 
 namespace ts::math
 {
@@ -18,6 +19,10 @@ struct Vec2 final
     constexpr Vec2(const Vec4& vec4);
     constexpr Vec2(const float x_, const float y_);
     [[nodiscard]] constexpr Vec2 operator*(const float scalar) const;
+    [[nodiscard]] constexpr Vec2 operator+(const Vec2& rhs) const;
+    constexpr Vec2& operator+=(const Vec2& rhs);
+    bool isNan() const;
+    bool isInf() const;
 };
 
 struct alignas(16) Vec3 final
@@ -29,8 +34,10 @@ struct alignas(16) Vec3 final
     constexpr Vec3(const Vec4& vec4);
     constexpr Vec3(const float x_, const float y_, const float z_);
     [[nodiscard]] constexpr Vec3 operator*(const float scalar) const;
-    [[nodiscard]] constexpr Vec3 operator+(const Vec3& vec3) const;
+    [[nodiscard]] constexpr Vec3 operator+(const Vec3& rhs) const;
     constexpr Vec3& operator+=(const Vec3& rhs);
+    bool isNan() const;
+    bool isInf() const;
 };
 
 struct Vec4 final
@@ -41,6 +48,10 @@ struct Vec4 final
     constexpr Vec4(const float v);
     constexpr Vec4(const float x_, const float y_, const float z_, const float w_);
     [[nodiscard]] constexpr Vec4 operator*(const float scalar) const;
+    [[nodiscard]] constexpr Vec4 operator+(const Vec4& rhs) const;
+    constexpr Vec4& operator+=(const Vec4& rhs);
+    bool isNan() const;
+    bool isInf() const;
 };
 
 struct Quat
@@ -468,6 +479,28 @@ inline constexpr Vec2 Vec2::operator*(const float scalar) const
     return {x * scalar, y * scalar};
 }
 
+inline constexpr Vec2 Vec2::operator+(const Vec2& rhs) const
+{
+    return {x + rhs.x, y * rhs.y};
+}
+
+inline constexpr Vec2& Vec2::operator+=(const Vec2& rhs)
+{
+    x += rhs.x;
+    y += rhs.y;
+    return *this;
+}
+
+inline bool Vec2::isNan() const
+{
+    return std::isnan(x) && std::isnan(y);
+}
+
+inline bool Vec2::isInf() const
+{
+    return std::isinf(x) && std::isinf(y);
+}
+
 inline constexpr Vec3::Vec3(const float v) : x{v}, y{v}, z{v}
 {}
 
@@ -495,6 +528,16 @@ inline constexpr Vec3& Vec3::operator+=(const Vec3& rhs)
     return *this;
 }
 
+inline bool Vec3::isNan() const
+{
+    return std::isnan(x) && std::isnan(y) && std::isnan(z);
+}
+
+inline bool Vec3::isInf() const
+{
+    return std::isinf(x) && std::isinf(y) && std::isinf(z);
+}
+
 inline constexpr Vec4::Vec4(const float v) : x{v}, y{v}, z{v}, w{v}
 {}
 
@@ -505,5 +548,29 @@ inline constexpr Vec4::Vec4(const float x_, const float y_, const float z_, cons
 inline constexpr Vec4 Vec4::operator*(const float scalar) const
 {
     return {x * scalar, y * scalar, z * scalar, w * scalar};
+}
+
+inline constexpr Vec4 Vec4::operator+(const Vec4& rhs) const
+{
+    return {x + rhs.x, y * rhs.y, z + rhs.z, w + rhs.w};
+}
+
+inline constexpr Vec4& Vec4::operator+=(const Vec4& rhs)
+{
+    x += rhs.x;
+    y += rhs.y;
+    z += rhs.z;
+    w += rhs.w;
+    return *this;
+}
+
+inline bool Vec4::isNan() const
+{
+    return std::isnan(x) or std::isnan(y) or std::isnan(z) or std::isnan(w);
+}
+
+inline bool Vec4::isInf() const
+{
+    return std::isinf(x) or std::isinf(y) or std::isinf(z) or std::isinf(w);
 }
 } // namespace ts

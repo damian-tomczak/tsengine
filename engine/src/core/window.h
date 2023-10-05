@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils.hpp"
+#include "internal_utils.h"
 
 #ifdef _WIN32
     #define NOMINMAX

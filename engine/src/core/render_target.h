@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vulkan/vulkan.h"
-#include "utils.hpp"
+#include "internal_utils.h"
 
 namespace ts
 {

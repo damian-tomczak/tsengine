@@ -20,11 +20,11 @@ layout (binding = 2) uniform LightsUbo {
 } lightsUbo;
 
 layout(push_constant) uniform Material {
-    layout(offset = 16) float roughness;
-    layout(offset = 20) float metallic;
-    layout(offset = 24) float r;
-    layout(offset = 28) float g;
-    layout(offset = 32) float b;
+    layout(offset = 16) float r;
+    layout(offset = 20) float g;
+    layout(offset = 24) float b;
+    layout(offset = 32) float roughness;
+    layout(offset = 36) float metallic;
 } material;
 
 vec3 materialcolor()
@@ -62,10 +62,10 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness)
 {
     // Precalculate vectors and dot products
     vec3 H = normalize (V + L);
-    float dotNV = clamp(dot(N, V), 0.1, 1.0);
-    float dotNL = clamp(dot(N, L), 0.1, 1.0);
-    float dotLH = clamp(dot(L, H), 0.0, 1.0);
-    float dotNH = clamp(dot(N, H), 0.0, 1.0);
+    float dotNV = clamp(dot(N, V), 1e-5, 1.0);
+    float dotNL = clamp(dot(N, L), 1e-5, 1.0);
+    float dotLH = clamp(dot(L, H), 1e-5, 1.0);
+    float dotNH = clamp(dot(N, H), 1e-5, 1.0);
 
     // Light color fixed
     vec3 lightColor = vec3(1.0);

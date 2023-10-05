@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tsengine/math.hpp"
-#include "utils.hpp"
+#include "internal_utils.h"
 
 #include "vulkan/vulkan.h"
 

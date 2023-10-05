@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils.hpp"
+#include "internal_utils.h"
 #include "tsengine/math.hpp"
 
 #ifdef _WIN32

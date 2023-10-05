@@ -254,7 +254,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
     vkCmdBindIndexBuffer(commandBuffer, buffer, mIndexOffset, VK_INDEX_TYPE_UINT32);
 
     const auto descriptorSet = renderProcess->getDescriptorSet();
-    // TODO: it beggs for the refactor
+    // TODO: it needs refactoring
     for (size_t modelIdx{}; modelIdx < mModels.size() + 1; ++modelIdx)
     {
         auto modelIndexWithoutGridDraw = (modelIdx != 0) ? modelIdx - 1 : 0;
@@ -275,7 +275,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
             &uniformBufferOffset);
 
 
-        if (modelIdx == 0) [[unlikely]]
+        if (modelIdx == 0) [[unlikely]] // TODO: does it affect?
         {
             mGridPipeline->bind(commandBuffer);
             vkCmdDraw(commandBuffer, 6, 1, 0, 0);
@@ -309,7 +309,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
             break;
         }
         default:
-            LOGGER_ERR("Invalid pipelineline type");
+            LOGGER_ERR("Invalid pipeline type");
         }
 
         vkCmdDrawIndexed(commandBuffer,
