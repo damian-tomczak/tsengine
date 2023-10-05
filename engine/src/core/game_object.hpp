@@ -2,7 +2,7 @@
 
 // TODO: refactor it to the ecs
 
-#include "utils.hpp"
+#include "internal_utils.h"
 #include "tsengine/math.hpp"
 #include "tsengine/logger.h"
 
@@ -10,11 +10,37 @@
 
 namespace ts
 {
+// TODO: enum reflection
+enum class PipelineType
+{
+    INVALID,
+    COLOR, // TODO: implement
+    NORMAL_LIGHTING,
+    PBR,
+    COUNT
+};
+
+struct Material final
+{
+    std::string_view name;
+
+    struct Params final
+    {
+        math::Vec3 color;
+        float roughness;
+        float metallic;
+    } params;
+};
+
 struct Model final
 {
     size_t firstIndex;
     size_t indexCount;
-    math::Mat4 worldMatrix;
+
+    math::Vec3 pos;
+    math::Mat4 model;
+    PipelineType pipeline;
+    Material material;
 };
 
 struct Vertex final
@@ -37,7 +63,7 @@ public:
         std::vector<tinyobj::shape_t> shapes;
         if (!tinyobj::LoadObj(&attrib, &shapes, nullptr, nullptr, nullptr, fileName.data()))
         {
-            LOGGER_ERR(("Can not open the model: " + fileName).c_str());
+            LOGGER_ERR(("Can not open the file: " + fileName).c_str());
         }
 
         const auto oldIndexCount = mIndices.size();
@@ -95,5 +121,39 @@ private:
     std::vector<uint32_t> mIndices;
 
     size_t offset{};
+};
+
+struct Materials final
+{
+    // TODO: rewrite it for enums
+    static constexpr std::array materials
+    {
+        Material{.name = "White"   , .params{.color = {1.0f},                            .roughness = 0.5f, .metallic = 1.0f}},
+        Material{.name = "Red"     , .params{.color = {1.0f, 0.0f, 0.0f},                .roughness = 0.5f, .metallic = 1.0f}},
+        Material{.name = "Blue"    , .params{.color = {0.0f, 0.0f, 1.0f},                .roughness = 0.5f, .metallic = 1.0f}},
+        Material{.name = "Black"   , .params{.color = {0.0f},                            .roughness = 0.5f, .metallic = 1.0f}},
+        Material{.name = "Gold"    , .params{.color = {1.0f, 0.765557f, 0.336057f},      .roughness = 0.5f, .metallic = 1.0f}},
+        Material{.name = "Copper"  , .params{.color = {0.955008f, 0.637427f, 0.538163f}, .roughness = 0.5f, .metallic = 1.0f}},
+        Material{.name = "Chromium", .params{.color = {0.549585f, 0.556114f, 0.554256f}, .roughness = 0.5f, .metallic = 1.0f}},
+        Material{.name = "Nickel"  , .params{.color = {0.659777f, 0.608679f, 0.525649f}, .roughness = 0.5f, .metallic = 1.0f}},
+        Material{.name = "Titanium", .params{.color = {0.541931f, 0.496791f, 0.449419f}, .roughness = 0.5f, .metallic = 1.0f}},
+        Material{.name = "Cobalt"  , .params{.color = {0.662124f, 0.654864f, 0.633732f}, .roughness = 0.5f, .metallic = 1.0f}},
+        Material{.name = "Platinum", .params{.color = {0.672411f, 0.637331f, 0.585456f}, .roughness = 0.5f, .metallic = 1.0f}},
+    };
+
+    // TODO: constexpr
+    static Material at(const std::string& materialName)
+    {
+        const auto it = std::ranges::find_if(materials, [&materialName](const auto& material) -> bool {
+            return materialName == material.name;
+        });
+
+        if (it == materials.end())
+        {
+            LOGGER_ERR(std::format(R"(Material "{}" doesn't exist)", materialName).c_str());
+        }
+
+        return *it;
+    }
 };
 }

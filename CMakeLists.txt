@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.26)
 
 project(ts VERSION 0.0.1 LANGUAGES CXX)
 
-set(GAME_NAME "Awesome game" CACHE STRING "Game name")
+set(GAME_NAME "Awesome Game" CACHE STRING "Game name")
 message("Game name: ${GAME_NAME}")
 
 if(NOT WIN32 AND NOT CMAKE_COMPILER_IS_MSVC)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tsengine/math.hpp"
-#include "utils.hpp"
+#include "internal_utils.h"
 
 #include "vulkan/vulkan.h"
 
@@ -25,20 +25,30 @@ public:
         VkDescriptorSetLayout descriptorSetLayout,
         size_t modelCount);
 
-    struct DynamicVertexUniformData
+    struct IndivialData final
     {
-        math::Mat4 worldMatrixrix;
+        math::Mat4 model;
     };
-    std::vector<DynamicVertexUniformData> mDynamicVertexUniformData;
+    std::vector<IndivialData> mIndividualUniformData;
 
-    struct StaticVertexUniformData
+    struct CommonUniformData final
     {
-        math::Mat4 cameraMatrix;
-        std::vector<math::Mat4> viewMatrices;
-        std::vector<math::Mat4> projectionMatrices;
-    } mStaticVertexUniformData2;
+        math::Vec3 cameraPosition;
+        std::array<math::Mat4, 2> viewMatrices;
+        std::array<math::Mat4, 2> projMat;
+    } mCommonUniformData;
 
-    void updateUniformBufferData() const;
+    // TODO: deffered lighting
+    // TODO: move it to the different place
+    struct LightData final
+    {
+        std::array<math::Vec3, 2> lightPositions{
+            math::Vec3{0.f, 5.f, -5.f},
+            math::Vec3{0.f, 5.f, 5.f},
+        };
+    } mLightUniformData;
+
+    void updateUniformBufferData();
 
     [[nodiscard]] VkCommandBuffer getCommandBuffer() const { return mCommandBuffer; }
     [[nodiscard]] VkFence getFence() const { return mFence; }
@@ -51,8 +61,8 @@ private:
     VkCommandBuffer mCommandBuffer{};
     VkSemaphore mDrawableSemaphore{}, mPresentableSemaphore{};
     VkFence mFence{};
-    DataBuffer* mUniformBuffer{};
-    void* mUniformBufferMemory{};
+    std::unique_ptr<DataBuffer> mUniformBuffer;
+    void* mUniformBufferMemory;
     VkDescriptorSet mDescriptorSet{};
     const Headset& mHeadset;
 };

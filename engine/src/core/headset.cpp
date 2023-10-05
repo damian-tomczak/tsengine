@@ -63,7 +63,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
         }
         case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
         {
-            auto event = reinterpret_cast<XrEventDataSessionStateChanged*>(&buffer);
+            const auto event = reinterpret_cast<XrEventDataSessionStateChanged*>(&buffer);
             mXrSessionState = event->state;
 
             if (event->state == XR_SESSION_STATE_READY)
@@ -152,8 +152,8 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
 
 void Headset::createVkRenderPass()
 {
-    constexpr uint32_t viewMask = 0b11;
-    constexpr uint32_t correlationMask = 0b11;
+    constexpr uint32_t viewMask{0b11};
+    constexpr uint32_t correlationMask{0b11};
 
     const VkRenderPassMultiviewCreateInfo renderPassMultiviewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
@@ -163,7 +163,7 @@ void Headset::createVkRenderPass()
         .pCorrelationMasks = &correlationMask
     };
 
-    const auto multisampleCount{mCtx.getVkMultisampleCount()};
+    const auto multisampleCount = mCtx.getVkMultisampleCount();
     const VkAttachmentDescription colorAttachmentDescription{
         .format = colorFormat,
         .samples = multisampleCount,
@@ -220,7 +220,7 @@ void Headset::createVkRenderPass()
         .pDepthStencilAttachment = &depthAttachmentReference,
     };
 
-    const std::array attachments {
+    const std::array attachments{
         colorAttachmentDescription,
         depthAttachmentDescription,
         resolveAttachmentDescription
@@ -339,7 +339,6 @@ void Headset::createXrSwapchain()
         VK_IMAGE_ASPECT_COLOR_BIT,
         2);
 
-    // Create a depth buffer
     mDepthBuffer = std::make_unique<ImageBuffer>(mCtx);
     mDepthBuffer->createImage(
         eyeResolution,
@@ -422,12 +421,7 @@ void Headset::endFrame(bool skipReleaseSwapchainImage) const
     if (!skipReleaseSwapchainImage)
     {
         XrSwapchainImageReleaseInfo swapchainImageReleaseInfo{ XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
-        auto result = xrReleaseSwapchainImage(mXrSwapchain, &swapchainImageReleaseInfo);
-        if (XR_FAILED(result))
-        {
-            // TODO: investigate the problem (probably problem with the main loop code architecture)
-            LOGGER_WARN(("(KNOWN ISSUE) xrReleaseSwapchainImage failed with status: " + khronos_utils::xrResultToString(result)).c_str());
-        }
+        LOGGER_XR(xrReleaseSwapchainImage, mXrSwapchain, &swapchainImageReleaseInfo);
     }
 
     XrCompositionLayerProjection compositionLayerProjection{

@@ -65,12 +65,12 @@ void Controllers::setupControllers()
         LOGGER_XR(xrCreateActionSpace, mSession, &actionSpaceCreateInfo, &mSpaces.at(controllerIndex));
     }
 
-    const std::array<XrActionSuggestedBinding, 4> bindings{{
-        { mPoseAction , stringToXrPath(mInstance, "/user/hand/left/input/aim/pose")    },
-        { mPoseAction , stringToXrPath(mInstance, "/user/hand/right/input/aim/pose")   },
-        { mFlyAction, stringToXrPath(mInstance, "/user/hand/left/input/select/click")  },
-        { mFlyAction, stringToXrPath(mInstance, "/user/hand/right/input/select/click") },
-    }};
+    const std::array bindings{
+        XrActionSuggestedBinding{mPoseAction, stringToXrPath(mInstance, "/user/hand/left/input/aim/pose")     },
+        XrActionSuggestedBinding{mPoseAction, stringToXrPath(mInstance, "/user/hand/right/input/aim/pose")    },
+        XrActionSuggestedBinding{mFlyAction , stringToXrPath(mInstance, "/user/hand/left/input/select/click") },
+        XrActionSuggestedBinding{mFlyAction , stringToXrPath(mInstance, "/user/hand/right/input/select/click")},
+    };
 
     XrInteractionProfileSuggestedBinding interactionProfileSuggestedBinding{
         .type = XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING,

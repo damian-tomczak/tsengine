@@ -14,19 +14,22 @@ std::mutex engineInit;
 
 namespace
 {
-constexpr float flySpeedMultiplier{2.5f};
+constexpr float flySpeedMultiplier{15.f};
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
 
-void cleanEngine()
+void runCleaner()
 {
     isAlreadyInitiated = false;
 }
-}
+} // namespace
 
+
+// TODO: maybe would be possible to fancy implement individualtons here?
 namespace ts
 {
+[[deprecated("not implemented yet")]]
 unsigned getTickCount()
 {
     return tickCount;
@@ -62,7 +65,7 @@ int run(Engine* const engine) try
     Context ctx;
     ctx.createOpenXrContext().createVulkanContext();
 
-    auto window = Window::createWindowInstance(width, height);
+    auto window = Window::createWindowInstance(GAME_NAME, width, height);
     MirrorView mirrorView{ctx, window};
     mirrorView.createSurface();
     ctx.createVkDevice(mirrorView.getSurface());
@@ -72,21 +75,31 @@ int run(Engine* const engine) try
     controllers.setupControllers();
 
     std::shared_ptr<Model> ruins = std::make_shared<Model>(Model{
-        .worldMatrix = math::Mat4(1.f),
+        .model = math::Mat4(1.f),
+        .pipeline = PipelineType::NORMAL_LIGHTING,
     });
-
     std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
-        .worldMatrix = math::translate(math::Mat4(1.f), {0.f, 0.f, -5.f})
+        .pos = {0.f, 0.f, -10.f},
+        .model = math::Mat4(1.f),
+        .pipeline = PipelineType::NORMAL_LIGHTING,
+    });
+    std::shared_ptr<Model> sphere1 = std::make_shared<Model>(Model{
+        .pos = {0.f, 1.5f, -5.f},
+        .model = math::Mat4(1.f),
+        .pipeline = PipelineType::PBR,
+        .material = Materials::at("Gold"),
     });
 
     const std::vector<std::shared_ptr<Model>> models{
         ruins,
         polonez,
+        sphere1,
     };
 
     auto meshData = std::make_unique<MeshData>();
     meshData->loadModel("assets/models/ruins.obj", models, 1);
     meshData->loadModel("assets/models/polonez.obj", models, 1);
+    meshData->loadModel("assets/models/sphere.obj", models, 1);
 
     Renderer renderer{ctx, headset, models, std::move(meshData)};
     renderer.createRenderer();
@@ -96,7 +109,7 @@ int run(Engine* const engine) try
 
     window->show();
     bool isRenderingStarted{};
-    auto cameraMatrix = math::Mat4(1.f);
+    math::Vec3 cameraPosition{};
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::steady_clock::now();
@@ -152,13 +165,21 @@ int run(Engine* const engine) try
                 const auto flySpeed = controllers.getFlySpeed(controllerIndex);
                 if (flySpeed > 0.f)
                 {
-                    const math::Vec3 forward{math::normalize(controllers.getPose(controllerIndex)[2])};
-                    math::Vec3 t = forward * flySpeed * flySpeedMultiplier * deltaTime;
-                    cameraMatrix = math::translate(cameraMatrix, t);
+                    const auto controllerPose = controllers.getPose(controllerIndex)[2];
+
+                    if (!controllerPose.isNan())
+                    {
+                        const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
+                        cameraPosition += forward * flySpeed * flySpeedMultiplier * deltaTime;
+                    }
+                    else
+                    {
+                        LOGGER_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
+                    }
                 }
             }
 
-            renderer.render(cameraMatrix, swapchainImageIndex);
+            renderer.render(cameraPosition, swapchainImageIndex);
             const auto mirrorResult = mirrorView.render(swapchainImageIndex);
 
             const auto isMirrorViewVisible = (mirrorResult == MirrorView::RenderResult::VISIBLE);
@@ -183,5 +204,5 @@ int run(Engine* const engine) try
 
     return EXIT_SUCCESS;
 }
-TS_CATCH_FALLBACK
+TS_CATCH_FALLBACK_WITH_CLEANER(runCleaner)
 } // namespace ts

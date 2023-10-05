@@ -1,8 +1,8 @@
 #pragma once
 
-#include "utils.hpp"
+#include "internal_utils.h"
 
-#include <vulkan/vulkan.h>
+#include "vulkan/vulkan.h"
 
 namespace ts
 {

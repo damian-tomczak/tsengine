@@ -50,6 +50,10 @@ file(GLOB_RECURSE HPP_FILES
     include/*.hpp
 )
 
+file(GLOB_RECURSE SHADER_FILES
+    ${ASSETS_DIR}/shaders/*
+)
+
 set(OTHER_FILES
     src/vulkan_tools/vulkan_functions.inl
 )
@@ -58,6 +62,7 @@ add_library(${PROJECT_NAME} STATIC
     ${SRC_FILES}
     ${H_FILES}
     ${HPP_FILES}
+    ${SHADER_FILES}
     ${OTHER_FILES}
 )
 
@@ -110,6 +115,10 @@ source_group(TREE ${CMAKE_SOURCE_DIR}/engine FILES
     ${H_FILES}
     ${HPP_FILES}
     ${OTHER_FILES}
+)
+
+source_group(TREE ${ASSETS_DIR} FILES
+    ${SHADER_FILES}
 )
 
 set(OUTPUT_DIR_DEBUG ${CMAKE_BINARY_DIR}/output/${PROJECT_NAME}/Debug)

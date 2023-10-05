@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 // TODO: impl rotate func
 
 namespace ts::math
@@ -9,67 +11,53 @@ struct Vec4;
 
 struct Vec2 final
 {
-    float x{}, y{};
+    float x, y;
 
-    Vec2();
-    Vec2(const float x_, const float y_);
-    Vec2 operator*(const float scalar) const;
+    constexpr Vec2() = default;
+    constexpr Vec2(const float v);
+    constexpr Vec2(const Vec3& vec3);
+    constexpr Vec2(const Vec4& vec4);
+    constexpr Vec2(const float x_, const float y_);
+    [[nodiscard]] constexpr Vec2 operator*(const float scalar) const;
+    [[nodiscard]] constexpr Vec2 operator+(const Vec2& rhs) const;
+    constexpr Vec2& operator+=(const Vec2& rhs);
+    bool isNan() const;
+    bool isInf() const;
 };
 
-struct Vec3 final
+struct alignas(16) Vec3 final
 {
-    float x{}, y{}, z{};
+    float x, y, z;
 
-    Vec3();
-    Vec3(const Vec4& vec4);
-    Vec3(const float x_, const float y_, const float z_);
-    Vec3 operator*(const float scalar) const;
+    constexpr Vec3() = default;
+    constexpr Vec3(const float v);
+    constexpr Vec3(const Vec4& vec4);
+    constexpr Vec3(const float x_, const float y_, const float z_);
+    [[nodiscard]] constexpr Vec3 operator*(const float scalar) const;
+    [[nodiscard]] constexpr Vec3 operator+(const Vec3& rhs) const;
+    constexpr Vec3& operator+=(const Vec3& rhs);
+    bool isNan() const;
+    bool isInf() const;
 };
 
 struct Vec4 final
 {
-    float x{}, y{}, z{}, w{};
+    float x, y, z, w;
 
-    Vec4();
-    Vec4(const float x_, const float y_, const float z_, const float w_);
+    constexpr Vec4() = default;
+    constexpr Vec4(const float v);
+    constexpr Vec4(const float x_, const float y_, const float z_, const float w_);
+    [[nodiscard]] constexpr Vec4 operator*(const float scalar) const;
+    [[nodiscard]] constexpr Vec4 operator+(const Vec4& rhs) const;
+    constexpr Vec4& operator+=(const Vec4& rhs);
+    bool isNan() const;
+    bool isInf() const;
 };
 
 struct Quat
 {
-    float w{}, x{}, y{}, z{};
+    float w, x, y, z;
 };
-
-inline Vec2::Vec2()
-{}
-
-inline Vec2::Vec2(const float x_, const float y_) : x{x_}, y{y_}
-{}
-
-inline Vec2 Vec2::operator*(const float scalar) const
-{
-    return {x * scalar, y * scalar};
-}
-
-inline Vec3::Vec3()
-{}
-
-inline Vec3::Vec3(const Vec4& vec4) : x{vec4.x}, y{vec4.y}, z{vec4.z}
-{}
-
-inline Vec3::Vec3(const float x_, const float y_, const float z_) : x{x_}, y{y_}, z{z_}
-{}
-
-inline Vec3 Vec3::operator*(const float scalar) const
-{
-    return {x * scalar, y * scalar, z * scalar};
-}
-
-inline Vec4::Vec4()
-{}
-
-inline Vec4::Vec4(const float x_, const float y_, const float z_, const float w_) :
-    x{x_}, y{y_}, z{z_}, w{w_}
-{}
 
 template<size_t matRows, size_t matColumns>
 struct Matrix
@@ -80,7 +68,7 @@ struct Matrix
 
 struct Mat2 : public Matrix<2, 2>
 {
-    std::array<Vec2, 2> data{};
+    std::array<Vec2, 2> data;
 
     Mat2()
     {}
@@ -288,13 +276,13 @@ struct Mat4 : public Matrix<4, 4>
         }}
     {}
 
-    explicit Mat4(const float value) :
+    Mat4(const float v) :
         data
         {{
-            {value, 0.f  , 0.f  , 0.f  },
-            {0.f  , value, 0.f  , 0.f  },
-            {0.f  , 0.f  , value, 0.f  },
-            {0.f  , 0.f  , 0.f  , value}
+            {v  , 0.f, 0.f, 0.f},
+            {0.f, v  , 0.f, 0.f},
+            {0.f, 0.f, v  , 0.f},
+            {0.f, 0.f, 0.f, v  }
         }}
     {}
 
@@ -386,10 +374,10 @@ inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
 {
     Mat4 scaleMatrix
     {
-        scaleVec.x, 0            , 0         , 0,
-        0         , scaleVec.y   , 0         , 0,
-        0         , 0            , scaleVec.z, 0,
-        0         , 0            , 0         , 1.f
+        scaleVec.x, 0         , 0         , 0  ,
+        0         , scaleVec.y, 0         , 0  ,
+        0         , 0         , scaleVec.z, 0  ,
+        0         , 0         , 0         , 1.f
     };
 
     return matrix * scaleMatrix;
@@ -455,14 +443,14 @@ inline Mat4 inverse(const Mat4& mat)
     const auto tempInverse03 = -(mat[1].x * det23yz - mat[1].y * det23xz + mat[1].z * det23xy);
 
     const auto det =
-        + mat[0].x * tempInverse00
-        + mat[0].y * tempInverse01
-        + mat[0].z * tempInverse02
-        + mat[0].w * tempInverse03;
+        mat[0].x * tempInverse00 +
+        mat[0].y * tempInverse01 +
+        mat[0].z * tempInverse02 +
+        mat[0].w * tempInverse03;
 
     if (det == 0)
     {
-        throw std::runtime_error{"singular matrix, can't find its inverse"};
+        throw std::runtime_error{"Singular matrix, can't find its inverse"};
     }
 
     return
@@ -472,5 +460,117 @@ inline Mat4 inverse(const Mat4& mat)
         tempInverse02 / det, (-(mat[0].x * det23yw - mat[0].y * det23xw + mat[0].w * det23xy)) / det, (+(mat[0].x * det13yw - mat[0].y * det13xw + mat[0].w * det13xy)) / det, (-(mat[0].x * det12yw - mat[0].y * det12xw + mat[0].w * det12xy)) / det,
         tempInverse03 / det, (+(mat[0].x * det23yz - mat[0].y * det23xz + mat[0].z * det23xy)) / det, (-(mat[0].x * det13yz - mat[0].y * det13xz + mat[0].z * det13xy)) / det, (+(mat[0].x * det12yz - mat[0].y * det12xz + mat[0].z * det12xy)) / det,
     };
+}
+
+inline constexpr Vec2::Vec2(const float v) : x{v}, y{v}
+{}
+
+inline constexpr Vec2::Vec2(const Vec3& vec3) : x{vec3.x}, y{vec3.y}
+{}
+
+inline constexpr Vec2::Vec2(const Vec4& vec4) : x{vec4.x}, y{vec4.y}
+{}
+
+inline constexpr Vec2::Vec2(const float x_, const float y_) : x{x_}, y{y_}
+{}
+
+inline constexpr Vec2 Vec2::operator*(const float scalar) const
+{
+    return {x * scalar, y * scalar};
+}
+
+inline constexpr Vec2 Vec2::operator+(const Vec2& rhs) const
+{
+    return {x + rhs.x, y * rhs.y};
+}
+
+inline constexpr Vec2& Vec2::operator+=(const Vec2& rhs)
+{
+    x += rhs.x;
+    y += rhs.y;
+    return *this;
+}
+
+inline bool Vec2::isNan() const
+{
+    return std::isnan(x) && std::isnan(y);
+}
+
+inline bool Vec2::isInf() const
+{
+    return std::isinf(x) && std::isinf(y);
+}
+
+inline constexpr Vec3::Vec3(const float v) : x{v}, y{v}, z{v}
+{}
+
+inline constexpr Vec3::Vec3(const Vec4& vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }
+{}
+
+inline constexpr Vec3::Vec3(const float x_, const float y_, const float z_) : x{ x_ }, y{ y_ }, z{ z_ }
+{}
+
+inline constexpr Vec3 Vec3::operator*(const float scalar) const
+{
+    return {x * scalar, y * scalar, z * scalar};
+}
+
+inline constexpr Vec3 Vec3::operator+(const Vec3& rhs) const
+{
+    return { x + rhs.x, y * rhs.y, z + rhs.z };
+}
+
+inline constexpr Vec3& Vec3::operator+=(const Vec3& rhs)
+{
+    x += rhs.x;
+    y += rhs.y;
+    z += rhs.z;
+    return *this;
+}
+
+inline bool Vec3::isNan() const
+{
+    return std::isnan(x) && std::isnan(y) && std::isnan(z);
+}
+
+inline bool Vec3::isInf() const
+{
+    return std::isinf(x) && std::isinf(y) && std::isinf(z);
+}
+
+inline constexpr Vec4::Vec4(const float v) : x{v}, y{v}, z{v}, w{v}
+{}
+
+inline constexpr Vec4::Vec4(const float x_, const float y_, const float z_, const float w_) :
+    x{x_}, y{y_}, z{z_}, w{w_}
+{}
+
+inline constexpr Vec4 Vec4::operator*(const float scalar) const
+{
+    return {x * scalar, y * scalar, z * scalar, w * scalar};
+}
+
+inline constexpr Vec4 Vec4::operator+(const Vec4& rhs) const
+{
+    return {x + rhs.x, y * rhs.y, z + rhs.z, w + rhs.w};
+}
+
+inline constexpr Vec4& Vec4::operator+=(const Vec4& rhs)
+{
+    x += rhs.x;
+    y += rhs.y;
+    z += rhs.z;
+    w += rhs.w;
+    return *this;
+}
+
+inline bool Vec4::isNan() const
+{
+    return std::isnan(x) or std::isnan(y) or std::isnan(z) or std::isnan(w);
+}
+
+inline bool Vec4::isInf() const
+{
+    return std::isinf(x) or std::isinf(y) or std::isinf(z) or std::isinf(w);
 }
 } // namespace ts

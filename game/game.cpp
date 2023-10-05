@@ -12,14 +12,14 @@
 
 bool Game::init(unsigned& width, unsigned& height)
 {
-    mpAssetStore = std::make_unique<ts::AssetStore>();
+    //mpAssetStore = std::make_unique<ts::AssetStore>();
     mpRegistry = std::make_unique<ts::Registry>();
     mpEventBus = std::make_unique<ts::EventBus>();
 
-    mpAssetStore->addTexture("player-left", "lik-left.png");
-    mpAssetStore->addTexture("player-right", "lik-right.png");
-    mpAssetStore->addTexture("background-1", "bck.png");
-    mpAssetStore->addTexture("background-2", "soccer-bck.png");
+    //mpAssetStore->addTexture("player-left", "lik-left.png");
+    //mpAssetStore->addTexture("player-right", "lik-right.png");
+    //mpAssetStore->addTexture("background-1", "bck.png");
+    //mpAssetStore->addTexture("background-2", "soccer-bck.png");
 
     mpRegistry->addSystem<RenderSystem>();
     mpRegistry->addSystem<KeyboardSystem>();

@@ -1,20 +1,24 @@
 #pragma once
 
-#include <iomanip>
-#include <map>
-#include <stdexcept>
-#include <string>
+#include "utils.h"
 
 namespace ts
 {
-class AssetStore
+class AssetStore final : public Singleton<AssetStore>
 {
-public:
-    AssetStore() = default;
-    virtual ~AssetStore() { clearAssets(); };
+    SINGLETON_BODY(AssetStore);
+    NOT_MOVEABLE(AssetStore);
 
-    void clearAssets();
-    void addTexture(const char* assetId, const char* filePath);
-    void* getTexture(const char* assetId);
+public:
+    //struct Model final
+    //{
+    //    size_t firstIndex;
+    //    size_t indexCount;
+    //};
+
+    //void loadModel();
+
+
+    //void reset();
 };
 } // namespace ts

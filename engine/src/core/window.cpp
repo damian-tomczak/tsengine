@@ -14,7 +14,7 @@ Window::~Window()
     isWindowAlreadyCreated = false;
 }
 
-std::shared_ptr<Window> Window::createWindowInstance(size_t width, size_t height)
+std::shared_ptr<Window> Window::createWindowInstance(const std::string& windowName, const size_t width, const size_t height)
 {
     if (isWindowAlreadyCreated)
     {
@@ -24,7 +24,7 @@ std::shared_ptr<Window> Window::createWindowInstance(size_t width, size_t height
     std::shared_ptr<Window> window;
 
 #ifdef _WIN32
-    window = std::make_shared<Win32Window>(width, height);
+    window = std::make_shared<Win32Window>(windowName, width, height);
 #else
     #error "not implemented"
 #endif // _WIN32

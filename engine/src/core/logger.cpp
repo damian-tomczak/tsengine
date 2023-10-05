@@ -1,5 +1,5 @@
 #include "tsengine/logger.h"
-#include "utils.hpp"
+#include "internal_utils.h"
 
 #ifdef _WIN32
 #include <windows.h>
