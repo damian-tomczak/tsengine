@@ -19,14 +19,14 @@ constexpr float flySpeedMultiplier{15.f};
 unsigned tickCount{};
 bool isAlreadyInitiated{};
 
-void runCleaner()
+__forceinline void runCleaner()
 {
     isAlreadyInitiated = false;
 }
 } // namespace
 
 
-// TODO: maybe would be possible to fancy implement individualtons here?
+// TODO: maybe would be possible to fancy break down run function?
 namespace ts
 {
 [[deprecated("not implemented yet")]]
@@ -87,7 +87,7 @@ int run(Engine* const engine) try
         .pos = {0.f, 1.5f, -5.f},
         .model = math::Mat4(1.f),
         .pipeline = PipelineType::PBR,
-        .material = Materials::at("Gold"),
+        .material = Materials::create(Material::Type::GOLD),
     });
 
     const std::vector<std::shared_ptr<Model>> models{

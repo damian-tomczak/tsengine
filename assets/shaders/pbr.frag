@@ -56,18 +56,14 @@ vec3 F_Schlick(float cosTheta, float metallic)
     return F;
 }
 
-// Specular BRDF composition --------------------------------------------
-
 vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness)
 {
-    // Precalculate vectors and dot products
     vec3 H = normalize (V + L);
     float dotNV = clamp(dot(N, V), 1e-5, 1.0);
     float dotNL = clamp(dot(N, L), 1e-5, 1.0);
     float dotLH = clamp(dot(L, H), 1e-5, 1.0);
     float dotNH = clamp(dot(N, H), 1e-5, 1.0);
 
-    // Light color fixed
     vec3 lightColor = vec3(1.0);
 
     vec3 color = vec3(0.0);
