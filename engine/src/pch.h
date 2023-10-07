@@ -13,5 +13,6 @@
 #include <set>
 #include <fstream>
 #include <future>
+#include <cassert>
 
 using namespace std::literals;

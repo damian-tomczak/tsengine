@@ -116,7 +116,7 @@ void Renderer::createRenderer()
     pushConstantRanges.emplace_back<VkPushConstantRange>({
         .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
         .offset = pushConstantRanges.at(0).size,
-        .size = sizeof(Material::Params)
+        .size = sizeof(Material)
     });
 
     const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
@@ -275,7 +275,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
             &uniformBufferOffset);
 
 
-        if (modelIdx == 0) [[unlikely]] // TODO: does it affect?
+        if (modelIdx == 0)
         {
             mGridPipeline->bind(commandBuffer);
             vkCmdDraw(commandBuffer, 6, 1, 0, 0);
@@ -292,6 +292,10 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
 
         switch(model->pipeline)
         {
+        case PipelineType::COLOR:
+        {
+            LOGGER_ERR("PipelineType::COLOR is not implemented yet");
+        }
         case PipelineType::NORMAL_LIGHTING:
         {
             mNormalLightingPipeline->bind(commandBuffer);
@@ -304,12 +308,12 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
                 mPipelineLayout,
                 VK_SHADER_STAGE_FRAGMENT_BIT,
                 sizeof(math::Vec3),
-                sizeof(Material::Params),
-                &model->material.params);
+                sizeof(Material),
+                &model->material);
             break;
         }
         default:
-            LOGGER_ERR("Invalid pipeline type");
+            LOGGER_ERR(("Invalid pipeline type: " + std::to_string(static_cast<uint32_t>(model->pipeline))).c_str());
         }
 
         vkCmdDrawIndexed(commandBuffer,
