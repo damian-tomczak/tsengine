@@ -97,7 +97,7 @@ int run(Engine* const engine) try
     };
 
     auto meshData = std::make_unique<MeshData>();
-    meshData->loadModel("assets/models/ruins.obj", models, 1);
+    meshData->loadModel("assets/models/village.obj", models, 1);
     meshData->loadModel("assets/models/polonez.obj", models, 1);
     meshData->loadModel("assets/models/sphere.obj", models, 1);
 
