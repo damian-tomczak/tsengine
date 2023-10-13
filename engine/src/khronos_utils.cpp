@@ -177,7 +177,7 @@ XrBool32 xrCallback(
     }
     else if (severity & XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
     {
-        logger::error(callbackData->message, "", "", NOT_PRINT_LINE_NUMBER);
+        logger::error(callbackData->message, "", "", NOT_PRINT_LINE_NUMBER, gThrowExceptions, gThrowExceptions);
     }
 
     return XR_FALSE;
@@ -195,37 +195,7 @@ VkBool32 vkCallback(
     }
     else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
     {
-        auto throwException = true;
-
-
-        if (gXrDeviceId == khronos_utils::device_ids::HtcVivePro)
-        {
-            throwException = false;
-        }
-
-        if (!throwException)
-        {
-            static std::optional<XrDeviceId> warnedXrDeviceId;
-
-            if ((warnedXrDeviceId == std::nullopt) || warnedXrDeviceId != gXrDeviceId)
-            {
-                warnedXrDeviceId = std::make_optional<XrDeviceId>(gXrDeviceId);
-
-                const auto it = std::ranges::find_if(knownXrDevicesIdToName, [](const auto& deviceInfo) -> bool {
-                    return deviceInfo.first == warnedXrDeviceId;
-                });
-
-                if (it == knownXrDevicesIdToName.end())
-                {
-                    LOGGER_ERR("Your xr device is marked by the engine as the unstable, but can not find its name.");
-                }
-
-                LOGGER_WARN(("Unstable OpenXr device in use ("s + it->second.data() + "). " +
-                    "Vulkan validation layers's errors won't stop the program.").c_str());
-            }
-        }
-
-        logger::error(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER, throwException, throwException);
+        logger::error(callbackData->pMessage, "", "", NOT_PRINT_LINE_NUMBER, gThrowExceptions, gThrowExceptions);
     }
 
     return VK_FALSE;
@@ -234,7 +204,7 @@ VkBool32 vkCallback(
 
 void unpackXrExtensionString(const std::string& str, std::vector<std::string>& result)
 {
-    std::istringstream stream(str);
+    std::istringstream stream{str};
     std::string extension;
 
     while (getline(stream, extension, ' '))
@@ -278,12 +248,12 @@ bool findSuitableMemoryTypeIndex(
 
 VkDeviceSize align(const VkDeviceSize value, const VkDeviceSize alignment)
 {
-    if (value == 0u)
+    if (value == 0)
     {
         return value;
     }
 
-    return (value + alignment - 1u) & ~(alignment - 1u);
+    return (value + alignment - 1) & ~(alignment - 1);
 }
 
 math::Mat4 createXrProjectionMatrix(const XrFovf fov, const float nearClip, const float farClip)
@@ -310,10 +280,10 @@ math::Mat4 createXrProjectionMatrix(const XrFovf fov, const float nearClip, cons
 math::Mat4 xrPoseToMatrix(const XrPosef& pose)
 {
     const auto translation =
-        math::translate(math::Mat4(1.f), { pose.position.x, pose.position.y, pose.position.z });
+        math::translate(math::Mat4{1.f}, {pose.position.x, pose.position.y, pose.position.z});
 
     const auto rotation =
-        math::Mat4(math::Quat(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z));
+        math::Mat4{math::Quat{pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z}};
 
     return translation * rotation;
 }

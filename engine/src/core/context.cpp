@@ -209,6 +209,17 @@ void Context::getXrSystemInfo()
     {
         LOGGER_WARN("Engine doesn't recognize headset in use");
     }
+
+    if (gXrDeviceId == khronos_utils::device_ids::HtcVivePro)
+    {
+        khronos_utils::gThrowExceptions = false;
+    }
+
+    if (!khronos_utils::gThrowExceptions)
+    {
+        LOGGER_WARN(("Unstable OpenXr device in use ("s + xrSystemProperties.systemName + "). " +
+            "Vulkan validation layers's errors won't stop the program.").c_str());
+    }
 }
 
 void Context::isXrBlendModeAvailable()
