@@ -38,16 +38,6 @@ public:
         std::array<math::Mat4, 2> projMat;
     } mCommonUniformData;
 
-    // TODO: deffered lighting
-    // TODO: move it to the different place
-    struct LightData final
-    {
-        std::array<math::Vec3, 2> lightPositions{
-            math::Vec3{0.f, 5.f, -5.f},
-            math::Vec3{0.f, 5.f, 5.f},
-        };
-    } mLightUniformData;
-
     void updateUniformBufferData();
 
     [[nodiscard]] VkCommandBuffer getCommandBuffer() const { return mCommandBuffer; }

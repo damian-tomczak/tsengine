@@ -4,7 +4,6 @@
 #extension GL_EXT_multiview : enable
 #extension GL_EXT_debug_printf : enable
 
-
 #include "assets/shaders/grid_params.h"
 
 layout (location=0) out vec2 uv;

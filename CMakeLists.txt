@@ -3,13 +3,21 @@ cmake_minimum_required(VERSION 3.26)
 project(ts VERSION 0.0.1 LANGUAGES CXX)
 
 set(GAME_NAME "Awesome Game" CACHE STRING "Game name")
-message("Game name: ${GAME_NAME}")
+message(STATUS "Game name: ${GAME_NAME}")
 
 if(NOT WIN32 AND NOT CMAKE_COMPILER_IS_MSVC)
     message(WARNING "Config was tested only on a environment with Windows system and MVSC compiler!")
-    if(CMAKE_CXX_COMPILER_VERSION NOT VERSION_EQUAL 19.35.32216.1)
-        message(WARNING "Config was tested only on the MSVC compiler version 19.35.32216.1.")
-    endif()
+endif()
+
+if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.35.32216.1")
+    message(WARNING
+        "Config was tested on the MSVC compiler ver 19.35.32216.1\n"
+        "Your MSVC compiler ver:  ${CMAKE_CXX_COMPILER_VERSION}"
+    )
+endif()
+
+if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "AMD64")
+    message(FATAL_ERROR "Config was tested only on AMD64 arch")
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -28,6 +36,8 @@ get_filename_component(EXTERNAL_DIR ${EXTERNAL_DIR} ABSOLUTE)
 
 set(ASSETS_DIR assets)
 get_filename_component(ASSETS_DIR ${ASSETS_DIR} ABSOLUTE)
+
+set(CYBSDK_DIR CACHE STRING "Specify costum CybSDK path")
 
 add_subdirectory(${EXTERNAL_DIR})
 

@@ -209,7 +209,7 @@ void unpackXrExtensionString(const std::string& str, std::vector<std::string>& r
 
     while (getline(stream, extension, ' '))
     {
-        result.emplace_back(std::move(extension));
+        result.push_back(extension);
     }
 }
 

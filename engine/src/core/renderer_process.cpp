@@ -5,6 +5,7 @@
 #include "khronos_utils.h"
 #include "data_buffer.h"
 #include "headset.h"
+#include "game_object.hpp"
 
 namespace ts
 {
