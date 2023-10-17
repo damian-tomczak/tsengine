@@ -47,13 +47,37 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY $<$<CONFIG:Debug>:${OUTPUT_DIR_DEBUG}>$<$<CONFIG:RelWithDebInfo>:${OUTPUT_DIR_RELWITHDEBINFO}>$<$<CONFIG:Release>:${OUTPUT_DIR_RELEASE}>
 )
 
-# TODO: over time it would be nice to copy only changed files
-add_custom_target(copy_assets
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${ASSETS_DIR} $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
+add_custom_command(OUTPUT file.txt
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different C:\Users\damian\Desktop\file.txt ${OUTPUT_DIR_DEBUG}
+    DEPENDS ${source}
 )
 
-add_dependencies(${PROJECT_NAME} copy_assets)
+# message("WARSZAWAWARSZAWA")
+# file(GLOB_RECURSE FILES_TO_COPY ${ASSETS_DIR}/*)
+
+# foreach(file ${FILES_TO_COPY})
+#     message(${file})
+#     file(RELATIVE_PATH relative_path ${ASSETS_DIR} ${file})
+#     message(${relative_path})
+
+#     set(source ${ASSETS_DIR}/${relative_path})
+#     set(destination2 ${OUTPUT_DIR_DEBUG}/assets/${relative_path})
+#     get_filename_component(destination ${destination2} DIRECTORY)
+
+#     # Ensure the destination directory exists
+#     get_filename_component(destination_dir ${destination} DIRECTORY)
+#     file(MAKE_DIRECTORY ${destination_dir})
+#     message(GDANSK${destination_dir})
+#     message(STATUS ${source})
+#     message(STATUS ${destination})
+#     add_custom_command(OUTPUT ${destination2}
+#         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${source} ${destination}
+#         DEPENDS ${source}
+#     )
+# endforeach()
+# message("POZNANPOZNAN")
+
+# add_custom_target(copy-modified-files ALL DEPENDS ${FILES_TO_COPY})
 
 file(COPY ${EXTERNAL_DLL_FILES} DESTINATION ${OUTPUT_DIR_DEBUG})
 file(COPY ${EXTERNAL_DLL_FILES} DESTINATION ${OUTPUT_DIR_RELWITHDEBINFO})

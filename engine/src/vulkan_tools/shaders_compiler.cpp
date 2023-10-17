@@ -169,7 +169,6 @@ void compileShaders(const std::string& shadersPath)
         LOGGER_ERR(("Path couldn't be found: " + shadersPath).c_str());
     }
 
-    // TODO: compile only modified shaders
     size_t shadersFoundCount{};
     for (const auto& file : std::filesystem::recursive_directory_iterator(shadersPath))
     {
@@ -180,19 +179,25 @@ void compileShaders(const std::string& shadersPath)
 
         shadersFoundCount++;
 
-#ifdef NDEBUG
-        // Shader is already compiled
-        if (std::filesystem::exists((file.path().string() + ".spirv")))
-        {
-            continue;
-        }
-#endif // NDEBUG
-
-        const auto spriv = compileShaderFile(file.path());
-
         const auto outputFileName = file.path().string() + ".spirv";
+
+        if (std::filesystem::exists(outputFileName))
+        {
+            const auto shaderLastWrite = std::filesystem::last_write_time(file);
+            const auto spirvLastWrite = std::filesystem::last_write_time(outputFileName);
+            std::cout << shaderLastWrite << std::endl;
+            std::cout << spirvLastWrite << std::endl;
+            if (shaderLastWrite <= spirvLastWrite)
+            {
+                continue;
+            }
+        }
+
+        LOGGER_LOG(("Compiling shader: " + file.path().string()).c_str());
+        const auto spriv = compileShaderFile(file.path());
         saveSPIRV(outputFileName, spriv);
     }
+
 
     if (shadersFoundCount == 0)
     {

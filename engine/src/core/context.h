@@ -49,7 +49,7 @@ private:
     void createXrInstance();
     void loadXrExtensions();
     void initXrSystemId();
-    void getXrSystemInfo();
+    void initXrSystemInfo();
     void isXrBlendModeAvailable();
 
     void getRequiredVulkanInstanceExtensions(std::vector<std::string>& requiredVulkanInstanceExtensions);

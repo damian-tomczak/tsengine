@@ -27,7 +27,7 @@ Context& Context::createOpenXrContext()
     createXrDebugMessenger();
 #endif
     initXrSystemId();
-    getXrSystemInfo();
+    initXrSystemInfo();
     isXrBlendModeAvailable();
 
     return *this;
@@ -185,7 +185,7 @@ void Context::initXrSystemId()
         .formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
     };
 
-    auto result = xrGetSystem(mXrInstance, &xrSystemInfo, &mXrSystemId);
+    const auto result = xrGetSystem(mXrInstance, &xrSystemInfo, &mXrSystemId);
 
     if (XR_FAILED(result))
     {
@@ -193,7 +193,7 @@ void Context::initXrSystemId()
     }
 }
 
-void Context::getXrSystemInfo()
+void Context::initXrSystemInfo()
 {
     XrSystemProperties xrSystemProperties{XR_TYPE_SYSTEM_PROPERTIES};
 
@@ -201,13 +201,13 @@ void Context::getXrSystemInfo()
 
     gXrDeviceId = std::hash<std::string_view>{}(xrSystemProperties.systemName);
 
-    auto deviceIt = std::ranges::find_if(khronos_utils::knownXrDevicesNameToId, [](const auto& device)  -> bool {
+    auto deviceIt = std::ranges::find_if(khronos_utils::knownXrDevicesNameToId, [](const auto& device) -> bool {
         return device.second == gXrDeviceId;
     });
 
     if (deviceIt == khronos_utils::knownXrDevicesNameToId.end())
     {
-        LOGGER_WARN("Engine doesn't recognize headset in use");
+        LOGGER_WARN("Engine doesn't recognize headset in use!");
     }
 
     if (gXrDeviceId == khronos_utils::device_ids::HtcVivePro)

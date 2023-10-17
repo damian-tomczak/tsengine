@@ -12,9 +12,9 @@ if (EXISTS ${CYBSDK_DIR})
     message(STATUS "CybSDK was found: ${CYBSDK_DIR}")
 else()
     message(WARNING
-        "CybSDK was not found - controllers will be selected\n"
+        "CybSDK was not found: "
         "If you want to use Cyberith you have to copy CybSDK_Cpp to external dir "
-        "or specify CYBSDK_CPP_DIR"
+        "or specify CYBSDK_DIR."
     )
 endif()
 
