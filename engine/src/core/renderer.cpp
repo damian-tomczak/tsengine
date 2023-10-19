@@ -10,6 +10,9 @@
 #include "headset.h"
 #include "render_target.h"
 
+#include "shaders/light_cube.h"
+#include "shaders/grid.h"
+
 namespace ts
 {
 Renderer::Renderer(const Context& ctx, const Headset& headset, const std::vector<std::shared_ptr<Model>>& models, std::unique_ptr<MeshData>&& meshData) :
@@ -148,6 +151,13 @@ void Renderer::createRenderer()
         "assets/shaders/grid.vert.spirv",
         "assets/shaders/grid.frag.spirv");
 
+    mLightCubePipeline = std::make_unique<Pipeline>(mCtx);
+    mLightCubePipeline->createPipeline(
+        mPipelineLayout,
+        mHeadset.getVkRenderPass(),
+        "assets/shaders/light_cube.vert.spirv",
+        "assets/shaders/light_cube.frag.spirv");
+
     const VkVertexInputBindingDescription vertexInputBindingDescription{
         .binding = 0,
         .stride = sizeof(Vertex),
@@ -254,15 +264,16 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
     vkCmdBindIndexBuffer(commandBuffer, buffer, mIndexOffset, VK_INDEX_TYPE_UINT32);
 
     const auto descriptorSet = renderProcess->getDescriptorSet();
+
     // TODO: it needs refactoring
-    for (size_t modelIdx{}; modelIdx < mModels.size() + 1; ++modelIdx)
+    for (decltype(std::ssize(mModels)) modelIdx{}; modelIdx < (1 + std::ssize(lightUniformData) + std::ssize(mModels)); ++modelIdx)
     {
-        auto modelIndexWithoutGridDraw = (modelIdx != 0) ? modelIdx - 1 : 0;
+        const auto modelIdxWithOffset = std::abs(modelIdx - std::ssize(lightUniformData) - 1);
 
         const auto uniformBufferOffset = static_cast<uint32_t>(
             khronos_utils::align(
                 static_cast<VkDeviceSize>(sizeof(decltype(RenderProcess::mIndividualUniformData)::value_type)),
-                mCtx.getUniformBufferOffsetAlignment()) * static_cast<VkDeviceSize>(modelIndexWithoutGridDraw));
+                mCtx.getUniformBufferOffsetAlignment()) * static_cast<VkDeviceSize>(modelIdxWithOffset));
 
         vkCmdBindDescriptorSets(
             commandBuffer,
@@ -274,15 +285,27 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
             1,
             &uniformBufferOffset);
 
-
         if (modelIdx == 0)
         {
             mGridPipeline->bind(commandBuffer);
-            vkCmdDraw(commandBuffer, 6, 1, 0, 0);
+            vkCmdDraw(commandBuffer, GRID_DRAW_CALL_VERTEX_COUNT, 1, 0, 0);
+            continue;
+        }
+        else if ((modelIdx >= 1) && (modelIdx < (1 + std::ssize(lightUniformData))))
+        {
+            mLightCubePipeline->bind(commandBuffer);
+            vkCmdPushConstants(commandBuffer,
+                mPipelineLayout,
+                VK_SHADER_STAGE_VERTEX_BIT,
+                0,
+                sizeof(math::Vec3),
+                &lightUniformData.at(modelIdx - 1));
+
+            vkCmdDraw(commandBuffer, LIGHT_CUBE_DRAW_CALL_VERTEX_COUNT, 1, 0, 0);
             continue;
         }
 
-        const auto& model = mModels.at(modelIndexWithoutGridDraw);
+        const auto& model = mModels.at(modelIdxWithOffset);
         vkCmdPushConstants(commandBuffer,
             mPipelineLayout,
             VK_SHADER_STAGE_VERTEX_BIT,

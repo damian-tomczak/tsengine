@@ -169,6 +169,7 @@ void compileShaders(const std::string& shadersPath)
         LOGGER_ERR(("Path couldn't be found: " + shadersPath).c_str());
     }
 
+    // TODO: compile only modified shaders
     size_t shadersFoundCount{};
     for (const auto& file : std::filesystem::recursive_directory_iterator(shadersPath))
     {

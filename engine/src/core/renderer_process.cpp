@@ -5,6 +5,7 @@
 #include "khronos_utils.h"
 #include "data_buffer.h"
 #include "headset.h"
+#include "game_object.hpp"
 
 namespace ts
 {
@@ -83,7 +84,7 @@ void RenderProcess::createRendererProcess(
 
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
         .offset = descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment),
-        .range = sizeof(mLightUniformData),
+        .range = sizeof(lightUniformData),
     });
 
     if (descriptorBufferInfos.empty())
@@ -166,19 +167,25 @@ void RenderProcess::updateUniformBufferData()
 
     auto offset = static_cast<char*>(mUniformBufferMemory);
 
-    VkDeviceSize length{sizeof(decltype(mIndividualUniformData)::value_type)};
-    for (const auto& individualData : mIndividualUniformData)
     {
-        memcpy(offset, &individualData, length);
+        constexpr VkDeviceSize length{sizeof(decltype(mIndividualUniformData)::value_type)};
+        for (const auto& individualData : mIndividualUniformData)
+        {
+            memcpy(offset, &individualData, length);
+            offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+        }
+    }
+
+    {
+        constexpr VkDeviceSize length = sizeof(decltype(mCommonUniformData));
+        memcpy(offset, &mCommonUniformData, length);
         offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
     }
 
-    length = sizeof(decltype(mCommonUniformData));
-    memcpy(offset, &mCommonUniformData, length);
-    offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
-
-    length = sizeof(mLightUniformData);
-    memcpy(offset, &mLightUniformData, length);
-    offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+    {
+        constexpr VkDeviceSize length = sizeof(lightUniformData);
+        memcpy(offset, &lightUniformData, length);
+        offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+    }
 }
 }

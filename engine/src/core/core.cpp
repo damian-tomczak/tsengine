@@ -113,7 +113,6 @@ int run(Engine* const engine) try
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::steady_clock::now();
-    // TODO: display message to wear the headset
     // TODO: consider if we should provide an option to render firstly to the window then copy it to the headset
     while (loop)
     {

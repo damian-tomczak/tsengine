@@ -70,7 +70,8 @@ add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIR}/glslang/glslang/ResourceLimits/ResourceLimits.cpp
-    ${EXTERNAL_DIR}/glslang/glslang/ResourceLimits/resource_limits_c.cpp)
+    ${EXTERNAL_DIR}/glslang/glslang/ResourceLimits/resource_limits_c.cpp
+)
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC src/pch.h)
 
@@ -81,6 +82,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     openxr_loader
     headers
     tinyobjloader
+    ${CYBSDK_LIB}
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -97,17 +99,20 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     src
     ${OS_DIR}
     ${EXTERNAL_DIR}/glslang # glslang doesn't support modern cmake approach
+    ${CYBSDK_INCLUDE_DIR}
+    ${ASSETS_DIR}
+)
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+    ENGINE_NAME="${PROJECT_NAME}"
+    GAME_NAME="${GAME_NAME}"
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     VK_USE_PLATFORM_${VK_USE_PLATFORM}_KHR
     VK_NO_PROTOTYPES
     XR_USE_GRAPHICS_API_VULKAN
-)
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC
-    ENGINE_NAME="${PROJECT_NAME}"
-    GAME_NAME="${GAME_NAME}"
+    $<$<BOOL:${CYBSDK_LIB}>:CYBSDK_FOUND>
 )
 
 source_group(TREE ${CMAKE_SOURCE_DIR}/engine FILES

@@ -4,14 +4,13 @@
 #extension GL_EXT_multiview : enable
 #extension GL_EXT_debug_printf : enable
 
-
 #include "assets/shaders/grid_params.h"
 
-layout (location=0) out vec2 uv;
-layout (location=1) out vec2 cameraPosition;
+layout (location = 0) out vec2 uv;
+layout (location = 1) out vec2 camPos;
 
-layout(binding = 1) uniform Ubo{
-    vec3 cameraPosition;
+layout(binding = 1) uniform Ubo {
+    vec3 camPos;
     mat4 viewMat[2];
     mat4 projMat[2];
 } ubo;
@@ -19,7 +18,7 @@ layout(binding = 1) uniform Ubo{
 void main()
 {
     mat4 cameraMat = mat4(1.0);
-    cameraMat[3] = vec4(ubo.cameraPosition, 1.0);
+    cameraMat[3] = vec4(ubo.camPos, 1.0);
 
     mat4 MVP = ubo.projMat[gl_ViewIndex] * ubo.viewMat[gl_ViewIndex] * cameraMat;
 
@@ -27,10 +26,10 @@ void main()
     vec3 position = pos[idx] * gridSize;
 
     mat4 iViewMat = inverse(ubo.viewMat[gl_ViewIndex] * cameraMat);
-    cameraPosition = vec2(iViewMat[3][0], iViewMat[3][2]);
+    camPos = vec2(iViewMat[3][0], iViewMat[3][2]);
 
-    position.x += cameraPosition.x;
-    position.z += cameraPosition.y;
+    position.x += camPos.x;
+    position.z += camPos.y;
 
     uv = position.xz;
     gl_Position = MVP * vec4(position, 1.0);
