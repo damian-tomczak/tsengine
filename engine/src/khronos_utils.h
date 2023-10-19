@@ -36,6 +36,7 @@
 
 namespace ts::khronos_utils
 {
+// TODO: db for it
 inline constexpr std::array knownXrDevices
 {
     XrSystemId{0x14},

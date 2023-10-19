@@ -14,5 +14,6 @@
 #include <fstream>
 #include <future>
 #include <cassert>
+#include <cmath>
 
 using namespace std::literals;

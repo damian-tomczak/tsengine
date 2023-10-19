@@ -155,13 +155,9 @@ struct Materials final
     }
 };
 
-// TODO: deffered lighting
-inline struct LightData final
-{
-    std::array<math::Vec3, 2> lightPositions
-    {{
-        {0.f, 5.f, -5.f},
-        {0.f, 5.f, 5.f},
-    }};
-} mLightUniformData;
+inline std::array<math::Vec3, 2> lightUniformData
+{{
+    {0.f, 5.f, -5.f},
+    {0.f, 5.f,  5.f},
+}};
 }

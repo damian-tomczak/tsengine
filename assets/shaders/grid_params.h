@@ -1,3 +1,5 @@
+#pragma once
+
 const float gridSize = 100.0;
 
 const float gridCellSize = 0.5;

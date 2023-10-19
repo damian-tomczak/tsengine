@@ -45,10 +45,10 @@ private:
     const Headset& mHeadset;
     VkCommandPool mCommandPool{};
     VkDescriptorPool mDescriptorPool{};
-    VkDescriptorSetLayout mDescriptorSetLayout{};
-    VkPipelineLayout mPipelineLayout{};
+    VkDescriptorSetLayout mDescriptorSetLayout{}, mLightCubeDescriptorSetLayout{};
+    VkPipelineLayout mPipelineLayout{}, mLightCubeLayout{};
     std::array<std::unique_ptr<RenderProcess>, framesInFlightCount> mRenderProcesses{};
-    std::unique_ptr<Pipeline> mGridPipeline, mNormalLightingPipeline, mPbrPipeline;
+    std::unique_ptr<Pipeline> mGridPipeline, mNormalLightingPipeline, mPbrPipeline, mLightCubePipeline;
     size_t mIndexOffset{};
     std::unique_ptr<DataBuffer> mVertexIndexBuffer;
     size_t mCurrentRenderProcessIndex{};

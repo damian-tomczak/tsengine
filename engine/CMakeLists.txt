@@ -100,6 +100,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${OS_DIR}
     ${EXTERNAL_DIR}/glslang # glslang doesn't support modern cmake approach
     ${CYBSDK_INCLUDE_DIR}
+    ${ASSETS_DIR}
 )
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC

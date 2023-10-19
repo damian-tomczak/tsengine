@@ -13,7 +13,7 @@ layout(binding = 1) uniform CommonUbo {
     mat4 projMat[2];
 } commonUbo;
 
-layout(push_constant) uniform PushConsts{
+layout(push_constant) uniform PushConsts {
     vec3 objPos;
 } pushConsts;
 
