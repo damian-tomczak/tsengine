@@ -134,7 +134,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
         eyeRenderInfo.fov = eyePose.fov;
 
         const auto& pose = eyeRenderInfo.pose;
-        mEyeViewMatrices.at(eyeIndex) = math::inverse(khronos_utils::xrPoseToMatrix(pose));
+        mEyeviewMats.at(eyeIndex) = math::inverse(khronos_utils::xrPoseToMatrix(pose));
         mEyeProjectionMatrices.at(eyeIndex) = khronos_utils::createXrProjectionMatrix(eyeRenderInfo.fov, 0.01f, 250.0f);
     }
 
@@ -412,7 +412,7 @@ void Headset::createXrSwapchain()
         };
     }
 
-    mEyeViewMatrices.resize(mEyeCount);
+    mEyeviewMats.resize(mEyeCount);
     mEyeProjectionMatrices.resize(mEyeCount);
 }
 

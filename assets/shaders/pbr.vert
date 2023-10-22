@@ -8,9 +8,9 @@ layout(binding = 0) uniform IndividualUbo {
 } individualUbo;
 
 layout (binding = 1) uniform CommonUbo {
-    vec3 cameraPosition;
-    mat4 viewMatrices[2];
-    mat4 projMat[2];
+    vec3 camPos;
+    mat4 viewMats[2];
+    mat4 projMats[2];
 } commonUbo;
 
 layout (location = 0) in vec3 inPos;
@@ -20,24 +20,24 @@ layout (location = 2) in vec3 inColor;
 layout (location = 0) out vec3 outWorldPos;
 layout (location = 1) out vec3 outNormal;
 
-layout(push_constant) uniform PushConsts {
+layout(push_constant) uniform PushConst {
     vec3 objPos;
-} pushConsts;
+} pushConst;
 
 void main()
 {
     mat4 cameraMat = mat4(1.0);
-    cameraMat[3] = vec4(commonUbo.cameraPosition, 1.0);
+    cameraMat[3] = vec4(commonUbo.camPos, 1.0);
 
-    vec3 locPos = vec3(vec4(inPos, 1.0));
-    outWorldPos = locPos + pushConsts.objPos;
+    vec3 worldPos = inPos + pushConst.objPos;
+    outWorldPos = worldPos;
     outNormal = mat3(individualUbo.modelMat) * inNormal;
 
     gl_Position =
-        commonUbo.projMat[gl_ViewIndex] *
-        commonUbo.viewMatrices[gl_ViewIndex] *
+        commonUbo.projMats[gl_ViewIndex] *
+        commonUbo.viewMats[gl_ViewIndex] *
         cameraMat *
         individualUbo.modelMat *
-        vec4(pushConsts.objPos + inPos, 1.0);
+        vec4(worldPos, 1.0);
 
 }

@@ -31,7 +31,7 @@ public:
 private:
     XrInstance mInstance{};
     XrSession mSession{};
-    std::array<XrSpace, controllerCount> mSpaces{};
+    std::array<XrSpace, controllerCount> mSpaces;
     XrActionSet mActionSet{};
     XrAction mPoseAction{}, mFlyAction{}, mTriggerAction{};
     std::array<XrPath, controllerCount> mPaths;

@@ -83,7 +83,6 @@ VkBool32 vkCallback(
     void* userData);
 #endif // !NDEBUG
 
-// TODO: investigate performance of it
 void unpackXrExtensionString(const std::string& str, std::vector<std::string>& result);
 XrPosef makeXrIdentity();
 bool findSuitableMemoryTypeIndex(

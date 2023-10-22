@@ -6,7 +6,7 @@
 #include "assets/shaders/grid_params.h"
 
 layout (location=0) in vec2 uv;
-layout (location=1) in vec2 cameraPosition;
+layout (location=1) in vec2 camPos;
 layout (location=0) out vec4 outColor;
 
 float log10(float x)
@@ -29,7 +29,7 @@ float max2(vec2 v)
 return max(v.x, v.y);
 }
 
-vec4 gridColor(vec2 uv, vec2 cameraPosition)
+vec4 gridColor(vec2 uv, vec2 camPos)
 {
     vec2 dudv = vec2(
         length(vec2(dFdx(uv.x), dFdy(uv.x))),
@@ -49,7 +49,7 @@ vec4 gridColor(vec2 uv, vec2 cameraPosition)
     float lod1a = max2(vec2(1.0) - abs(satv(mod(uv, lod1) / dudv) * 2.0 - vec2(1.0)));
     float lod2a = max2(vec2(1.0) - abs(satv(mod(uv, lod2) / dudv) * 2.0 - vec2(1.0)));
 
-    uv -= cameraPosition;
+    uv -= camPos;
 
     vec4 c = lod2a > 0.0 ? gridColorThick : lod1a > 0.0 ? mix(gridColorThick, gridColorThin, lodFade) : gridColorThin;
 
@@ -62,5 +62,5 @@ vec4 gridColor(vec2 uv, vec2 cameraPosition)
 
 void main()
 {
-    outColor = gridColor(uv, cameraPosition);
+    outColor = gridColor(uv, camPos);
 }

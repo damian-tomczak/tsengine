@@ -289,6 +289,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
         {
             mGridPipeline->bind(commandBuffer);
             vkCmdDraw(commandBuffer, GRID_DRAW_CALL_VERTEX_COUNT, 1, 0, 0);
+
             continue;
         }
         else if ((modelIdx >= 1) && (modelIdx < (1 + std::ssize(lightUniformData))))
@@ -302,6 +303,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
                 &lightUniformData.at(modelIdx - 1));
 
             vkCmdDraw(commandBuffer, LIGHT_CUBE_DRAW_CALL_VERTEX_COUNT, 1, 0, 0);
+
             continue;
         }
 
@@ -435,8 +437,8 @@ void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::un
     renderProcess->mCommonUniformData.cameraPosition = cameraPosition;
     for (size_t eyeIndex{}; eyeIndex < mHeadset.getEyeCount(); ++eyeIndex)
     {
-        renderProcess->mCommonUniformData.viewMatrices.at(eyeIndex) = mHeadset.getEyeViewMatrix(eyeIndex);
-        renderProcess->mCommonUniformData.projMat.at(eyeIndex) = mHeadset.getEyeProjectionMatrix(eyeIndex);
+        renderProcess->mCommonUniformData.viewMats.at(eyeIndex) = mHeadset.getEyeViewMatrix(eyeIndex);
+        renderProcess->mCommonUniformData.projMats.at(eyeIndex) = mHeadset.getEyeProjectionMatrix(eyeIndex);
     }
 
     renderProcess->updateUniformBufferData();

@@ -49,7 +49,7 @@ public:
     [[nodiscard]] std::shared_ptr<RenderTarget> getRenderTarget(size_t swapchainImageIndex) const { return mSwapchainRenderTargets.at(swapchainImageIndex); }
     [[nodiscard]] VkExtent2D getEyeResolution(int32_t eyeIndex) const;
     [[nodiscard]] size_t getEyeCount() const { return mEyeCount; }
-    [[nodiscard]] math::Mat4 getEyeViewMatrix(size_t eyeIndex) const { return mEyeViewMatrices.at(eyeIndex); }
+    [[nodiscard]] math::Mat4 getEyeViewMatrix(size_t eyeIndex) const { return mEyeviewMats.at(eyeIndex); }
     [[nodiscard]] math::Mat4 getEyeProjectionMatrix(size_t eyeIndex) const { return mEyeProjectionMatrices.at(eyeIndex); }
 
 private:
@@ -69,7 +69,7 @@ private:
     XrSwapchain mXrSwapchain{};
     std::vector<std::shared_ptr<RenderTarget>> mSwapchainRenderTargets;
     std::vector<XrCompositionLayerProjectionView> mEyeRenderInfos;
-    std::vector<math::Mat4> mEyeViewMatrices;
+    std::vector<math::Mat4> mEyeviewMats;
     std::vector<math::Mat4> mEyeProjectionMatrices;
     bool mIsExitRequested{};
     XrFrameState mXrFrameState{};

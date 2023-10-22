@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
+# TODO: cmake configuration time weird increased last time - investigate it
 project(ts VERSION 0.0.1 LANGUAGES CXX)
 
 set(GAME_NAME "Awesome Game" CACHE STRING "Game name")
@@ -30,6 +31,9 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# TODO: move tester_adapter header into enable_tests guard
+option(ENABLE_TESTS "Test the engine basic operations" ON)
 
 set(EXTERNAL_DIR external)
 get_filename_component(EXTERNAL_DIR ${EXTERNAL_DIR} ABSOLUTE)

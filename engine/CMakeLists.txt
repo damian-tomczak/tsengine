@@ -113,6 +113,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     VK_NO_PROTOTYPES
     XR_USE_GRAPHICS_API_VULKAN
     $<$<BOOL:${CYBSDK_LIB}>:CYBSDK_FOUND>
+    $<$<BOOL:${ENABLE_TESTS}>:TESTER_ADAPTER>
 )
 
 source_group(TREE ${CMAKE_SOURCE_DIR}/engine FILES
@@ -150,7 +151,6 @@ if(MSVC)
     )
 endif()
 
-option(ENABLE_TESTS "Test the basic operations" ON)
 if(ENABLE_TESTS)
     enable_testing()
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

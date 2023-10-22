@@ -50,9 +50,12 @@ int run(Engine* const engine) try
     }
     isAlreadyInitiated = true;
 
+#ifdef TESTER_ADAPTER
     const auto testerAdapter = dynamic_cast<TesterEngine*>(engine);
+    bool isRenderingStarted{};
+#endif
 
-    unsigned width{1280u}, height{720u};
+    unsigned width{1280}, height{720};
     engine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
@@ -83,23 +86,43 @@ int run(Engine* const engine) try
         .model = math::Mat4(1.f),
         .pipeline = PipelineType::NORMAL_LIGHTING,
     });
-    std::shared_ptr<Model> sphere1 = std::make_shared<Model>(Model{
-        .pos = {0.f, 1.5f, -5.f},
-        .model = math::Mat4(1.f),
-        .pipeline = PipelineType::PBR,
-        .material = Materials::create(Material::Type::GOLD),
-    });
 
-    const std::vector<std::shared_ptr<Model>> models{
+    std::array spheres
+    {
+        std::make_shared<Model>(Model
+        {
+            .pos = {-5.f, 2.f, -5.f},
+            .model = math::Mat4(1.f),
+            .pipeline = PipelineType::PBR,
+            .material = Materials::create(Material::Type::GOLD),
+        }),
+        std::make_shared<Model>(Model
+        {
+            .pos = {0.f, 2.f, -5.f},
+            .model = math::Mat4(1.f),
+            .pipeline = PipelineType::PBR,
+            .material = Materials::create(Material::Type::GOLD),
+        }),
+        std::make_shared<Model>(Model
+        {
+            .pos = {5.f, 2.f, -5.f},
+            .model = math::Mat4(1.f),
+            .pipeline = PipelineType::PBR,
+            .material = Materials::create(Material::Type::GOLD),
+        }),
+    };
+
+    std::vector<std::shared_ptr<Model>> models
+    {
         ruins,
         polonez,
-        sphere1,
     };
+    models.insert(models.end(), spheres.begin(), spheres.end());
 
     auto meshData = std::make_unique<MeshData>();
     meshData->loadModel("assets/models/village.obj", models, 1);
     meshData->loadModel("assets/models/polonez.obj", models, 1);
-    meshData->loadModel("assets/models/sphere.obj", models, 1);
+    meshData->loadModel("assets/models/sphere.obj", models, spheres.size());
 
     Renderer renderer{ctx, headset, models, std::move(meshData)};
     renderer.createRenderer();
@@ -108,14 +131,14 @@ int run(Engine* const engine) try
     LOGGER_LOG("tsengine initialization completed successfully");
 
     window->show();
-    bool isRenderingStarted{};
-    math::Vec3 cameraPosition{};
+    math::Vec3 cameraPosition{0, 0, 0};
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::steady_clock::now();
     // TODO: consider if we should provide an option to render firstly to the window then copy it to the headset
     while (loop)
     {
+#ifdef TESTER_ADAPTER
         // I have no idea how to better implement it.
         if ((testerAdapter != nullptr) && isRenderingStarted)
         {
@@ -124,6 +147,7 @@ int run(Engine* const engine) try
                 loop = false;
             }
         }
+#endif
 
         if (headset.isExitRequested())
         {
@@ -152,21 +176,23 @@ int run(Engine* const engine) try
         const auto frameResult = headset.beginFrame(swapchainImageIndex);
         if (frameResult == Headset::BeginFrameResult::RENDER_FULLY)
         {
+#ifdef TESTER_ADAPTER
             if (!isRenderingStarted)
             {
                 isRenderingStarted = true;
             }
-
+#endif
             controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
 
             for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
             {
+                // TODO: rename it
                 const auto flySpeed = controllers.getFlySpeed(controllerIndex);
                 if (flySpeed > 0.f)
                 {
                     const auto controllerPose = controllers.getPose(controllerIndex)[2];
 
-                    if (!controllerPose.isNan())
+                    if ((!controllerPose.isNan()) || (controllerPose == math::Vec3(0.f)))
                     {
                         const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
                         cameraPosition += forward * flySpeed * flySpeedMultiplier * deltaTime;

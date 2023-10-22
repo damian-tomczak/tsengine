@@ -11,7 +11,7 @@ struct Vec4;
 
 struct Vec2 final
 {
-    float x, y;
+    float x{}, y{};
 
     constexpr Vec2() = default;
     constexpr Vec2(const float v);
@@ -21,13 +21,15 @@ struct Vec2 final
     [[nodiscard]] constexpr Vec2 operator*(const float scalar) const;
     [[nodiscard]] constexpr Vec2 operator+(const Vec2& rhs) const;
     constexpr Vec2& operator+=(const Vec2& rhs);
+
+    auto operator<=>(const Vec2& other) const = default;
     bool isNan() const;
     bool isInf() const;
 };
 
 struct alignas(16) Vec3 final
 {
-    float x, y, z;
+    float x{}, y{}, z{};
 
     constexpr Vec3() = default;
     constexpr Vec3(const float v);
@@ -36,13 +38,15 @@ struct alignas(16) Vec3 final
     [[nodiscard]] constexpr Vec3 operator*(const float scalar) const;
     [[nodiscard]] constexpr Vec3 operator+(const Vec3& rhs) const;
     constexpr Vec3& operator+=(const Vec3& rhs);
+
+    auto operator<=>(const Vec3& other) const = default;
     bool isNan() const;
     bool isInf() const;
 };
 
 struct Vec4 final
 {
-    float x, y, z, w;
+    float x{}, y{}, z{}, w{};
 
     constexpr Vec4() = default;
     constexpr Vec4(const float v);
@@ -50,23 +54,18 @@ struct Vec4 final
     [[nodiscard]] constexpr Vec4 operator*(const float scalar) const;
     [[nodiscard]] constexpr Vec4 operator+(const Vec4& rhs) const;
     constexpr Vec4& operator+=(const Vec4& rhs);
+
+    auto operator<=>(const Vec4& other) const = default;
     bool isNan() const;
     bool isInf() const;
 };
 
 struct Quat
 {
-    float w, x, y, z;
+    float w{}, x{}, y{}, z{};
 };
 
-template<size_t matRows, size_t matColumns>
-struct Matrix
-{
-    static constexpr size_t rowsNum{matRows};
-    static constexpr size_t colsNum{matColumns};
-};
-
-struct Mat2 : public Matrix<2, 2>
+struct Mat2
 {
     std::array<Vec2, 2> data;
 
@@ -140,7 +139,7 @@ inline std::string to_string(const Mat2 mat)
         mat[1].x, mat[1].y);
 }
 
-struct Mat3 : public Matrix<3, 3>
+struct Mat3
 {
     std::array<Vec3, 3> data{};
 
@@ -244,7 +243,7 @@ inline std::string to_string(const Mat3 mat)
         mat[2].x, mat[2].y, mat[2].z);
 }
 
-struct Mat4 : public Matrix<4, 4>
+struct Mat4
 {
     std::array<Vec4, 4> data{};
 
