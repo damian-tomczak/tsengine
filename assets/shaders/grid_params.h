@@ -13,9 +13,9 @@ const float gridMinPixelsBetweenCells = 2.0;
 const vec3 pos[4] =
 {
     vec3(-1.0, 0.0, -1.0),
-    vec3( 1.0, 0.0, -1.0),
+    vec3(-1.0, 0.0,  1.0),
     vec3( 1.0, 0.0,  1.0),
-    vec3(-1.0, 0.0,  1.0)
+    vec3( 1.0, 0.0, -1.0)
 };
 
 const int indices[6] = {

@@ -157,7 +157,7 @@ struct Materials final
 
 inline std::array<math::Vec3, 2> lightUniformData
 {{
-    {0.f, 5.f, -5.f},
-    {0.f, 5.f,  5.f},
+    {0.f, 5.f, -7.f},
+    {0.f, 5.f,  0.f},
 }};
 }

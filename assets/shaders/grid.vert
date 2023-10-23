@@ -12,7 +12,7 @@ layout (location = 1) out vec2 camPos;
 layout(binding = 1) uniform Ubo {
     vec3 camPos;
     mat4 viewMat[2];
-    mat4 projMat[2];
+    mat4 projMats[2];
 } ubo;
 
 void main()
@@ -20,7 +20,7 @@ void main()
     mat4 cameraMat = mat4(1.0);
     cameraMat[3] = vec4(ubo.camPos, 1.0);
 
-    mat4 MVP = ubo.projMat[gl_ViewIndex] * ubo.viewMat[gl_ViewIndex] * cameraMat;
+    mat4 MVP = ubo.projMats[gl_ViewIndex] * ubo.viewMat[gl_ViewIndex] * cameraMat;
 
     int idx = indices[gl_VertexIndex];
     vec3 position = pos[idx] * gridSize;

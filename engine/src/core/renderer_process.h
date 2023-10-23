@@ -34,8 +34,8 @@ public:
     struct CommonUniformData final
     {
         math::Vec3 cameraPosition;
-        std::array<math::Mat4, 2> viewMatrices;
-        std::array<math::Mat4, 2> projMat;
+        std::array<math::Mat4, 2> viewMats;
+        std::array<math::Mat4, 2> projMats;
     } mCommonUniformData;
 
     void updateUniformBufferData();
