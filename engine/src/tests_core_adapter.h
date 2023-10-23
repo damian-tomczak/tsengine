@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef TESTER_ADAPTER
+
 #include "tsengine/core.h"
 
 #include <chrono>
@@ -38,3 +40,5 @@ struct TesterEngine : public Engine
     std::chrono::steady_clock::duration renderingDuration;
 };
 }
+
+#endif

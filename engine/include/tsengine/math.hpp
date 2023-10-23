@@ -6,8 +6,13 @@
 
 namespace ts::math
 {
+struct Vec2;
 struct Vec3;
 struct Vec4;
+struct Mat2;
+struct Mat3;
+struct Mat4;
+struct Quat;
 
 struct Vec2 final
 {
@@ -27,6 +32,8 @@ struct Vec2 final
     bool isInf() const;
 };
 
+inline Vec2 normalize(const Vec2 vec);
+
 struct alignas(16) Vec3 final
 {
     float x{}, y{}, z{};
@@ -44,6 +51,8 @@ struct alignas(16) Vec3 final
     bool isInf() const;
 };
 
+inline Vec3 normalize(const Vec3& vec);
+
 struct Vec4 final
 {
     float x{}, y{}, z{}, w{};
@@ -60,359 +69,82 @@ struct Vec4 final
     bool isInf() const;
 };
 
-struct Quat
-{
-    float w{}, x{}, y{}, z{};
-};
+inline Vec4 normalize(const Vec4& vec);
 
 struct Mat2
 {
     std::array<Vec2, 2> data;
 
-    Mat2()
-    {}
-
+    Mat2();
     Mat2(
         const float x1, const float y1,
-        const float x2, const float y2)
-        :
-        data
-        {{
-            {x1, y1},
-            {x2, y2}
-        }}
-    {}
+        const float x2, const float y2);
 
-    explicit Mat2(const float value) :
-        data
-    {{
-        {value, 0.f  },
-        {0.f  , value}
-    }}
-    {}
+    explicit Mat2(const float value);
 
-    Vec2& operator[](const size_t index)
-    {
-        if ((index < 0) || (index > 2))
-        {
-            throw std::runtime_error("invalid index specified");
-        }
-
-        return data[index];
-    }
-
-    const Vec2& operator[](const size_t index) const
-    {
-        if ((index < 0) || (index > 2))
-        {
-            throw std::runtime_error("invalid index specified");
-        }
-
-        return data[index];
-    }
+    Vec2& operator[](const size_t index);
+    const Vec2& operator[](const size_t index) const;
 };
 
-inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs)
-{
-    return
-    {
-        rhs.data[0].x * lhs.data[0].x + rhs.data[0].y * lhs.data[1].x,
-        rhs.data[0].x * lhs.data[0].y + rhs.data[0].y * lhs.data[1].y,
-
-        rhs.data[1].x * lhs.data[0].x + rhs.data[1].y * lhs.data[1].x,
-        rhs.data[1].x * lhs.data[0].y + rhs.data[1].y * lhs.data[1].y,
-    };
-}
-
-inline Vec2 normalize(const Vec2 vec)
-{
-    const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y);
-    return {vec.x / mag, vec.y / mag};
-}
-
-inline std::string to_string(const Mat2 mat)
-{
-    return std::format("\n"
-        "{:>10.7f}, {:>10.7f},\n"
-        "{:>10.7f}, {:>10.7f}\n",
-        mat[0].x, mat[0].y,
-        mat[1].x, mat[1].y);
-}
+inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs);
+inline Mat2 inverse(const Mat2& mat);
+inline std::string to_string(const Mat2& mat);
 
 struct Mat3
 {
     std::array<Vec3, 3> data{};
 
-    Mat3()
-    {}
-
+    Mat3();
     Mat3(
         const float x1, const float y1, const float z1,
         const float x2, const float y2, const float z2,
-        const float x3, const float y3, const float z3)
-        :
-        data
-        {{
-            {x1, y1, z1},
-            {x2, y2, z2},
-            {x3, y3, z3}
-        }}
-    {}
+        const float x3, const float y3, const float z3);
 
-    Mat3(const Quat& quat) :
-        data
-        {{
-            {1 - 2 * (quat.y * quat.y + quat.z * quat.z), 2 * (quat.x * quat.y + quat.z * quat.w)    , 2 * (quat.x * quat.z - quat.y * quat.w)    },
-            {2 * (quat.x * quat.y - quat.z * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.z * quat.z), 2 * (quat.y * quat.z + quat.x * quat.w)    },
-            {2 * (quat.x * quat.z + quat.y * quat.w)    , 2 * (quat.y * quat.z - quat.x * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.y * quat.y)},
-        }}
-    {}
+    explicit Mat3(const float value);
+    Mat3(const Quat& quat);
 
-    explicit Mat3(const float value) :
-        data
-    { {
-        {value, 0.f  , 0.f  },
-        {0.f  , value, 0.f  },
-        {0.f  , 0.f  , value}
-    } }
-    {}
-
-    Vec3& operator[](const size_t index)
-    {
-        if ((index < 0) || (index > 3))
-        {
-            throw std::runtime_error("invalid index specified");
-        }
-
-        return data[index];
-    }
-
-    const Vec3& operator[](const size_t index) const
-    {
-        if ((index < 0) || (index > 3))
-        {
-            throw std::runtime_error("invalid index specified");
-        }
-
-        return data[index];
-    }
+    Vec3& operator[](const size_t index);
+    const Vec3& operator[](const size_t index) const;
 };
 
-inline Mat3 operator*(const Mat3& lhs, const Mat3& rhs)
-{
-    return
-    {
-        rhs.data[0].x * lhs.data[0].x + rhs.data[0].y * lhs.data[1].x + rhs.data[0].z * lhs.data[2].x,
-        rhs.data[0].x * lhs.data[0].y + rhs.data[0].y * lhs.data[1].y + rhs.data[0].z * lhs.data[2].y,
-        rhs.data[0].x * lhs.data[0].z + rhs.data[0].y * lhs.data[1].z + rhs.data[0].z * lhs.data[2].z,
-
-        rhs.data[1].x * lhs.data[0].x + rhs.data[1].y * lhs.data[1].x + rhs.data[1].z * lhs.data[2].x,
-        rhs.data[1].x * lhs.data[0].y + rhs.data[1].y * lhs.data[1].y + rhs.data[1].z * lhs.data[2].y,
-        rhs.data[1].x * lhs.data[0].z + rhs.data[1].y * lhs.data[1].z + rhs.data[1].z * lhs.data[2].z,
-
-        rhs.data[2].x * lhs.data[0].x + rhs.data[2].y * lhs.data[1].x + rhs.data[2].z * lhs.data[2].x,
-        rhs.data[2].x * lhs.data[0].y + rhs.data[2].y * lhs.data[1].y + rhs.data[2].z * lhs.data[2].y,
-        rhs.data[2].x * lhs.data[0].z + rhs.data[2].y * lhs.data[1].z + rhs.data[2].z * lhs.data[2].z,
-    };
-}
-
-inline Mat3 translate(const Mat3& matrix, Vec2 translation)
-{
-    return
-    {
-        matrix[0].x                , matrix[0].y                , matrix[0].z,
-        matrix[1].x                , matrix[1].y                , matrix[1].z,
-        matrix[2].x + translation.x, matrix[2].y + translation.y, matrix[2].z,
-    };
-}
-
-inline Vec3 normalize(const Vec3 vec)
-{
-    const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
-    return {vec.x / mag, vec.y / mag, vec.z / mag};
-}
-
-inline std::string to_string(const Mat3 mat)
-{
-    return std::format("\n"
-        "{:>10.7f}, {:>10.7f}, {:>10.7f},\n"
-        "{:>10.7f}, {:>10.7f}, {:>10.7f},\n"
-        "{:>10.7f}, {:>10.7f}, {:>10.7f}\n",
-        mat[0].x, mat[0].y, mat[0].z,
-        mat[1].x, mat[1].y, mat[1].z,
-        mat[2].x, mat[2].y, mat[2].z);
-}
+inline Mat3 operator*(const Mat3& lhs, const Mat3& rhs);
+inline Mat3 translate(const Mat3& matrix, Vec2 translation);
+inline Mat3 inverse(const Mat3& mat);
+inline std::string to_string(const Mat3& mat);
 
 struct Mat4
 {
     std::array<Vec4, 4> data{};
 
-    Mat4()
-    {}
-
+    Mat4();
     Mat4(
         const float x1, const float y1, const float z1, const float w1,
         const float x2, const float y2, const float z2, const float w2,
         const float x3, const float y3, const float z3, const float w3,
-        const float x4, const float y4, const float z4, const float w4)
-        :
-        data
-        {{
-            {x1, y1, z1, w1},
-            {x2, y2, z2, w2},
-            {x3, y3, z3, w3},
-            {x4, y4, z4, w4}
-        }}
-    {}
+        const float x4, const float y4, const float z4, const float w4);
 
-    Mat4(const Quat& quat) :
-        data
-        {{
-            {1 - 2 * (quat.y * quat.y + quat.z * quat.z), 2 * (quat.x * quat.y + quat.z * quat.w)    , 2 * (quat.x * quat.z - quat.y * quat.w)    , 0},
-            {2 * (quat.x * quat.y - quat.z * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.z * quat.z), 2 * (quat.y * quat.z + quat.x * quat.w)    , 0},
-            {2 * (quat.x * quat.z + quat.y * quat.w)    , 2 * (quat.y * quat.z - quat.x * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.y * quat.y), 0},
-            {0                                          , 0                                          , 0                                          , 1},
-        }}
-    {}
+    Mat4(const Quat& quat);
+    explicit Mat4(const float v);
 
-    Mat4(const float v) :
-        data
-        {{
-            {v  , 0.f, 0.f, 0.f},
-            {0.f, v  , 0.f, 0.f},
-            {0.f, 0.f, v  , 0.f},
-            {0.f, 0.f, 0.f, v  }
-        }}
-    {}
-
-    Vec4& operator[](const size_t index)
-    {
-        if ((index < 0) || (index > 4))
-        {
-            throw std::runtime_error("invalid index specified");
-        }
-
-        return data[index];
-    }
-
-    const Vec4& operator[](const size_t index) const
-    {
-        if ((index < 0) || (index > 4))
-        {
-            throw std::runtime_error("invalid index specified");
-        }
-
-        return data[index];
-    }
+    Vec4& operator[](const size_t index);
+    const Vec4& operator[](const size_t index) const;
 };
 
-inline Mat4 operator*(const Mat4& lhs, const Mat4& rhs)
+inline Mat4 operator*(const Mat4& lhs, const Mat4& rhs);
+inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec);
+inline Mat4 translate(const Mat4& matrix, const Vec3& translation);
+inline std::string to_string(const Mat4 mat);
+
+struct Quat
 {
-    return
-    {
-        rhs.data[0].x * lhs.data[0].x + rhs.data[0].y * lhs.data[1].x + rhs.data[0].z * lhs.data[2].x + rhs.data[0].w * lhs.data[3].x,
-        rhs.data[0].x * lhs.data[0].y + rhs.data[0].y * lhs.data[1].y + rhs.data[0].z * lhs.data[2].y + rhs.data[0].w * lhs.data[3].y,
-        rhs.data[0].x * lhs.data[0].z + rhs.data[0].y * lhs.data[1].z + rhs.data[0].z * lhs.data[2].z + rhs.data[0].w * lhs.data[3].z,
-        rhs.data[0].x * lhs.data[0].w + rhs.data[0].y * lhs.data[1].w + rhs.data[0].z * lhs.data[2].w + rhs.data[0].w * lhs.data[3].w,
-
-        rhs.data[1].x * lhs.data[0].x + rhs.data[1].y * lhs.data[1].x + rhs.data[1].z * lhs.data[2].x + rhs.data[1].w * lhs.data[3].x,
-        rhs.data[1].x * lhs.data[0].y + rhs.data[1].y * lhs.data[1].y + rhs.data[1].z * lhs.data[2].y + rhs.data[1].w * lhs.data[3].y,
-        rhs.data[1].x * lhs.data[0].z + rhs.data[1].y * lhs.data[1].z + rhs.data[1].z * lhs.data[2].z + rhs.data[1].w * lhs.data[3].z,
-        rhs.data[1].x * lhs.data[0].w + rhs.data[1].y * lhs.data[1].w + rhs.data[1].z * lhs.data[2].w + rhs.data[1].w * lhs.data[3].w,
-
-        rhs.data[2].x * lhs.data[0].x + rhs.data[2].y * lhs.data[1].x + rhs.data[2].z * lhs.data[2].x + rhs.data[2].w * lhs.data[3].x,
-        rhs.data[2].x * lhs.data[0].y + rhs.data[2].y * lhs.data[1].y + rhs.data[2].z * lhs.data[2].y + rhs.data[2].w * lhs.data[3].y,
-        rhs.data[2].x * lhs.data[0].z + rhs.data[2].y * lhs.data[1].z + rhs.data[2].z * lhs.data[2].z + rhs.data[2].w * lhs.data[3].z,
-        rhs.data[2].x * lhs.data[0].w + rhs.data[2].y * lhs.data[1].w + rhs.data[2].z * lhs.data[2].w + rhs.data[2].w * lhs.data[3].w,
-
-        rhs.data[3].x * lhs.data[0].x + rhs.data[3].y * lhs.data[1].x + rhs.data[3].z * lhs.data[2].x + rhs.data[3].w * lhs.data[3].x,
-        rhs.data[3].x * lhs.data[0].y + rhs.data[3].y * lhs.data[1].y + rhs.data[3].z * lhs.data[2].y + rhs.data[3].w * lhs.data[3].y,
-        rhs.data[3].x * lhs.data[0].z + rhs.data[3].y * lhs.data[1].z + rhs.data[3].z * lhs.data[2].z + rhs.data[3].w * lhs.data[3].z,
-        rhs.data[3].x * lhs.data[0].w + rhs.data[3].y * lhs.data[1].w + rhs.data[3].z * lhs.data[2].w + rhs.data[3].w * lhs.data[3].w,
-    };
-}
-
-inline Mat4 translate(const Mat4& matrix, Vec3 translation)
-{
-    return
-    {
-        matrix[0].x                , matrix[0].y                , matrix[0].z                , matrix[0].w,
-        matrix[1].x                , matrix[1].y                , matrix[1].z                , matrix[1].w,
-        matrix[2].x                , matrix[2].y                , matrix[2].z                , matrix[2].w,
-        matrix[3].x + translation.x, matrix[3].y + translation.y, matrix[3].z + translation.z, matrix[3].w,
-    };
-}
-
-inline Vec4 normalize(const Vec4 vec)
-{
-    const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w);
-    return {vec.x / mag, vec.y / mag, vec.z / mag, vec.w / mag};
-}
-
-inline std::string to_string(const Mat4 mat)
-{
-    return std::format("\n"
-        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f},\n"
-        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f},\n"
-        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f},\n"
-        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f}\n",
-        mat[0].x, mat[0].y, mat[0].z, mat[0].w,
-        mat[1].x, mat[1].y, mat[1].z, mat[1].w,
-        mat[2].x, mat[2].y, mat[2].z, mat[2].w,
-        mat[3].x, mat[3].y, mat[3].z, mat[3].w);
-}
+    float w{}, x{}, y{}, z{};
+};
 
 template<typename T>
 inline auto radians(T degrees)
 {
     constexpr auto factor = std::numbers::pi / 180;
     return degrees * factor;
-}
-
-inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
-{
-    Mat4 scaleMatrix
-    {
-        scaleVec.x, 0         , 0         , 0  ,
-        0         , scaleVec.y, 0         , 0  ,
-        0         , 0         , scaleVec.z, 0  ,
-        0         , 0         , 0         , 1.f
-    };
-
-    return matrix * scaleMatrix;
-}
-
-inline Mat2 inverse(const Mat2& mat)
-{
-    const auto det = mat[0].x * mat[1].y - mat[0].y * mat[1].x;
-
-    if (det == 0)
-    {
-        throw std::runtime_error{"singular matrix, can't find its inverse"};
-    }
-    return
-    {
-       (+mat[1].y) / det, (-mat[0].y) / det,
-       (-mat[1].x) / det, (+mat[0].x) / det,
-    };
-}
-
-inline Mat3 inverse(const Mat3& mat)
-{
-    const auto det =
-        + mat[0].x * (mat[1].y * mat[2].z - mat[1].z * mat[2].y)
-        - mat[0].y * (mat[1].x * mat[2].z - mat[1].z * mat[2].x)
-        + mat[0].z * (mat[1].x * mat[2].y - mat[1].y * mat[2].x);
-    if (det == 0)
-    {
-        throw std::runtime_error{"singular matrix, can't find its inverse"};
-    }
-    return
-    {
-        (+(mat[1].y * mat[2].z - mat[2].y * mat[1].z)) / det, (-(mat[0].y * mat[2].z - mat[2].y * mat[0].z)) / det, (+(mat[0].y * mat[1].z - mat[1].y * mat[0].z)) / det,
-        (-(mat[1].x * mat[2].z - mat[2].x * mat[1].z)) / det, (+(mat[0].x * mat[2].z - mat[2].x * mat[0].z)) / det, (-(mat[0].x * mat[1].z - mat[1].x * mat[0].z)) / det,
-        (+(mat[1].x * mat[2].y - mat[2].x * mat[1].y)) / det, (-(mat[0].x * mat[2].y - mat[2].x * mat[0].y)) / det, (+(mat[0].x * mat[1].y - mat[1].x * mat[0].y)) / det,
-    };
 }
 
 inline Mat4 inverse(const Mat4& mat)
@@ -500,6 +232,12 @@ inline bool Vec2::isInf() const
     return std::isinf(x) && std::isinf(y);
 }
 
+inline Vec2 normalize(const Vec2 vec)
+{
+    const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y);
+    return {vec.x / mag, vec.y / mag};
+}
+
 inline constexpr Vec3::Vec3(const float v) : x{v}, y{v}, z{v}
 {}
 
@@ -537,6 +275,12 @@ inline bool Vec3::isInf() const
     return std::isinf(x) && std::isinf(y) && std::isinf(z);
 }
 
+inline Vec3 normalize(const Vec3& vec)
+{
+    const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+    return {vec.x / mag, vec.y / mag, vec.z / mag};
+}
+
 inline constexpr Vec4::Vec4(const float v) : x{v}, y{v}, z{v}, w{v}
 {}
 
@@ -571,5 +315,322 @@ inline bool Vec4::isNan() const
 inline bool Vec4::isInf() const
 {
     return std::isinf(x) or std::isinf(y) or std::isinf(z) or std::isinf(w);
+}
+
+inline Vec4 normalize(const Vec4& vec)
+{
+    const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w);
+    return {vec.x / mag, vec.y / mag, vec.z / mag, vec.w / mag};
+}
+
+inline Mat2::Mat2()
+{}
+
+inline Mat2::Mat2(
+    const float x1, const float y1,
+    const float x2, const float y2)
+    :
+    data
+    {{
+        {x1, y1},
+        {x2, y2}
+    }}
+{}
+
+inline Mat2::Mat2(const float value) :
+    data
+{{
+    {value,   0.f},
+    {  0.f, value}
+}}
+{}
+
+inline Vec2& Mat2::operator[](const size_t index)
+{
+    if ((index < 0) || (index > 2))
+    {
+        throw std::runtime_error("invalid index specified");
+    }
+
+    return data[index];
+}
+
+inline const Vec2& Mat2::operator[](const size_t index) const
+{
+    if ((index < 0) || (index > 2))
+    {
+        throw std::runtime_error("invalid index specified");
+    }
+
+    return data[index];
+}
+
+inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs)
+{
+    return
+    {
+        rhs.data[0].x * lhs.data[0].x + rhs.data[0].y * lhs.data[1].x,
+        rhs.data[0].x * lhs.data[0].y + rhs.data[0].y * lhs.data[1].y,
+
+        rhs.data[1].x * lhs.data[0].x + rhs.data[1].y * lhs.data[1].x,
+        rhs.data[1].x * lhs.data[0].y + rhs.data[1].y * lhs.data[1].y,
+    };
+}
+
+inline Mat2 inverse(const Mat2& mat)
+{
+    const auto det = mat[0].x * mat[1].y - mat[0].y * mat[1].x;
+
+    if (det == 0)
+    {
+        throw std::runtime_error{ "singular matrix, can't find its inverse" };
+    }
+    return
+    {
+       (+mat[1].y) / det, (-mat[0].y) / det,
+       (-mat[1].x) / det, (+mat[0].x) / det,
+    };
+}
+
+inline std::string to_string(const Mat2& mat)
+{
+    return std::format("\n"
+        "{:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}\n",
+        mat[0].x, mat[0].y,
+        mat[1].x, mat[1].y);
+}
+
+inline Mat3::Mat3()
+{}
+
+inline Mat3::Mat3(
+    const float x1, const float y1, const float z1,
+    const float x2, const float y2, const float z2,
+    const float x3, const float y3, const float z3)
+    :
+    data
+    {{
+        {x1, y1, z1},
+        {x2, y2, z2},
+        {x3, y3, z3}
+    }}
+{}
+
+inline Mat3::Mat3(const Quat& quat) :
+    data
+{{
+    {1 - 2 * (quat.y * quat.y + quat.z * quat.z),     2 * (quat.x * quat.y + quat.z * quat.w),     2 * (quat.x * quat.z - quat.y * quat.w)},
+    {    2 * (quat.x * quat.y - quat.z * quat.w), 1 - 2 * (quat.x * quat.x + quat.z * quat.z),     2 * (quat.y * quat.z + quat.x * quat.w)},
+    {    2 * (quat.x * quat.z + quat.y * quat.w),     2 * (quat.y * quat.z - quat.x * quat.w), 1 - 2 * (quat.x * quat.x + quat.y * quat.y)},
+}}
+{}
+
+inline Mat3::Mat3(const float value) :
+    data
+{{
+    {value,   0.f,   0.f},
+    {  0.f, value,   0.f},
+    {  0.f,   0.f, value}
+}}
+{}
+
+inline Vec3& Mat3::operator[](const size_t index)
+{
+    if ((index < 0) || (index > 3))
+    {
+        throw std::runtime_error("invalid index specified");
+    }
+
+    return data[index];
+}
+
+inline const Vec3& Mat3::operator[](const size_t index) const
+{
+    if ((index < 0) || (index > 3))
+    {
+        throw std::runtime_error("invalid index specified");
+    }
+
+    return data[index];
+}
+
+inline Mat3 operator*(const Mat3& lhs, const Mat3& rhs)
+{
+    return
+    {
+        rhs.data[0].x * lhs.data[0].x + rhs.data[0].y * lhs.data[1].x + rhs.data[0].z * lhs.data[2].x,
+        rhs.data[0].x * lhs.data[0].y + rhs.data[0].y * lhs.data[1].y + rhs.data[0].z * lhs.data[2].y,
+        rhs.data[0].x * lhs.data[0].z + rhs.data[0].y * lhs.data[1].z + rhs.data[0].z * lhs.data[2].z,
+
+        rhs.data[1].x * lhs.data[0].x + rhs.data[1].y * lhs.data[1].x + rhs.data[1].z * lhs.data[2].x,
+        rhs.data[1].x * lhs.data[0].y + rhs.data[1].y * lhs.data[1].y + rhs.data[1].z * lhs.data[2].y,
+        rhs.data[1].x * lhs.data[0].z + rhs.data[1].y * lhs.data[1].z + rhs.data[1].z * lhs.data[2].z,
+
+        rhs.data[2].x * lhs.data[0].x + rhs.data[2].y * lhs.data[1].x + rhs.data[2].z * lhs.data[2].x,
+        rhs.data[2].x * lhs.data[0].y + rhs.data[2].y * lhs.data[1].y + rhs.data[2].z * lhs.data[2].y,
+        rhs.data[2].x * lhs.data[0].z + rhs.data[2].y * lhs.data[1].z + rhs.data[2].z * lhs.data[2].z,
+    };
+}
+
+inline Mat3 translate(const Mat3& matrix, Vec2 translation)
+{
+    return
+    {
+        matrix[0].x                , matrix[0].y                , matrix[0].z,
+        matrix[1].x                , matrix[1].y                , matrix[1].z,
+        matrix[2].x + translation.x, matrix[2].y + translation.y, matrix[2].z,
+    };
+}
+
+inline Mat3 inverse(const Mat3& mat)
+{
+    const auto det =
+        + mat[0].x * (mat[1].y * mat[2].z - mat[1].z * mat[2].y)
+        - mat[0].y * (mat[1].x * mat[2].z - mat[1].z * mat[2].x)
+        + mat[0].z * (mat[1].x * mat[2].y - mat[1].y * mat[2].x);
+
+    if (det == 0)
+    {
+        throw std::runtime_error{"singular matrix, can't find its inverse"};
+    }
+    return
+    {
+        (+(mat[1].y * mat[2].z - mat[2].y * mat[1].z)) / det, (-(mat[0].y * mat[2].z - mat[2].y * mat[0].z)) / det, (+(mat[0].y * mat[1].z - mat[1].y * mat[0].z)) / det,
+        (-(mat[1].x * mat[2].z - mat[2].x * mat[1].z)) / det, (+(mat[0].x * mat[2].z - mat[2].x * mat[0].z)) / det, (-(mat[0].x * mat[1].z - mat[1].x * mat[0].z)) / det,
+        (+(mat[1].x * mat[2].y - mat[2].x * mat[1].y)) / det, (-(mat[0].x * mat[2].y - mat[2].x * mat[0].y)) / det, (+(mat[0].x * mat[1].y - mat[1].x * mat[0].y)) / det,
+    };
+}
+
+inline std::string to_string(const Mat3& mat)
+{
+    return std::format("\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f}\n",
+        mat[0].x, mat[0].y, mat[0].z,
+        mat[1].x, mat[1].y, mat[1].z,
+        mat[2].x, mat[2].y, mat[2].z);
+}
+
+inline Mat4::Mat4()
+{}
+
+inline Mat4::Mat4(
+    const float x1, const float y1, const float z1, const float w1,
+    const float x2, const float y2, const float z2, const float w2,
+    const float x3, const float y3, const float z3, const float w3,
+    const float x4, const float y4, const float z4, const float w4)
+    :
+    data
+    { {
+        {x1, y1, z1, w1},
+        {x2, y2, z2, w2},
+        {x3, y3, z3, w3},
+        {x4, y4, z4, w4}
+    } }
+{}
+
+inline Mat4::Mat4(const Quat& quat) :
+    data
+{{
+    {1 - 2 * (quat.y * quat.y + quat.z * quat.z),     2 * (quat.x * quat.y + quat.z * quat.w),     2 * (quat.x * quat.z - quat.y * quat.w), 0},
+    {    2 * (quat.x * quat.y - quat.z * quat.w), 1 - 2 * (quat.x * quat.x + quat.z * quat.z),     2 * (quat.y * quat.z + quat.x * quat.w), 0},
+    {    2 * (quat.x * quat.z + quat.y * quat.w),     2 * (quat.y * quat.z - quat.x * quat.w), 1 - 2 * (quat.x * quat.x + quat.y * quat.y), 0},
+    {                                          0,                                           0,                                           0, 1},
+}}
+{}
+
+inline Mat4::Mat4(const float v) :
+    data
+{ {
+    {  v, 0.f, 0.f, 0.f},
+    {0.f,   v, 0.f, 0.f},
+    {0.f, 0.f,   v, 0.f},
+    {0.f, 0.f, 0.f,   v}
+} }
+{}
+
+inline Vec4& Mat4::operator[](const size_t index)
+{
+    if ((index < 0) || (index > 4))
+    {
+        throw std::runtime_error("invalid index specified");
+    }
+
+    return data[index];
+}
+
+inline const Vec4& Mat4::operator[](const size_t index) const
+{
+    if ((index < 0) || (index > 4))
+    {
+        throw std::runtime_error("invalid index specified");
+    }
+
+    return data[index];
+}
+
+inline Mat4 operator*(const Mat4& lhs, const Mat4& rhs)
+{
+    return
+    {
+        rhs.data[0].x * lhs.data[0].x + rhs.data[0].y * lhs.data[1].x + rhs.data[0].z * lhs.data[2].x + rhs.data[0].w * lhs.data[3].x,
+        rhs.data[0].x * lhs.data[0].y + rhs.data[0].y * lhs.data[1].y + rhs.data[0].z * lhs.data[2].y + rhs.data[0].w * lhs.data[3].y,
+        rhs.data[0].x * lhs.data[0].z + rhs.data[0].y * lhs.data[1].z + rhs.data[0].z * lhs.data[2].z + rhs.data[0].w * lhs.data[3].z,
+        rhs.data[0].x * lhs.data[0].w + rhs.data[0].y * lhs.data[1].w + rhs.data[0].z * lhs.data[2].w + rhs.data[0].w * lhs.data[3].w,
+
+        rhs.data[1].x * lhs.data[0].x + rhs.data[1].y * lhs.data[1].x + rhs.data[1].z * lhs.data[2].x + rhs.data[1].w * lhs.data[3].x,
+        rhs.data[1].x * lhs.data[0].y + rhs.data[1].y * lhs.data[1].y + rhs.data[1].z * lhs.data[2].y + rhs.data[1].w * lhs.data[3].y,
+        rhs.data[1].x * lhs.data[0].z + rhs.data[1].y * lhs.data[1].z + rhs.data[1].z * lhs.data[2].z + rhs.data[1].w * lhs.data[3].z,
+        rhs.data[1].x * lhs.data[0].w + rhs.data[1].y * lhs.data[1].w + rhs.data[1].z * lhs.data[2].w + rhs.data[1].w * lhs.data[3].w,
+
+        rhs.data[2].x * lhs.data[0].x + rhs.data[2].y * lhs.data[1].x + rhs.data[2].z * lhs.data[2].x + rhs.data[2].w * lhs.data[3].x,
+        rhs.data[2].x * lhs.data[0].y + rhs.data[2].y * lhs.data[1].y + rhs.data[2].z * lhs.data[2].y + rhs.data[2].w * lhs.data[3].y,
+        rhs.data[2].x * lhs.data[0].z + rhs.data[2].y * lhs.data[1].z + rhs.data[2].z * lhs.data[2].z + rhs.data[2].w * lhs.data[3].z,
+        rhs.data[2].x * lhs.data[0].w + rhs.data[2].y * lhs.data[1].w + rhs.data[2].z * lhs.data[2].w + rhs.data[2].w * lhs.data[3].w,
+
+        rhs.data[3].x * lhs.data[0].x + rhs.data[3].y * lhs.data[1].x + rhs.data[3].z * lhs.data[2].x + rhs.data[3].w * lhs.data[3].x,
+        rhs.data[3].x * lhs.data[0].y + rhs.data[3].y * lhs.data[1].y + rhs.data[3].z * lhs.data[2].y + rhs.data[3].w * lhs.data[3].y,
+        rhs.data[3].x * lhs.data[0].z + rhs.data[3].y * lhs.data[1].z + rhs.data[3].z * lhs.data[2].z + rhs.data[3].w * lhs.data[3].z,
+        rhs.data[3].x * lhs.data[0].w + rhs.data[3].y * lhs.data[1].w + rhs.data[3].z * lhs.data[2].w + rhs.data[3].w * lhs.data[3].w,
+    };
+}
+
+inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
+{
+    const Mat4 scaleMatrix
+    {
+        scaleVec.x, 0         , 0         , 0  ,
+        0         , scaleVec.y, 0         , 0  ,
+        0         , 0         , scaleVec.z, 0  ,
+        0         , 0         , 0         , 1.f
+    };
+
+    return matrix * scaleMatrix;
+}
+
+inline Mat4 translate(const Mat4& matrix, const Vec3& translation)
+{
+    return
+    {
+                        matrix[0].x,                 matrix[0].y,                 matrix[0].z, matrix[0].w,
+                        matrix[1].x,                 matrix[1].y,                 matrix[1].z, matrix[1].w,
+                        matrix[2].x,                 matrix[2].y,                 matrix[2].z, matrix[2].w,
+        matrix[3].x + translation.x, matrix[3].y + translation.y, matrix[3].z + translation.z, matrix[3].w,
+    };
+}
+
+inline std::string to_string(const Mat4 mat)
+{
+    return std::format("\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f},\n"
+        "{:>10.7f}, {:>10.7f}, {:>10.7f}, {:>10.7f}\n",
+        mat[0].x, mat[0].y, mat[0].z, mat[0].w,
+        mat[1].x, mat[1].y, mat[1].z, mat[1].w,
+        mat[2].x, mat[2].y, mat[2].z, mat[2].w,
+        mat[3].x, mat[3].y, mat[3].z, mat[3].w);
 }
 } // namespace ts

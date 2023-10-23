@@ -32,7 +32,7 @@ consteval std::string_view colorToString(Color color)
     }
 }
 
-inline std::string currentDateTimeToStr()
+__forceinline std::string currentDateTimeToStr()
 {
     return std::format("{:%d-%m-%Y %H:%M:%OS}",
         std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::system_clock::now()));

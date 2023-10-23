@@ -130,12 +130,12 @@ void Controllers::sync(const XrSpace space, const XrTime time)
             }
         }
 
-        XrActionStateFloat flySpeedState{XR_TYPE_ACTION_STATE_FLOAT};
-        updateActionStateFloat(mSession, mFlyAction, path, flySpeedState);
+        XrActionStateFloat flyState{XR_TYPE_ACTION_STATE_FLOAT};
+        updateActionStateFloat(mSession, mFlyAction, path, flyState);
 
-        if (flySpeedState.isActive)
+        if (flyState.isActive)
         {
-            mFlySpeeds.at(controllerIndex) = flySpeedState.currentState;
+            mFlyStates.at(controllerIndex) = flyState.currentState;
         }
     }
 }

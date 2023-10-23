@@ -11,22 +11,22 @@ layout (location=0) out vec4 outColor;
 
 float log10(float x)
 {
-return log(x) / log(10.0);
+    return log(x) / log(10.0);
 }
 
 float satf(float x)
 {
-return clamp(x, 0.0, 1.0);
+    return clamp(x, 0.0, 1.0);
 }
 
 vec2 satv(vec2 x)
 {
-return clamp(x, vec2(0.0), vec2(1.0));
+    return clamp(x, vec2(0.0), vec2(1.0));
 }
 
 float max2(vec2 v)
 {
-return max(v.x, v.y);
+    return max(v.x, v.y);
 }
 
 vec4 gridColor(vec2 uv, vec2 camPos)

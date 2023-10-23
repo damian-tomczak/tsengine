@@ -11,6 +11,14 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ../src
 )
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    VK_USE_PLATFORM_${VK_USE_PLATFORM}_KHR
+    VK_NO_PROTOTYPES
+    XR_USE_GRAPHICS_API_VULKAN
+    $<$<BOOL:${CYBSDK_LIB}>:CYBSDK_FOUND>
+    $<$<BOOL:${ENABLE_TESTS}>:TESTER_ADAPTER>
+)
+
 add_custom_target(copy_assets_tests
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${ASSETS_DIR} $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets

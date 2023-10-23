@@ -32,7 +32,6 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# TODO: move tester_adapter header into enable_tests guard
 option(ENABLE_TESTS "Test the engine basic operations" ON)
 
 set(EXTERNAL_DIR external)

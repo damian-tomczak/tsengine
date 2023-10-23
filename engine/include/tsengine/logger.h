@@ -3,7 +3,7 @@
 #ifdef _WIN32
 #define FUNCTION_SIGNATURE __FUNCSIG__
 #else
-#error "not implemented"
+#error not implemented
 #endif // _WIN32
 
 #define NOT_PRINT_LINE_NUMBER -1

@@ -139,7 +139,6 @@ int run(Engine* const engine) try
     while (loop)
     {
 #ifdef TESTER_ADAPTER
-        // I have no idea how to better implement it.
         if ((testerAdapter != nullptr) && isRenderingStarted)
         {
             if (std::chrono::steady_clock::now() >= (startTime + testerAdapter->renderingDuration))
@@ -186,16 +185,15 @@ int run(Engine* const engine) try
 
             for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
             {
-                // TODO: rename it
-                const auto flySpeed = controllers.getFlySpeed(controllerIndex);
-                if (flySpeed > 0.f)
+                const auto flyState = controllers.getFlyState(controllerIndex);
+                if (flyState)
                 {
                     const auto controllerPose = controllers.getPose(controllerIndex)[2];
 
                     if ((!controllerPose.isNan()) || (controllerPose == math::Vec3(0.f)))
                     {
                         const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
-                        cameraPosition += forward * flySpeed * flySpeedMultiplier * deltaTime;
+                        cameraPosition += forward * flySpeedMultiplier * deltaTime;
                     }
                     else
                     {
