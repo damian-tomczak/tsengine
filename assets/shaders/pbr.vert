@@ -26,9 +26,6 @@ layout(push_constant) uniform PushConst {
 
 void main()
 {
-    mat4 cameraMat = mat4(1.0);
-    cameraMat[3] = vec4(commonUbo.camPos, 1.0);
-
     vec3 worldPos = inPos + pushConst.objPos;
     outWorldPos = worldPos;
     outNormal = mat3(individualUbo.modelMat) * inNormal;
@@ -36,7 +33,6 @@ void main()
     gl_Position =
         commonUbo.projMats[gl_ViewIndex] *
         commonUbo.viewMats[gl_ViewIndex] *
-        cameraMat *
         individualUbo.modelMat *
         vec4(worldPos, 1.0);
 

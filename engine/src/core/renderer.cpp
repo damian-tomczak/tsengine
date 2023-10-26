@@ -438,6 +438,9 @@ void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::un
     for (size_t eyeIndex{}; eyeIndex < mHeadset.getEyeCount(); ++eyeIndex)
     {
         renderProcess->mCommonUniformData.viewMats.at(eyeIndex) = mHeadset.getEyeViewMatrix(eyeIndex);
+        renderProcess->mCommonUniformData.viewMats.at(eyeIndex)[0].w = cameraPosition.x;
+        renderProcess->mCommonUniformData.viewMats.at(eyeIndex)[1].w = cameraPosition.y;
+        renderProcess->mCommonUniformData.viewMats.at(eyeIndex)[2].w = cameraPosition.z;
         renderProcess->mCommonUniformData.projMats.at(eyeIndex) = mHeadset.getEyeProjectionMatrix(eyeIndex);
     }
 

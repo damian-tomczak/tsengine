@@ -59,11 +59,11 @@ vec3 F_Schlick(float cosTheta, float metallic)
 
 vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness)
 {
-    vec3 H = normalize (V + L);
-    float dotNV = clamp(dot(N, V), 0, 1.0);
-    float dotNL = clamp(dot(N, L), 0, 1.0);
-    float dotLH = clamp(dot(L, H), 0, 1.0);
-    float dotNH = clamp(dot(N, H), 0, 1.0);
+    vec3 H = normalize(V + L);
+    float dotNV = max(dot(N, V), 0);
+    float dotNL = max(dot(N, L), 0);
+    float dotLH = max(dot(L, H), 0);
+    float dotNH = max(dot(N, H), 0);
 
     vec3 lightColor = vec3(1.0);
 
@@ -88,12 +88,21 @@ void main()
 {
     vec3 N = normalize(inNormal);
 
-    vec3 V = normalize(-commonUbo.camPos - inWorldPos);
+    // vec3 var = vec4(inverse(commonUbo.viewMats[gl_ViewIndex]) * vec4(-commonUbo.camPos - inWorldPos, 1.0)).xyz;
+    // vec3 V = normalize(vec3(var.x, var.y + 1.0, var.z));
+
+    vec3 temp = vec3(commonUbo.viewMats[gl_ViewIndex][3]);
+    vec3 v1 = vec3(
+        commonUbo.camPos.x + temp.x,
+        commonUbo.camPos.y + temp.y,
+        commonUbo.camPos.z + temp.z
+        );
+    vec3 V = normalize(-v1 - inWorldPos);
 
     vec3 Lo = vec3(0.0);
     for (int i = 0; i < lightsUbo.lights.length(); i++)
     {
-        vec3 L = normalize(lightsUbo.lights[i].xyz - inWorldPos);
+        vec3 L = normalize(lightsUbo.lights[i] - inWorldPos);
         Lo += BRDF(L, V, N, material.metallic, material.roughness);
     };
 

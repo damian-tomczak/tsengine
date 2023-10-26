@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+// TODO: column major
 namespace ts::math
 {
 struct Vec2;

@@ -18,7 +18,7 @@ std::mutex engineInit;
 
 namespace
 {
-constexpr float flySpeedMultiplier{15.f};
+constexpr auto flySpeedMultiplier = 2.f;
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
@@ -98,21 +98,21 @@ int run(Engine* const engine) try
             .pos = {-5.f, 2.f, -5.f},
             .model = math::Mat4(1.f),
             .pipeline = PipelineType::PBR,
-            .material = Materials::create(Material::Type::GOLD),
+            .material = Materials::create(Material::Type::COPPER),
         }),
         std::make_shared<Model>(Model
         {
             .pos = {0.f, 2.f, -5.f},
             .model = math::Mat4(1.f),
             .pipeline = PipelineType::PBR,
-            .material = Materials::create(Material::Type::GOLD),
+            .material = Materials::create(Material::Type::COPPER),
         }),
         std::make_shared<Model>(Model
         {
             .pos = {5.f, 2.f, -5.f},
             .model = math::Mat4(1.f),
             .pipeline = PipelineType::PBR,
-            .material = Materials::create(Material::Type::GOLD),
+            .material = Materials::create(Material::Type::COPPER),
         }),
     };
 
@@ -135,11 +135,11 @@ int run(Engine* const engine) try
     LOGGER_LOG("tsengine initialization completed successfully");
 
     window->show();
-    math::Vec3 cameraPosition{0, 0, 0};
+    math::Vec3 cameraPosition{1.f};
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::steady_clock::now();
-    // TODO: consider if we should provide an option to render firstly to the window then copy it to the headset
+    // TODO: firstly render to the window then copy to the headset
 
 #ifdef CYBSDK_FOUND
     const auto device = CybSDK::Virt::FindDevice();
@@ -240,7 +240,7 @@ int run(Engine* const engine) try
                 {
                     const auto controllerPose = controllers.getPose(controllerIndex)[2];
 
-                    if ((!controllerPose.isNan()) || (controllerPose == math::Vec3(0.f)))
+                    if ((!controllerPose.isNan()) || (controllerPose == math::Vec3{0.f}))
                     {
                         const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
                         cameraPosition += forward * flySpeedMultiplier * deltaTime;

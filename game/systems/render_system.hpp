@@ -13,12 +13,9 @@ class RenderSystem : public ts::System
 {
 public:
     RenderSystem()
-    {
-        requireComponent<TransformComponent>();
-        requireComponent<TextureComponent>();
-    }
+    {}
 
-    void update(std::unique_ptr<ts::AssetStore>& pAssetStore, float deltaTime)
+    void update(std::unique_ptr<ts::AssetStore>& pAssetStore, const float deltaTime)
     {
         (void)pAssetStore;
         (void)deltaTime;

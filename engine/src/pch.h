@@ -15,4 +15,8 @@
 #include <future>
 #include <cassert>
 
+#include <bitset>
+#include <deque>
+#include <typeindex>
+
 using namespace std::literals;
