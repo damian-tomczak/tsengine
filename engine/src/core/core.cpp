@@ -116,32 +116,20 @@ namespace ts
         auto startTime = std::chrono::steady_clock::now();
         // TODO: display message to wear the headset
         // TODO: consider if we should provide an option to render firstly to the window then copy it to the headset
-        //cyberith
-        printf("========================================\r\n");
-        printf("C++ API Version: %d.%d\r\n", CybSDK::Virt::GetSDKVersion() >> 8, CybSDK::Virt::GetSDKVersion() & 0xff);
-        printf("========================================\r\n");
-
+        
         CybSDK::VirtDevice* device = CybSDK::Virt::FindDevice();
         if (device == nullptr)
         {
-            printf("No Device Found!\r\n");
-            printf("========================================\r\n");
-            std::cin.ignore();
-            exit(-2);
+            LOGGER_ERR("Cyberith Virtualizer device not found");
         }
 
         const CybSDK::VirtDeviceInfo& info = device->GetDeviceInfo();
-
-        printf("Device Found: %ls\r\n", info.ProductName);
-        printf("Firmware Version: %d.%d\r\n", info.MajorVersion, info.MinorVersion);
-        printf("========================================\r\n\r\n");
+        
+        LOGGER_LOG(("Device found "s + char(*info.ProductName) + "Firmware Version: "s + char(info.MajorVersion) + "."s + char(info.MinorVersion)).c_str());
 
         if (!device->Open())
         {
-            printf("Unable to connect to Virtualizer!\r\n");
-            printf("========================================\r\n");
-            std::cin.ignore();
-            exit(-3);
+            LOGGER_ERR("Unable to connect to Cyberith Virtualizer");
         }
         while (loop)
         {
@@ -195,13 +183,17 @@ namespace ts
                 if (movement_speed > 0.f)
                 {
                     ring_angle *= 6.28318530718f;
-                    math::Vec3 direction = { -std::sin(ring_angle), 0.f, std::cos(ring_angle) };
+
+                    float offsetX = -std::sin(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime;
+                    float offsetZ = std::cos(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime;
+
                     if (movement_direction == -1.f)
                     {
-                        math::Vec3 direction = { std::sin(ring_angle), 0.f, std::cos(ring_angle) };
+                        offsetX *= -1;
+                        offsetZ *= -1;
                     }
-
-                    cameraPosition += direction * movement_speed * flySpeedMultiplier * deltaTime;
+                    cameraPosition.x += offsetX;
+                    cameraPosition.z += offsetZ;
                 }
 
 
