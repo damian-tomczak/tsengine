@@ -86,8 +86,8 @@ struct Mat2
     const Vec2& operator[](const size_t index) const;
 };
 
-inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs);
-inline Mat2 transpose(const Mat2& mat);
+inline constexpr Mat2 operator*(const Mat2& lhs, const Mat2& rhs);
+inline constexpr Mat2 transpose(const Mat2& mat);
 inline Mat2 inverse(const Mat2& mat);
 inline std::string to_string(const Mat2& mat);
 
@@ -108,9 +108,9 @@ struct Mat3
     const Vec3& operator[](const size_t index) const;
 };
 
-inline Mat3 operator*(const Mat3& lhs, const Mat3& rhs);
-inline Mat3 transpose(const Mat3& mat);
-inline Mat3 translate(const Mat3& matrix, Vec2 translation);
+inline constexpr Mat3 operator*(const Mat3& lhs, const Mat3& rhs);
+inline constexpr Mat3 transpose(const Mat3& mat);
+inline constexpr Mat3 translate(const Mat3& matrix, Vec2 translation);
 inline Mat3 inverse(const Mat3& mat);
 inline std::string to_string(const Mat3& mat);
 
@@ -132,10 +132,10 @@ struct Mat4
     const Vec4& operator[](const size_t index) const;
 };
 
-inline Mat4 operator*(const Mat4& lhs, const Mat4& rhs);
-inline Mat4 transpose(const Mat4& mat);
-inline Mat4 translate(const Mat4& matrix, const Vec3& translation);
-inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec);
+inline constexpr Mat4 operator*(const Mat4& lhs, const Mat4& rhs);
+inline constexpr Mat4 transpose(const Mat4& mat);
+inline constexpr Mat4 translate(const Mat4& matrix, const Vec3& translation);
+inline constexpr Mat4 scale(const Mat4& matrix, const Vec3& scaleVec);
 inline std::string to_string(const Mat4 mat);
 
 struct Quat
@@ -289,7 +289,7 @@ inline const Vec2& Mat2::operator[](const size_t index) const
     return data[index];
 }
 
-inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs)
+inline constexpr Mat2 operator*(const Mat2& lhs, const Mat2& rhs)
 {
     return
     {
@@ -301,7 +301,7 @@ inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs)
     };
 }
 
-inline Mat2 transpose(const Mat2& mat)
+inline constexpr Mat2 transpose(const Mat2& mat)
 {
     return
     {
@@ -388,7 +388,7 @@ inline const Vec3& Mat3::operator[](const size_t index) const
     return data[index];
 }
 
-inline Mat3 operator*(const Mat3& lhs, const Mat3& rhs)
+inline constexpr Mat3 operator*(const Mat3& lhs, const Mat3& rhs)
 {
     return
     {
@@ -406,7 +406,7 @@ inline Mat3 operator*(const Mat3& lhs, const Mat3& rhs)
     };
 }
 
-inline Mat3 transpose(const Mat3& mat)
+inline constexpr Mat3 transpose(const Mat3& mat)
 {
     return
     {
@@ -416,7 +416,7 @@ inline Mat3 transpose(const Mat3& mat)
     };
 }
 
-inline Mat3 translate(const Mat3& matrix, Vec2 translation)
+inline constexpr Mat3 translate(const Mat3& matrix, Vec2 translation)
 {
     return
     {
@@ -550,7 +550,7 @@ inline const Vec4& Mat4::operator[](const size_t index) const
     return data[index];
 }
 
-inline Mat4 operator*(const Mat4& lhs, const Mat4& rhs)
+inline constexpr Mat4 operator*(const Mat4& lhs, const Mat4& rhs)
 {
     return
     {
@@ -576,7 +576,7 @@ inline Mat4 operator*(const Mat4& lhs, const Mat4& rhs)
     };
 }
 
-inline Mat4 transpose(const Mat4& mat)
+inline constexpr Mat4 transpose(const Mat4& mat)
 {
     return
     {
@@ -587,7 +587,7 @@ inline Mat4 transpose(const Mat4& mat)
     };
 }
 
-inline Mat4 translate(const Mat4& matrix, const Vec3& translation)
+inline constexpr Mat4 translate(const Mat4& matrix, const Vec3& translation)
 {
     return
     {
@@ -598,6 +598,7 @@ inline Mat4 translate(const Mat4& matrix, const Vec3& translation)
     };
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 template<typename T>
 inline Mat4 rotate(const Mat4& matrix, const Vec3& axis, T angle)
@@ -633,13 +634,16 @@ inline Mat4 rotate(const Mat4& matrix, const Vec3& axis, T angle)
     return matrix * rotationMatrix;
 =======
 inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
+=======
+inline constexpr Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
+>>>>>>> 9a2e018 (progress)
 {
     const Mat4 scaleMatrix
     {
-        scaleVec.x, 0         , 0         , 0  ,
-        0         , scaleVec.y, 0         , 0  ,
-        0         , 0         , scaleVec.z, 0  ,
-        0         , 0         , 0         , 1.f,
+        scaleVec.x, 0         , 0         , 0,
+        0         , scaleVec.y, 0         , 0,
+        0         , 0         , scaleVec.z, 0,
+        0         , 0         , 0         , 1,
     };
 
     return matrix * scaleMatrix;
