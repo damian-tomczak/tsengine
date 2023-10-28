@@ -9,21 +9,24 @@
 #include "game_object.hpp"
 #include "renderer.h"
 #include "tests_core_adapter.h"
-#include "CVirt.h"
+
+#ifdef CYBSDK_FOUND
+    #include "CVirt.h"
+#endif
 
 std::mutex engineInit;
 
 namespace
 {
-    constexpr float flySpeedMultiplier{ 5.f };
+constexpr float flySpeedMultiplier{ 5.f };
 
-    unsigned tickCount{};
-    bool isAlreadyInitiated{};
+unsigned tickCount{};
+bool isAlreadyInitiated{};
 
-    __forceinline void runCleaner()
-    {
-        isAlreadyInitiated = false;
-    }
+__forceinline void runCleaner()
+{
+    isAlreadyInitiated = false;
+}
 } // namespace
 
 
@@ -117,6 +120,7 @@ namespace ts
         // TODO: display message to wear the headset
         // TODO: consider if we should provide an option to render firstly to the window then copy it to the headset
         
+#ifdef CYBSDK_FOUND
         CybSDK::VirtDevice* device = CybSDK::Virt::FindDevice();
         if (device == nullptr)
         {
@@ -124,13 +128,15 @@ namespace ts
         }
 
         const CybSDK::VirtDeviceInfo& info = device->GetDeviceInfo();
-        
+        const wchar_t* ptr = L"Virtualizer Elite 2";
         LOGGER_LOG(("Device found "s + char(*info.ProductName) + "Firmware Version: "s + char(info.MajorVersion) + "."s + char(info.MinorVersion)).c_str());
 
         if (!device->Open())
         {
             LOGGER_ERR("Unable to connect to Cyberith Virtualizer");
         }
+#endif
+       
         while (loop)
         {
             // I have no idea how to better implement it.
@@ -175,6 +181,7 @@ namespace ts
                     isRenderingStarted = true;
                 }
 
+#ifdef CYBSDK_FOUND
                 float ring_height = device->GetPlayerHeight();
                 float ring_angle = device->GetPlayerOrientation();
                 float movement_direction = device->GetMovementDirection();
@@ -182,10 +189,9 @@ namespace ts
 
                 if (movement_speed > 0.f)
                 {
-                    ring_angle *= 6.28318530718f;
-
-                    float offsetX = -std::sin(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime;
-                    float offsetZ = std::cos(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime;
+                    ring_angle *= 2 * std::numbers::pi_v<float>;
+                    float offsetX = std::sin(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime;
+                    float offsetZ = -(std::cos(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime);
 
                     if (movement_direction == -1.f)
                     {
@@ -195,28 +201,33 @@ namespace ts
                     cameraPosition.x += offsetX;
                     cameraPosition.z += offsetZ;
                 }
+#else
+                controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
+
+                for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
+                {
+                    const auto flySpeed = controllers.getFlyState(controllerIndex);
+                    if (flySpeed > 0.f)
+                    {
+                        const auto controllerPose = controllers.getPose(controllerIndex)[2];
+
+                        if (!controllerPose.isNan())
+                        {
+                            const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
+                            cameraPosition += forward * flySpeed * flySpeedMultiplier * deltaTime;
+                        }
+                        else
+                        {
+                            LOGGER_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
+                        }
+                    }
+                }
+#endif
+
+                
 
 
-                //controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
 
-                //for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
-                //{
-                //    const auto flySpeed = controllers.getFlySpeed(controllerIndex);
-                //    if (flySpeed > 0.f)
-                //    {
-                //        const auto controllerPose = controllers.getPose(controllerIndex)[2];
-
-                //        if (!controllerPose.isNan())
-                //        {
-                //            const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
-                //            cameraPosition += forward * flySpeed * flySpeedMultiplier * deltaTime;
-                //        }
-                //        else
-                //        {
-                //            LOGGER_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
-                //        }
-                //    }
-                //}
 
                 renderer.render(cameraPosition, swapchainImageIndex);
                 const auto mirrorResult = mirrorView.render(swapchainImageIndex);
@@ -237,11 +248,11 @@ namespace ts
             }
         }
 
-        engine->close();
-        ctx.sync();
-        isAlreadyInitiated = false;
+    engine->close();
+    ctx.sync();
+    isAlreadyInitiated = false;
 
-        return EXIT_SUCCESS;
-    }
-    TS_CATCH_FALLBACK_WITH_CLEANER(runCleaner)
+    return EXIT_SUCCESS;
+}
+TS_CATCH_FALLBACK_WITH_CLEANER(runCleaner)
 } // namespace ts
