@@ -39,7 +39,7 @@ public:
     virtual void onKeyReleased(Key k) = 0;
 };
 
-int run(Engine* engine);
+int run(Engine* const engine);
 } // namespace ts
 
 #define TS_MAIN()                            \

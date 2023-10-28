@@ -143,7 +143,7 @@ if (debugBreak)
 
     if (throwException)
     {
-        throw TSException();
+        throw Exception{};
     }
 }
 } // namespace ts::logger

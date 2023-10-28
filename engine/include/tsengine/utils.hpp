@@ -38,10 +38,16 @@ private:
 
 namespace ts
 {
-class TSException : public std::exception
+class Exception : public std::exception
 {
 public:
-    TSException() {}
+    Exception() : mMessage{"Exception message not provided"} {}
+    Exception(std::string_view message) : mMessage{ message } {}
+    
+    const char* what() const noexcept override { return mMessage.data(); }
+    
+private:
+    const std::string_view mMessage;
 };
 
 template<typename DerivedClass>
