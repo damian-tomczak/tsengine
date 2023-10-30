@@ -11,7 +11,7 @@
 
 namespace ts
 {
-class MeshData;
+class AssetStore;
 class Context;
 struct Model;
 class Headset;
@@ -26,12 +26,16 @@ class Renderer
     static constexpr size_t framesInFlightCount{2};
 
 public:
-    Renderer(const Context& ctx, const Headset& headset, const std::vector<std::shared_ptr<Model>>& models, std::unique_ptr<MeshData>&& meshData);
+    Renderer(
+        const Context& ctx,
+        const Headset& headset,
+        const AssetStore& assetStore);
+
     virtual ~Renderer();
 
     void createRenderer();
-    void render(const math::Vec3& cameraPosition, size_t swapchainImageIndex);
-    void submit(bool useSemaphores) const;
+    void render(const math::Vec3& cameraPosition, const size_t swapchainImageIndex);
+    void submit(const bool useSemaphores) const;
 
     [[nodiscard]] VkSemaphore getCurrentDrawableSemaphore() const;
     [[nodiscard]] VkSemaphore getCurrentPresentableSemaphore() const;
@@ -43,6 +47,7 @@ private:
 
     const Context& mCtx;
     const Headset& mHeadset;
+    const AssetStore& mAssetStore;
     VkCommandPool mCommandPool{};
     VkDescriptorPool mDescriptorPool{};
     VkDescriptorSetLayout mDescriptorSetLayout{}, mLightCubeDescriptorSetLayout{};
@@ -52,7 +57,6 @@ private:
     size_t mIndexOffset{};
     std::unique_ptr<DataBuffer> mVertexIndexBuffer;
     size_t mCurrentRenderProcessIndex{};
-    std::unique_ptr<MeshData> mMeshData;
-    const std::vector<std::shared_ptr<Model>>& mModels;
+
 };
 }

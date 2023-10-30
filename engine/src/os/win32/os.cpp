@@ -22,7 +22,7 @@ void Win32Window::createWindow()
 
     mHwnd = CreateWindow(
         ENGINE_NAME,
-        GAME_NAME,
+        mWindowName.data(),
         WS_OVERLAPPEDWINDOW,
         static_cast<int>((GetSystemMetrics(SM_CXSCREEN) - mWidth) / 2),
         static_cast<int>((GetSystemMetrics(SM_CYSCREEN) - mHeight) / 2),

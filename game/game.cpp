@@ -1,8 +1,6 @@
 #include "game.h"
 
 #include "systems/keyboard_system.hpp"
-#include "systems/movement_system.hpp"
-#include "systems/render_system.hpp"
 
 #include "events/key_pressed_event.hpp"
 #include "events/key_released_event.hpp"
@@ -10,7 +8,7 @@
 #include "tsengine/math.hpp"
 #include "tsengine/logger.h"
 
-bool Game::init(unsigned& width, unsigned& height) { return true; }
+bool Game::init(const char*& gameName, unsigned& width, unsigned& height) { return true; }
 
 void Game::close()
 {}

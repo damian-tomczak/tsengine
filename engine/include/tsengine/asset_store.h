@@ -1,24 +1,23 @@
 #pragma once
 
 #include "utils.hpp"
+#include "tsengine/math.hpp"
 
 namespace ts
 {
+struct Vertex final
+{
+    math::Vec3 position;
+    math::Vec3 normal;
+    math::Vec3 color;
+};
+
 class AssetStore final : public Singleton<AssetStore>
 {
     SINGLETON_BODY(AssetStore);
     NOT_MOVEABLE(AssetStore);
 
 public:
-    //struct Model final
-    //{
-    //    size_t firstIndex;
-    //    size_t indexCount;
-    //};
-
-    //void loadModel();
-
-
-    //void reset();
+    void loadModel(const char* fileName);
 };
 } // namespace ts

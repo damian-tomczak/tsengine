@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef _WIN32
+#define NOMINMAX
+#endif
+
 #include "internal_utils.h"
 
 #include "vulkan/vulkan.h"
@@ -14,7 +18,7 @@ class Context final
     static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
 
 public:
-    Context() = default;
+    Context(const std::string_view gameName) : mGameName{gameName} {}
     ~Context();
 
     static constexpr XrViewConfigurationType xrViewType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
@@ -73,6 +77,7 @@ private:
         std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
     void createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
 
+    const std::string_view mGameName;
     XrInstance mXrInstance{};
     XrSystemId mXrSystemId{};
 

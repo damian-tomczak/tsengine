@@ -1,8 +1,8 @@
 #include "shaders_compiler.h"
+
 #include "glslang/Include/glslang_c_interface.h"
 #include "glslang/Public/resource_limits_c.h"
 #include "tsengine/logger.h"
-#include <fstream>
 
 namespace
 {
@@ -157,8 +157,10 @@ void saveSPIRV(const std::filesystem::path& outputFilePath, const std::vector<ui
 
 namespace ts
 {
-void compileShaders(const std::string& shadersPath)
+void compileShaders(const std::filesystem::path shadersPath)
 {
+    const auto fullShadersPath = "assets" / shadersPath;
+
     if (!glslang_initialize_process())
     {
         LOGGER_ERR("Glslang initialization failure");
@@ -166,7 +168,7 @@ void compileShaders(const std::string& shadersPath)
 
     if (!std::filesystem::is_directory(shadersPath))
     {
-        LOGGER_ERR(("Path couldn't be found: " + shadersPath).c_str());
+        LOGGER_ERR(("Path couldn't be found: " + shadersPath.string()).c_str());
     }
 
     // TODO: compile only modified shaders

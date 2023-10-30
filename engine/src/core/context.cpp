@@ -335,7 +335,7 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
 {
     const VkApplicationInfo applicationInfo{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-        .pApplicationName = GAME_NAME,
+        .pApplicationName = mGameName.data(),
         .applicationVersion = VK_MAKE_API_VERSION(0, 0, 1, 0),
         .pEngineName = ENGINE_NAME,
         .engineVersion = VK_MAKE_API_VERSION(0, 0, 1, 0),
@@ -638,13 +638,15 @@ Context::~Context()
 
 void Context::createXrInstance()
 {
-    const XrApplicationInfo appInfo{
-        .applicationName = GAME_NAME,
+    XrApplicationInfo appInfo{
         .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
         .engineName = ENGINE_NAME,
         .engineVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
         .apiVersion = XR_CURRENT_API_VERSION,
     };
+
+    const auto copySize = std::min(mGameName.size(), static_cast<size_t>(XR_MAX_APPLICATION_NAME_SIZE - 1));
+    strncpy(appInfo.applicationName, mGameName.data(), copySize);
 
     std::vector<const char*> extensions{XR_KHR_VULKAN_ENABLE_EXTENSION_NAME};
 

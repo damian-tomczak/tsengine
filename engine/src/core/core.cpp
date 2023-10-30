@@ -1,4 +1,7 @@
 #include "tsengine/core.h"
+
+#include "tsengine/asset_store.h" 
+
 #include "context.h"
 #include "window.h"
 #include "tsengine/logger.h"
@@ -8,6 +11,7 @@
 #include "vulkan_tools/shaders_compiler.h"
 #include "game_object.hpp"
 #include "renderer.h"
+
 #include "tests_core_adapter.h"
 
 #ifdef CYBSDK_FOUND
@@ -60,19 +64,20 @@ int run(Engine* const engine) try
 #endif
 
     unsigned width{1280}, height{720};
-    engine->init(width, height);
+    auto gameName = "Awesome unamed game";
+    engine->init(gameName, width, height);
 
     if (!std::filesystem::is_directory("assets"))
     {
         LOGGER_ERR("Assets can not be found");
     }
 
-    compileShaders("assets/shaders");
+    compileShaders("shaders");
 
-    Context ctx;
+    Context ctx{gameName};
     ctx.createOpenXrContext().createVulkanContext();
 
-    auto window = Window::createWindowInstance(GAME_NAME, width, height);
+    auto window = Window::createWindowInstance(gameName, width, height);
     MirrorView mirrorView{ctx, window};
     mirrorView.createSurface();
     ctx.createVkDevice(mirrorView.getSurface());
@@ -81,54 +86,12 @@ int run(Engine* const engine) try
     Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
     controllers.setupControllers();
 
-    std::shared_ptr<Model> ruins = std::make_shared<Model>(Model{
-        .model = math::Mat4(1.f),
-        .pipeline = PipelineType::NORMAL_LIGHTING,
-    });
-    std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
-        .pos = {0.f, 0.f, -10.f},
-        .model = math::Mat4(1.f),
-        .pipeline = PipelineType::NORMAL_LIGHTING,
-    });
+    auto& assetStore = AssetStore::getInstance();
+    assetStore.loadModel("models/village.obj");
+    assetStore.loadModel("models/polonez.obj");
+    assetStore.loadModel("models/sphere.obj");
 
-    std::array spheres
-    {
-        std::make_shared<Model>(Model
-        {
-            .pos = {-5.f, 2.f, -5.f},
-            .model = math::Mat4(1.f),
-            .pipeline = PipelineType::PBR,
-            .material = Materials::create(Material::Type::COPPER),
-        }),
-        std::make_shared<Model>(Model
-        {
-            .pos = {0.f, 2.f, -5.f},
-            .model = math::Mat4(1.f),
-            .pipeline = PipelineType::PBR,
-            .material = Materials::create(Material::Type::COPPER),
-        }),
-        std::make_shared<Model>(Model
-        {
-            .pos = {5.f, 2.f, -5.f},
-            .model = math::Mat4(1.f),
-            .pipeline = PipelineType::PBR,
-            .material = Materials::create(Material::Type::COPPER),
-        }),
-    };
-
-    std::vector<std::shared_ptr<Model>> models
-    {
-        ruins,
-        polonez,
-    };
-    models.insert(models.end(), spheres.begin(), spheres.end());
-
-    auto meshData = std::make_unique<MeshData>();
-    meshData->loadModel("assets/models/village.obj", models, 1);
-    meshData->loadModel("assets/models/polonez.obj", models, 1);
-    meshData->loadModel("assets/models/sphere.obj", models, spheres.size());
-
-    Renderer renderer{ctx, headset, models, std::move(meshData)};
+    Renderer renderer{ctx, headset, assetStore};
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
 

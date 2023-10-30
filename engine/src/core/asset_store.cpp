@@ -1,33 +1,11 @@
-//#include "tsengine/asset_store.h"
-//
-//namespace ts
-//{
-//void AssetStore::clearAssets()
-//{
-//    // for (const auto& sprite : sprites)
-//    //{
-//    //    destroySprite(sprite.second);
-//    //}
-//    // sprites.clear();
-//}
-//
-//void AssetStore::addTexture(const char* assetId, const char* filePath)
-//{
-//    (void)assetId;
-//    (void)filePath;
-//    // auto sprite{ createSprite((DATA_PATH + filePath).c_str()) };
-//    // if (sprite == nullptr)
-//    //{
-//    //    throw std::runtime_error{ "Creation of the sprite \"" + assetId + "\"
-//    //    wasn't succesful!" };
-//    //}
-//    // sprites.emplace(assetId, sprite);
-//}
-//
-//void* AssetStore::getTexture(const char* assetId)
-//{
-//    (void)assetId;
-//    // return sprites.at(assetId);
-//    return nullptr;
-//}
-//} // namespace ts
+#include "tsengine/asset_store.h"
+
+#include "tsengine/math.hpp"
+#include "tiny_obj_loader.h"
+
+namespace ts
+{
+void AssetStore::loadModel(const char* fileName)
+{
+}
+}

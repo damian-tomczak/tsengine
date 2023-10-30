@@ -29,7 +29,7 @@ public:
     Engine(const Engine&&) = delete;
     Engine& operator=(Engine&&) = delete;
 
-    virtual bool init(unsigned& width, unsigned& height) = 0;
+    virtual bool init(const char*& gameName, unsigned& width, unsigned& height) = 0;
     virtual void close() = 0;
     virtual bool tick() = 0;
 
@@ -42,22 +42,22 @@ public:
 int run(Engine* const engine);
 } // namespace ts
 
-#define TS_MAIN()                            \
-    int main()                               \
-    {                                        \
-        try                                  \
-        {                                    \
-            auto result = ts::run(new Game); \
-            if (result != ts::SUCCESS)       \
-            {                                \
-                return result;               \
-            }                                \
-        }                                    \
-        catch (const std::exception& e)      \
-        {                                    \
-            std::cerr << e.what() << "\n";   \
-            return EXIT_FAILURE;             \
-        }                                    \
-                                             \
-        return EXIT_SUCCESS;                 \
+#define TS_MAIN()                                 \
+    int main()                                    \
+    {                                             \
+        try                                       \
+        {                                         \
+            auto result = ts::run(new Game);      \
+            if (result != ts::TS_SUCCESS)         \
+            {                                     \
+                return result;                    \
+            }                                     \
+        }                                         \
+        catch (const std::exception& e)           \
+        {                                         \
+            std::cerr << e.what() << "\n";        \
+            return EXIT_FAILURE;                  \
+        }                                         \
+                                                  \
+        return EXIT_SUCCESS;                      \
     }

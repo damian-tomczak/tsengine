@@ -155,7 +155,7 @@ public:
     TestGame() : TesterEngine{renderingDuration}
     {}
 
-    bool init(unsigned& width, unsigned& height) override { return true; }
+    bool init(const char*& gameName, unsigned& width, unsigned& height) override { return true; }
 
     void close() override
     {}

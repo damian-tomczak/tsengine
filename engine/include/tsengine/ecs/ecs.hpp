@@ -122,15 +122,15 @@ public:
     std::vector<Entity> getEntitiesByGroup(const std::string& group) const;
     void removeEntityGroup(const Entity entity);
 
-    template <typename TComponent, typename ...TArgs> void addComponent(const Entity entity, const TArgs&& ...args);
-    template <typename TComponent> void removeComponent(const Entity entity);
-    template <typename TComponent> bool hasComponent(const Entity entity) const;
-    template <typename TComponent> TComponent& getComponent(const Entity entity) const;
+    template<typename TComponent, typename ...TArgs> void addComponent(const Entity entity, const TArgs&& ...args);
+    template<typename TComponent> void removeComponent(const Entity entity);
+    template<typename TComponent> bool hasComponent(const Entity entity) const;
+    template<typename TComponent> TComponent& getComponent(const Entity entity) const;
 
-    template <typename TSystem, typename ...TArgs> void addSystem(const TArgs&& ...args);
-    template <typename TSystem> void removeSystem();
-    template <typename TSystem> bool hasSystem() const;
-    template <typename TSystem> TSystem& getSystem() const;
+    template<typename TSystem, typename ...TArgs> void addSystem(const TArgs&& ...args);
+    template<typename TSystem> void removeSystem();
+    template<typename TSystem> bool hasSystem() const;
+    template<typename TSystem> TSystem& getSystem() const;
 
     void addEntityToSystems(Entity entity);
     void removeEntityFromSystems(Entity entity);

@@ -15,7 +15,7 @@ struct Quat;
 
 struct Vec2 final
 {
-    float x{}, y{};
+    float x, y;
 
     constexpr Vec2() = default;
     constexpr Vec2(const float v);
@@ -36,7 +36,7 @@ inline Vec2 normalize(const Vec2 vec);
 
 struct alignas(16) Vec3 final
 {
-    float x{}, y{}, z{};
+    float x, y, z;
 
     constexpr Vec3() = default;
     constexpr Vec3(const float v);
@@ -55,7 +55,7 @@ inline Vec3 normalize(const Vec3& vec);
 
 struct Vec4 final
 {
-    float x{}, y{}, z{}, w{};
+    float x, y, z, w;
 
     constexpr Vec4() = default;
     constexpr Vec4(const float v);
@@ -73,9 +73,9 @@ inline Vec4 normalize(const Vec4& vec);
 
 struct Mat2
 {
-    std::array<Vec2, 2> data{};
+    std::array<Vec2, 2> data;
 
-    constexpr Mat2();
+    constexpr Mat2() = default;
     constexpr Mat2(
         const float x1, const float y1,
         const float x2, const float y2);
@@ -93,9 +93,9 @@ inline std::string to_string(const Mat2& mat);
 
 struct Mat3
 {
-    std::array<Vec3, 3> data{};
+    std::array<Vec3, 3> data;
 
-    constexpr Mat3();
+    constexpr Mat3() = default;
     constexpr Mat3(
         const float x1, const float y1, const float z1,
         const float x2, const float y2, const float z2,
@@ -116,9 +116,9 @@ inline std::string to_string(const Mat3& mat);
 
 struct Mat4
 {
-    std::array<Vec4, 4> data{};
+    std::array<Vec4, 4> data;
 
-    constexpr Mat4();
+    constexpr Mat4() = default;
     constexpr Mat4(
         const float x1, const float y1, const float z1, const float w1,
         const float x2, const float y2, const float z2, const float w2,
@@ -140,7 +140,7 @@ inline std::string to_string(const Mat4 mat);
 
 struct Quat
 {
-    float w{}, x{}, y{}, z{};
+    float w, x, y, z;
 };
 
 inline constexpr Vec2::Vec2(const float v) : x{v}, y{v} {}
@@ -189,7 +189,7 @@ inline Mat4 inverse(const Mat4& mat)
 
     if (det == 0)
     {
-        throw std::runtime_error{"Singular matrix, can't find its inversion."};
+        throw Exception{"Singular matrix, can't find its inversion."};
     }
 
     return
@@ -247,9 +247,6 @@ inline Vec4 normalize(const Vec4& vec)
     return {vec.x / mag, vec.y / mag, vec.z / mag, vec.w / mag};
 }
 
-inline constexpr Mat2::Mat2()
-{}
-
 inline constexpr Mat2::Mat2(
     const float x1, const float y1,
     const float x2, const float y2)
@@ -273,7 +270,7 @@ inline Vec2& Mat2::operator[](const size_t index)
 {
     if (index > 2)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
@@ -283,7 +280,7 @@ inline const Vec2& Mat2::operator[](const size_t index) const
 {
     if (index > 2)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
@@ -316,8 +313,9 @@ inline Mat2 inverse(const Mat2& mat)
 
     if (det == 0)
     {
-        throw std::runtime_error{ "singular matrix, can't find its inverse" };
+        throw Exception{"singular matrix, can't find its inverse"};
     }
+
     return
     {
        (+mat[1].y) / det, (-mat[0].y) / det,
@@ -333,9 +331,6 @@ inline std::string to_string(const Mat2& mat)
         mat[0].x, mat[0].y,
         mat[1].x, mat[1].y);
 }
-
-inline constexpr Mat3::Mat3()
-{}
 
 inline constexpr Mat3::Mat3(
     const float x1, const float y1, const float z1,
@@ -372,7 +367,7 @@ inline Vec3& Mat3::operator[](const size_t index)
 {
     if (index > 3)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
@@ -382,7 +377,7 @@ inline const Vec3& Mat3::operator[](const size_t index) const
 {
     if (index > 3)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
@@ -435,7 +430,7 @@ inline Mat3 inverse(const Mat3& mat)
 
     if (det == 0)
     {
-        throw std::runtime_error{"singular matrix, can't find its inverse"};
+        throw Exception{"singular matrix, can't find its inverse"};
     }
     return
     {
@@ -489,9 +484,6 @@ inline std::string to_string(const Mat3& mat)
         mat[2].x, mat[2].y, mat[2].z);
 }
 
-inline constexpr Mat4::Mat4()
-{}
-
 inline constexpr Mat4::Mat4(
     const float x1, const float y1, const float z1, const float w1,
     const float x2, const float y2, const float z2, const float w2,
@@ -534,7 +526,7 @@ inline Vec4& Mat4::operator[](const size_t index)
 {
     if (index > 4)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
@@ -544,7 +536,7 @@ inline const Vec4& Mat4::operator[](const size_t index) const
 {
     if (index > 4)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];

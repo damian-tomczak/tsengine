@@ -14,14 +14,6 @@
 
 namespace ts
 {
-enum
-{
-    SUCCESS,
-    TS_FAILURE,
-    STL_FAILURE,
-    UNKNOWN_FAILURE
-};
-
 namespace logger
 {
 void log(

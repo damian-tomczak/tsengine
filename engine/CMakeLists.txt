@@ -105,7 +105,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
     ENGINE_NAME="${PROJECT_NAME}"
-    GAME_NAME="${GAME_NAME}"
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE

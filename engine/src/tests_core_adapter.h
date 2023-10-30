@@ -18,7 +18,7 @@ struct TesterEngine : public Engine
     TesterEngine(const TesterEngine&&) = delete;
     TesterEngine& operator=(TesterEngine&&) = delete;
 
-    virtual bool init(unsigned& width, unsigned& height) override { return true; }
+    virtual bool init(const char*& gameName, unsigned& width, unsigned& height) override { return true; }
 
     virtual void close() override
     {}
