@@ -142,7 +142,7 @@ int run(Engine* const engine) try
     // TODO: consider if we should provide an option to render firstly to the window then copy it to the headset
 
 #ifdef CYBSDK_FOUND
-    CybSDK::VirtDevice* device = CybSDK::Virt::FindDevice();
+    const auto device = CybSDK::Virt::FindDevice();
     if (device == nullptr)
     {
         LOGGER_ERR("Cyberith Virtualizer device not found");
@@ -150,12 +150,12 @@ int run(Engine* const engine) try
 
     const auto info = device->GetDeviceInfo();
 
-    const wchar_t* virtName = info.ProductName;
+    const auto virtName = info.ProductName;
     const auto virtNameLen = wcslen(virtName);
     std::vector<char> virtBuf(virtNameLen);
     wcstombs(virtBuf.data(), virtName, virtNameLen);
     std::string virtConvertedName(virtBuf.begin(), virtBuf.end());
-    LOGGER_LOG(std::format("Device found {} Firmware Version: {}.{}", virtConvertedName, std::to_string(static_cast<int>(info.MajorVersion)), std::to_string(static_cast<int>(info.MinorVersion))).c_str());
+    LOGGER_LOG(std::format("Device found {} Firmware Version: {}.{}", virtConvertedName, static_cast<int>(info.MajorVersion), static_cast<int>(info.MinorVersion)).c_str());
 
 
     if (!device->Open())
@@ -211,18 +211,18 @@ int run(Engine* const engine) try
 #endif
 
 #ifdef CYBSDK_FOUND
-            float ring_height = device->GetPlayerHeight();
-            float ring_angle = device->GetPlayerOrientation();
-            float movement_direction = device->GetMovementDirection();
-            float movement_speed = device->GetMovementSpeed();
+            auto ringHeight = device->GetPlayerHeight();
+            auto ringAngle = device->GetPlayerOrientation();
+            auto movementDirection = device->GetMovementDirection();
+            auto movementSpeed = device->GetMovementSpeed();
 
-            if (movement_speed > 0.f)
+            if (movementSpeed > 0.f)
             {
-                ring_angle *= 2 * std::numbers::pi_v<float>;
-                float offsetX = std::sin(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime;
-                float offsetZ = -(std::cos(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime);
+                ringAngle *= 2 * std::numbers::pi_v<float>;
+                auto offsetX = std::sin(ringAngle) * movementSpeed * flySpeedMultiplier * deltaTime;
+                auto offsetZ = -(std::cos(ringAngle) * movementSpeed * flySpeedMultiplier * deltaTime);
 
-                if (movement_direction == -1.f)
+                if (movementDirection == -1.f)
                 {
                     offsetX *= -1;
                     offsetZ *= -1;
