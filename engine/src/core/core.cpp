@@ -10,6 +10,10 @@
 #include "renderer.h"
 #include "tests_core_adapter.h"
 
+#ifdef CYBSDK_FOUND
+    #include "CVirt.h"
+#endif
+
 std::mutex engineInit;
 
 namespace
@@ -136,6 +140,30 @@ int run(Engine* const engine) try
     auto previousTime = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::steady_clock::now();
     // TODO: consider if we should provide an option to render firstly to the window then copy it to the headset
+
+#ifdef CYBSDK_FOUND
+    const auto device = CybSDK::Virt::FindDevice();
+    if (device == nullptr)
+    {
+        LOGGER_ERR("Cyberith Virtualizer device not found");
+    }
+
+    const auto info = device->GetDeviceInfo();
+
+    const auto virtName = info.ProductName;
+    const auto virtNameLen = wcslen(virtName);
+    std::vector<char> virtBuf(virtNameLen);
+    wcstombs(virtBuf.data(), virtName, virtNameLen);
+    std::string virtConvertedName(virtBuf.begin(), virtBuf.end());
+    LOGGER_LOG(std::format("Device found {} Firmware Version: {}.{}", virtConvertedName, static_cast<int>(info.MajorVersion), static_cast<int>(info.MinorVersion)).c_str());
+
+
+    if (!device->Open())
+    {
+        LOGGER_ERR("Unable to connect to Cyberith Virtualizer");
+    }
+#endif
+
     while (loop)
     {
 #ifdef TESTER_ADAPTER
@@ -181,6 +209,28 @@ int run(Engine* const engine) try
                 isRenderingStarted = true;
             }
 #endif
+
+#ifdef CYBSDK_FOUND
+            const auto ringHeight = device->GetPlayerHeight();
+            auto ringAngle = device->GetPlayerOrientation();
+            const auto movementDirection = device->GetMovementDirection();
+            const auto movementSpeed = device->GetMovementSpeed();
+
+            if (movementSpeed > 0.f)
+            {
+                ringAngle *= 2 * std::numbers::pi_v<float>;
+                auto offsetX = std::sin(ringAngle) * movementSpeed * flySpeedMultiplier * deltaTime;
+                auto offsetZ = -(std::cos(ringAngle) * movementSpeed * flySpeedMultiplier * deltaTime);
+
+                if (movementDirection == -1.f)
+                {
+                    offsetX *= -1;
+                    offsetZ *= -1;
+                }
+                cameraPosition.x += offsetX;
+                cameraPosition.z += offsetZ;
+            }
+#else
             controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
 
             for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
@@ -201,6 +251,7 @@ int run(Engine* const engine) try
                     }
                 }
             }
+#endif
 
             renderer.render(cameraPosition, swapchainImageIndex);
             const auto mirrorResult = mirrorView.render(swapchainImageIndex);
