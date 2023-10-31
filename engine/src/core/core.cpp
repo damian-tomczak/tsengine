@@ -148,21 +148,14 @@ int run(Engine* const engine) try
         LOGGER_ERR("Cyberith Virtualizer device not found");
     }
 
-    const CybSDK::VirtDeviceInfo& info = device->GetDeviceInfo();
-    const wchar_t* virtualizerName = info.ProductName;
-    size_t virtualizerNameLen = 0;
-    if (wcstombs_s(&virtualizerNameLen, nullptr, 0, virtualizerName, 0) == 0)
-    {
-        char* mbstr = new char[virtualizerNameLen];
-        wcstombs_s(&virtualizerNameLen, mbstr, virtualizerNameLen, virtualizerName, virtualizerNameLen);
-        std::string virtualizerConvertedName(mbstr);
-        delete[] mbstr;
-        LOGGER_LOG(("Device found "s + virtualizerConvertedName + "Firmware Version: " + std::to_string(info.MajorVersion) + "." + std::to_string(info.MinorVersion)).c_str());
-    }
-    else
-    {
-        LOGGER_WARN("Failed to convert virtualizer Product Name");
-    }
+    const auto info = device->GetDeviceInfo();
+
+    const wchar_t* virtName = info.ProductName;
+    const auto virtNameLen = wcslen(virtName);
+    std::vector<char> virtBuf(virtNameLen);
+    wcstombs(virtBuf.data(), virtName, virtNameLen);
+    std::string virtConvertedName(virtBuf.begin(), virtBuf.end());
+    LOGGER_LOG(std::format("Device found {} Firmware Version: {}.{}", virtConvertedName, std::to_string(static_cast<int>(info.MajorVersion)), std::to_string(static_cast<int>(info.MinorVersion))).c_str());
 
 
     if (!device->Open())
