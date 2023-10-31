@@ -42,14 +42,14 @@ inline constexpr std::array knownXrDevices
     XrSystemId{0x14},
     XrSystemId{0x1000'D8F4'0000'0268}, 
     XrSystemId{0x1000'38B4'B789'18E8},
-    XrSystemId{0x1000'563C'0000'026E},
+    XrSystemId{0x1003'AC1C'0000'0271},
 };
 
 inline constexpr std::array knownUnstableXrDevices
 {
     XrSystemId{0x1000'D8F4'0000'0268},
     XrSystemId{0x1000'38B4'B789'18E8},
-    XrSystemId{0x1000'563C'0000'026E},
+    XrSystemId{0x1003'AC1C'0000'0271},
 };
 
 std::string vkResultToString(const VkResult result);

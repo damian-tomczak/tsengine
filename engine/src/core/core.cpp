@@ -18,7 +18,7 @@ std::mutex engineInit;
 
 namespace
 {
-constexpr float flySpeedMultiplier{ 5.f };
+constexpr float flySpeedMultiplier{15.f};
 
 unsigned tickCount{};
 bool isAlreadyInitiated{};
@@ -41,7 +41,7 @@ unsigned getTickCount()
 
 int run(Engine* const engine) try
 {
-    std::lock_guard<std::mutex> _{ engineInit };
+    std::lock_guard<std::mutex> _{engineInit};
 
     if (!engine)
     {
@@ -54,9 +54,12 @@ int run(Engine* const engine) try
     }
     isAlreadyInitiated = true;
 
+#ifdef TESTER_ADAPTER
     const auto testerAdapter = dynamic_cast<TesterEngine*>(engine);
+    bool isRenderingStarted{};
+#endif
 
-    unsigned width{ 1280u }, height{ 720u };
+    unsigned width{1280}, height{720};
     engine->init(width, height);
 
     if (!std::filesystem::is_directory("assets"))
@@ -70,10 +73,10 @@ int run(Engine* const engine) try
     ctx.createOpenXrContext().createVulkanContext();
 
     auto window = Window::createWindowInstance(GAME_NAME, width, height);
-    MirrorView mirrorView{ ctx, window };
+    MirrorView mirrorView{ctx, window};
     mirrorView.createSurface();
     ctx.createVkDevice(mirrorView.getSurface());
-    Headset headset{ ctx };
+    Headset headset{ctx};
     headset.init();
     Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
     controllers.setupControllers();
@@ -81,78 +84,96 @@ int run(Engine* const engine) try
     std::shared_ptr<Model> ruins = std::make_shared<Model>(Model{
         .model = math::Mat4(1.f),
         .pipeline = PipelineType::NORMAL_LIGHTING,
-        });
+    });
     std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
         .pos = {0.f, 0.f, -10.f},
         .model = math::Mat4(1.f),
         .pipeline = PipelineType::NORMAL_LIGHTING,
-        });
-    std::shared_ptr<Model> sphere1 = std::make_shared<Model>(Model{
-        .pos = {0.f, 1.5f, -5.f},
-        .model = math::Mat4(1.f),
-        .pipeline = PipelineType::PBR,
-        .material = Materials::create(Material::Type::GOLD),
-        });
+    });
 
-    const std::vector<std::shared_ptr<Model>> models{
+    std::array spheres
+    {
+        std::make_shared<Model>(Model
+        {
+            .pos = {-5.f, 2.f, -5.f},
+            .model = math::Mat4(1.f),
+            .pipeline = PipelineType::PBR,
+            .material = Materials::create(Material::Type::GOLD),
+        }),
+        std::make_shared<Model>(Model
+        {
+            .pos = {0.f, 2.f, -5.f},
+            .model = math::Mat4(1.f),
+            .pipeline = PipelineType::PBR,
+            .material = Materials::create(Material::Type::GOLD),
+        }),
+        std::make_shared<Model>(Model
+        {
+            .pos = {5.f, 2.f, -5.f},
+            .model = math::Mat4(1.f),
+            .pipeline = PipelineType::PBR,
+            .material = Materials::create(Material::Type::GOLD),
+        }),
+    };
+
+    std::vector<std::shared_ptr<Model>> models
+    {
         ruins,
         polonez,
-        sphere1,
     };
+    models.insert(models.end(), spheres.begin(), spheres.end());
 
     auto meshData = std::make_unique<MeshData>();
     meshData->loadModel("assets/models/village.obj", models, 1);
     meshData->loadModel("assets/models/polonez.obj", models, 1);
-    meshData->loadModel("assets/models/sphere.obj", models, 1);
+    meshData->loadModel("assets/models/sphere.obj", models, spheres.size());
 
-    Renderer renderer{ ctx, headset, models, std::move(meshData) };
+    Renderer renderer{ctx, headset, models, std::move(meshData)};
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
 
     LOGGER_LOG("tsengine initialization completed successfully");
 
     window->show();
-    bool isRenderingStarted{};
-    math::Vec3 cameraPosition{};
+    math::Vec3 cameraPosition{0, 0, 0};
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::steady_clock::now();
-    // TODO: display message to wear the headset
     // TODO: consider if we should provide an option to render firstly to the window then copy it to the headset
 
 #ifdef CYBSDK_FOUND
-        CybSDK::VirtDevice* device = CybSDK::Virt::FindDevice();
-        if (device == nullptr)
-        {
-            LOGGER_ERR("Cyberith Virtualizer device not found");
-        }
+    CybSDK::VirtDevice* device = CybSDK::Virt::FindDevice();
+    if (device == nullptr)
+    {
+        LOGGER_ERR("Cyberith Virtualizer device not found");
+    }
 
-        const CybSDK::VirtDeviceInfo& info = device->GetDeviceInfo();
-        const wchar_t* virtualizerName = info.ProductName;
-        size_t virtualizerNameLen = 0;
-        if (wcstombs_s(&virtualizerNameLen, nullptr, 0, virtualizerName, 0) == 0)
-        {
-            char* mbstr = new char[virtualizerNameLen];
-            wcstombs_s(&virtualizerNameLen, mbstr, virtualizerNameLen, virtualizerName, virtualizerNameLen);
-            std::string virtualizerConvertedName(mbstr);
-            delete[] mbstr;
-            LOGGER_LOG(("Device found "s + virtualizerConvertedName + "Firmware Version: " + std::to_string(info.MajorVersion) + "." + std::to_string(info.MinorVersion)).c_str());
-        }
-        else
-        {
-            LOGGER_WARN("Failed to convert virtualizer Product Name");
-        }
-        
+    const CybSDK::VirtDeviceInfo& info = device->GetDeviceInfo();
+    const wchar_t* virtualizerName = info.ProductName;
+    size_t virtualizerNameLen = 0;
+    if (wcstombs_s(&virtualizerNameLen, nullptr, 0, virtualizerName, 0) == 0)
+    {
+        char* mbstr = new char[virtualizerNameLen];
+        wcstombs_s(&virtualizerNameLen, mbstr, virtualizerNameLen, virtualizerName, virtualizerNameLen);
+        std::string virtualizerConvertedName(mbstr);
+        delete[] mbstr;
+        LOGGER_LOG(("Device found "s + virtualizerConvertedName + "Firmware Version: " + std::to_string(info.MajorVersion) + "." + std::to_string(info.MinorVersion)).c_str());
+    }
+    else
+    {
+        LOGGER_WARN("Failed to convert virtualizer Product Name");
+    }
 
-        if (!device->Open())
-        {
-            LOGGER_ERR("Unable to connect to Cyberith Virtualizer");
-        }
+
+    if (!device->Open())
+    {
+        LOGGER_ERR("Unable to connect to Cyberith Virtualizer");
+    }
 #endif
 
     while (loop)
     {
-        // I have no idea how to better implement it.
+#ifdef TESTER_ADAPTER
         if ((testerAdapter != nullptr) && isRenderingStarted)
         {
             if (std::chrono::steady_clock::now() >= (startTime + testerAdapter->renderingDuration))
@@ -160,6 +181,7 @@ int run(Engine* const engine) try
                 loop = false;
             }
         }
+#endif
 
         if (headset.isExitRequested())
         {
@@ -186,55 +208,56 @@ int run(Engine* const engine) try
 
         uint32_t swapchainImageIndex;
         const auto frameResult = headset.beginFrame(swapchainImageIndex);
-
         if (frameResult == Headset::BeginFrameResult::RENDER_FULLY)
         {
+#ifdef TESTER_ADAPTER
             if (!isRenderingStarted)
             {
                 isRenderingStarted = true;
             }
+#endif
 
 #ifdef CYBSDK_FOUND
-                float ring_height = device->GetPlayerHeight();
-                float ring_angle = device->GetPlayerOrientation();
-                float movement_direction = device->GetMovementDirection();
-                float movement_speed = device->GetMovementSpeed();
+            float ring_height = device->GetPlayerHeight();
+            float ring_angle = device->GetPlayerOrientation();
+            float movement_direction = device->GetMovementDirection();
+            float movement_speed = device->GetMovementSpeed();
 
-                if (movement_speed > 0.f)
+            if (movement_speed > 0.f)
+            {
+                ring_angle *= 2 * std::numbers::pi_v<float>;
+                float offsetX = std::sin(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime;
+                float offsetZ = -(std::cos(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime);
+
+                if (movement_direction == -1.f)
                 {
-                    ring_angle *= 2 * std::numbers::pi_v<float>;
-                    float offsetX = std::sin(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime;
-                    float offsetZ = -(std::cos(ring_angle) * movement_speed * flySpeedMultiplier * deltaTime);
-
-                    if (movement_direction == -1.f)
-                    {
-                        offsetX *= -1;
-                        offsetZ *= -1;
-                    }
-                    cameraPosition.x += offsetX;
-                    cameraPosition.z += offsetZ;
+                    offsetX *= -1;
+                    offsetZ *= -1;
                 }
+                cameraPosition.x += offsetX;
+                cameraPosition.z += offsetZ;
+            }
 #else
-                controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
+            controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
 
-                for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
+            for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
+            {
+                const auto flyState = controllers.getFlyState(controllerIndex);
+                if (flyState)
                 {
-                    const auto flySpeed = controllers.getFlyState(controllerIndex);
-                    if (flySpeed > 0.f)
-                    {
-                        const auto controllerPose = controllers.getPose(controllerIndex)[2];
+                    const auto controllerPose = controllers.getPose(controllerIndex)[2];
 
-                        if (!controllerPose.isNan())
-                        {
-                            const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
-                            cameraPosition += forward * flySpeed * flySpeedMultiplier * deltaTime;
-                        }
-                        else
-                        {
-                            LOGGER_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
-                        }
+                    if ((!controllerPose.isNan()) || (controllerPose == math::Vec3(0.f)))
+                    {
+                        const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
+                        cameraPosition += forward * flySpeedMultiplier * deltaTime;
+                    }
+                    else
+                    {
+                        LOGGER_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
                     }
                 }
+            }
 #endif
 
             renderer.render(cameraPosition, swapchainImageIndex);
