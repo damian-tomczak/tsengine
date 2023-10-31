@@ -47,7 +47,7 @@ public:
     void group(const std::string& group);
     bool belongsToGroup(const std::string& group) const;
 
-    template <typename TComponent, typename ...TArgs> void addComponent(const TArgs&& ...args);
+    template <typename TComponent, typename ...TArgs> void addComponent(TArgs&& ...args);
     template <typename TComponent> void removeComponent();
     template <typename TComponent> bool hasComponent() const;
     template <typename TComponent> TComponent& getComponent() const;
@@ -131,12 +131,12 @@ public:
     std::vector<Entity> getEntitiesByGroup(const std::string& group) const;
     void removeEntityGroup(const Entity entity);
 
-    template<typename TComponent, typename ...TArgs> void addComponent(const Entity entity, const TArgs&& ...args);
+    template<typename TComponent, typename ...TArgs> void addComponent(const Entity entity, TArgs&& ...args);
     template<typename TComponent> void removeComponent(const Entity entity);
     template<typename TComponent> bool hasComponent(const Entity entity) const;
     template<typename TComponent> TComponent& getComponent(const Entity entity) const;
 
-    template<typename TSystem, typename ...TArgs> void addSystem(const TArgs&& ...args);
+    template<typename TSystem, typename ...TArgs> void addSystem(TArgs&& ...args);
     template<typename TSystem> void removeSystem();
     template<typename TSystem> bool hasSystem() const;
     template<typename TSystem> TSystem& getSystem() const;
@@ -173,7 +173,7 @@ inline bool Entity::belongsToGroup(const std::string& group) const
 }
 
 template<typename TComponent, typename ...TArgs>
-void Entity::addComponent(const TArgs&& ...args)
+void Entity::addComponent(TArgs&& ...args)
 {
     mpRegistry->addComponent<TComponent>(*this, std::forward<TArgs>(args)...);
 };
@@ -272,7 +272,7 @@ inline void System::removeEntityFromSystem(const Entity entity)
 template<typename TComponent>
 void System::requireComponent()
 {
-    const auto componentId = Component<TComponent>::GetId();
+    const auto componentId = Component<TComponent>::getId();
     componentSignature.set(componentId);
 }
 
@@ -411,7 +411,7 @@ inline void Registry::removeEntityGroup(const Entity entity)
 }
 
 template<typename TSystem, typename ...TArgs>
-void Registry::addSystem(const TArgs&& ...args)
+void Registry::addSystem(TArgs&& ...args)
 {
     const auto newSystem = std::make_shared<TSystem>(std::forward<TArgs>(args)...);
     systems.insert(std::make_pair(std::type_index(typeid(TSystem)), newSystem));
@@ -439,7 +439,7 @@ TSystem& Registry::getSystem() const
 }
 
 template<typename TComponent, typename ...TArgs>
-void Registry::addComponent(const Entity entity, const TArgs&& ...args)
+void Registry::addComponent(const Entity entity, TArgs&& ...args)
 {
     const auto componentId = Component<TComponent>::getId();
     const auto entityId = entity.getId();
@@ -451,13 +451,13 @@ void Registry::addComponent(const Entity entity, const TArgs&& ...args)
 
     if (!componentPools.at(componentId))
     {
-        const auto newComponentPool = new Pool<TComponent>();
-        //componentPools.at(componentId) = newComponentPool;
+        const auto newComponentPool = std::make_shared<Pool<TComponent>>();
+        componentPools.at(componentId) = newComponentPool;
     }
 
     const auto componentPool = std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
 
-    TComponent newComponent(std::forward<TArgs>(args)...);
+    TComponent newComponent{std::forward<TArgs>(args)...};
 
     componentPool->set(entityId, newComponent);
 

@@ -36,22 +36,6 @@
 
 namespace ts::khronos_utils
 {
-// TODO: db for it
-inline constexpr std::array knownXrDevices
-{
-    XrSystemId{0x14},
-    XrSystemId{0x1000'D8F4'0000'0268}, 
-    XrSystemId{0x1000'38B4'B789'18E8},
-    XrSystemId{0x1003'AC1C'0000'0271},
-};
-
-inline constexpr std::array knownUnstableXrDevices
-{
-    XrSystemId{0x1000'D8F4'0000'0268},
-    XrSystemId{0x1000'38B4'B789'18E8},
-    XrSystemId{0x1003'AC1C'0000'0271},
-};
-
 std::string vkResultToString(const VkResult result);
 std::string xrResultToString(const XrResult result);
 

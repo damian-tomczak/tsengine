@@ -5,13 +5,21 @@
 namespace ts
 {
 // TODO: enum reflection
+// TODO: implement color
+
+#define TS_PIPELINES_LIST     \
+    PIPELINE(COLOR)           \
+    PIPELINE(NORMAL_LIGHTING) \
+    PIPELINE(PBR)             \
+    PIPELINE(LIGHT)           \
+
+
 enum class PipelineType
 {
     INVALID,
-    COLOR, // TODO: implement
-    NORMAL_LIGHTING,
-    PBR,
-    LIGHT,
+#define PIPELINE(type) type, 
+    TS_PIPELINES_LIST
+#undef PIPELINE
     COUNT
 };
 
@@ -41,9 +49,11 @@ struct RendererComponent<PipelineType::PBR>
     {
         enum class Type
         {
+            INVALID,
 #define MATERIAL(type, ...) type, 
             TS_MATERIALS_LIST
 #undef MATERIAL
+            COUNT
         };
 
         static constexpr Material create(const Material::Type type)
@@ -55,8 +65,10 @@ struct RendererComponent<PipelineType::PBR>
         return Material{__VA_ARGS__};
                 TS_MATERIALS_LIST
 #undef MATERIAL
+            default: throw Exception{"Invalid material type"};
             }
-            return{};
+
+            return {};
         }
 
         math::Vec3 color;

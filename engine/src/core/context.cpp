@@ -198,31 +198,9 @@ void Context::initXrSystemInfo()
     XrSystemProperties xrSystemProperties{XR_TYPE_SYSTEM_PROPERTIES};
 
     LOGGER_XR(xrGetSystemProperties, mXrInstance, mXrSystemId, &xrSystemProperties);
-
-    auto knownDeviceIt = std::ranges::find_if(khronos_utils::knownXrDevices, [xrSystemProperties](const auto& systemId) -> bool {
-        return systemId == xrSystemProperties.systemId;
-    });
-
-    if (knownDeviceIt == khronos_utils::knownXrDevices.end())
-    {
-        LOGGER_WARN("Engine doesn't recognize headset in use");
-        return;
-    }
-
-    auto knownUnstableDeviceIt = std::ranges::find_if(khronos_utils::knownUnstableXrDevices, [xrSystemProperties](const auto& systemId) -> bool {
-        return systemId == xrSystemProperties.systemId;
-    });
-
-    if (knownUnstableDeviceIt != khronos_utils::knownUnstableXrDevices.end())
-    {
-        khronos_utils::gThrowExceptions = false;
-        LOGGER_WARN(std::format(
-            "Unstable OpenXr device in use."
-            "\nSystemId: {} ({})\n"
-            "Vulkan validation layers' errors won't stop the program.",
-            xrSystemProperties.systemId, xrSystemProperties.systemName).c_str());
-        return;
-    }
+    
+    // TODO: print xr device info
+    // TODO: costum xr loader
 }
 
 void Context::isXrBlendModeAvailable()

@@ -24,6 +24,7 @@ std::mutex engineInit;
 
 namespace
 {
+std::string_view defaultGameName{"Awesome unamed game"};
 bool isAlreadyInitiated{};
 
 __forceinline void runCleaner()
@@ -64,7 +65,7 @@ int run(Engine* const engine) try
 
     if (gameName == nullptr)
     {
-        gameName = "Awesome unamed game";
+        gameName = defaultGameName.data();
         LOGGER_WARN(("Game name wasn't set! Default game name selected: "s + gameName).c_str());
     }
 
@@ -99,7 +100,7 @@ int run(Engine* const engine) try
     auto player = ts::gRegistry.createEntity();
     player.tag("player");
     player.addComponent<ts::TransformComponent>();
-    player.addComponent<ts::RigidBodyComponent>();
+    player.addComponent<ts::RigidBodyComponent>(2.f);
 
     gRegistry.addSystem<MovementSystem>();
     gRegistry.addSystem<RenderSystem>();
