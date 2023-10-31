@@ -15,10 +15,7 @@ public:
     Game() = default;
 
     bool init(const char*& gameName, unsigned& width, unsigned& height) override;
-    void close() override;
+    void loadLvl() override;
     bool tick() override;
-    void onMouseMove(int x, int y, int xrelative, int yrelative) override;
-    void onMouseButtonClick(ts::MouseButton button, bool isReleased) override;
-    void onKeyPressed(ts::Key k) override;
-    void onKeyReleased(ts::Key k) override;
+    void close() override;
 };

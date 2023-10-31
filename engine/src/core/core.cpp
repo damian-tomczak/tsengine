@@ -1,6 +1,8 @@
 #include "tsengine/core.h"
 
 #include "tsengine/asset_store.h" 
+#include "tsengine/ecs/systems/movement_system.hpp" 
+#include "tsengine/ecs/systems/render_system.hpp" 
 
 #include "context.h"
 #include "window.h"
@@ -22,9 +24,6 @@ std::mutex engineInit;
 
 namespace
 {
-constexpr auto flySpeedMultiplier = 2.f;
-
-unsigned tickCount{};
 bool isAlreadyInitiated{};
 
 __forceinline void runCleaner()
@@ -33,16 +32,9 @@ __forceinline void runCleaner()
 }
 } // namespace
 
-
 // TODO: maybe would be possible to fancy break down run function?
 namespace ts
 {
-[[deprecated("not implemented yet")]]
-unsigned getTickCount()
-{
-    return tickCount;
-}
-
 int run(Engine* const engine) try
 {
     std::lock_guard<std::mutex> _{engineInit};
@@ -54,7 +46,7 @@ int run(Engine* const engine) try
 
     if (isAlreadyInitiated)
     {
-        LOGGER_ERR("Game is already initiated");
+        LOGGER_ERR("Game is already initialized");
     }
     isAlreadyInitiated = true;
 
@@ -64,15 +56,24 @@ int run(Engine* const engine) try
 #endif
 
     unsigned width{1280}, height{720};
-    auto gameName = "Awesome unamed game";
-    engine->init(gameName, width, height);
+    const char* gameName = nullptr;
+    if (!engine->init(gameName, width, height))
+    {
+        LOGGER_ERR("Game initialization unsuccessful");
+    }
+
+    if (gameName == nullptr)
+    {
+        gameName = "Awesome unamed game";
+        LOGGER_WARN(("Game name wasn't set! Default game name selected: "s + gameName).c_str());
+    }
 
     if (!std::filesystem::is_directory("assets"))
     {
         LOGGER_ERR("Assets can not be found");
     }
 
-    compileShaders("shaders");
+    compileShaders("assets/shaders");
 
     Context ctx{gameName};
     ctx.createOpenXrContext().createVulkanContext();
@@ -87,13 +88,21 @@ int run(Engine* const engine) try
     controllers.setupControllers();
 
     auto& assetStore = AssetStore::getInstance();
-    assetStore.loadModel("models/village.obj");
-    assetStore.loadModel("models/polonez.obj");
-    assetStore.loadModel("models/sphere.obj");
+    assetStore.loadModel("assets/models/village.obj");
+    assetStore.loadModel("assets/models/polonez.obj");
+    assetStore.loadModel("assets/models/sphere.obj");
 
     Renderer renderer{ctx, headset, assetStore};
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
+
+    auto player = ts::gRegistry.createEntity();
+    player.tag("player");
+    player.addComponent<ts::TransformComponent>();
+    player.addComponent<ts::RigidBodyComponent>();
+
+    gRegistry.addSystem<MovementSystem>();
+    gRegistry.addSystem<RenderSystem>();
 
     LOGGER_LOG("tsengine initialization completed successfully");
 
@@ -162,6 +171,11 @@ int run(Engine* const engine) try
         const auto deltaTime = static_cast<float>(elapsedNanoseconds) / nanosecondsPerSecond;
         previousTime = nowTime;
 
+        gRegistry.update();
+
+        gRegistry.getSystem<MovementSystem>().update(deltaTime);
+        gRegistry.getSystem<RenderSystem>().update(deltaTime);
+
         uint32_t swapchainImageIndex;
         const auto frameResult = headset.beginFrame(swapchainImageIndex);
         if (frameResult == Headset::BeginFrameResult::RENDER_FULLY)
@@ -206,7 +220,7 @@ int run(Engine* const engine) try
                     if ((!controllerPose.isNan()) || (controllerPose == math::Vec3{0.f}))
                     {
                         const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
-                        cameraPosition += forward * flySpeedMultiplier * deltaTime;
+                        cameraPosition += forward * player.getComponent<RigidBodyComponent>().velocity * deltaTime;
                     }
                     else
                     {

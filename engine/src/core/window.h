@@ -17,7 +17,7 @@ class Window
 
 public:
     Window(const std::string_view windowName, const size_t width, const size_t height) :
-        mWindowName{windowName}, mWidth{width}, mHeight{height}
+        mWindowName{windowName.data() + "powered by tsengine"s}, mWidth{width}, mHeight{height}
     {}
     virtual ~Window();
     enum class Message
@@ -44,6 +44,6 @@ public:
 protected:
     const size_t mWidth;
     const size_t mHeight;
-    const std::string_view mWindowName;
+    const std::string mWindowName;
 };
 } // namespace ts

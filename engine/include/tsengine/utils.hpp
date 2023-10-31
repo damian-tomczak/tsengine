@@ -1,21 +1,23 @@
 #pragma once
 
-#define NOT_COPYABLE(TypeName)                     \
-    TypeName(const TypeName&) = delete;            \
-    TypeName& operator=(const TypeName&) = delete;
+// TODO: Remove the need of providing class name
 
-#define NOT_MOVEABLE(TypeName)                \
-    TypeName(TypeName&&) = delete;            \
-    TypeName& operator=(TypeName&&) = delete;
+#define NOT_COPYABLE(ClassName)                      \
+    ClassName(const ClassName&) = delete;            \
+    ClassName& operator=(const ClassName&) = delete;
 
-#define NOT_COPYABLE_AND_MOVEABLE(TypeName) \
-    NOT_COPYABLE(TypeName);                 \
-    NOT_MOVEABLE(TypeName);
+#define NOT_MOVEABLE(ClassName)                 \
+    ClassName(ClassName&&) = delete;            \
+    ClassName& operator=(ClassName&&) = delete;
 
-#define SINGLETON_BODY(TypeName)   \
-    NOT_COPYABLE(TypeName);        \
-    private: TypeName() = default; \
-    friend Singleton<TypeName>;
+#define NOT_COPYABLE_AND_MOVEABLE(ClassName) \
+    NOT_COPYABLE(ClassName);                 \
+    NOT_MOVEABLE(ClassName);
+
+#define SINGLETON_BODY(ClassName)   \
+    NOT_COPYABLE(ClassName);        \
+    private: ClassName() = default; \
+    friend Singleton<ClassName>;
 
 #define STR(x) XSTR(x)
 #define XSTR(x) #x

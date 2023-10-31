@@ -25,7 +25,7 @@ public:
 private:
     static LRESULT windowProcedure(HWND pHwnd, UINT msg, WPARAM pWParam, LPARAM wLParam);
 
-    HINSTANCE mHInstance{GetModuleHandle(nullptr)};
+    HINSTANCE mHInstance{};
     HWND mHwnd{};
     MSG mMsg{};
 

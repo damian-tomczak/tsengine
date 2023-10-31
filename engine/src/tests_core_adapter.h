@@ -25,18 +25,6 @@ struct TesterEngine : public Engine
 
     virtual bool tick() override { return true; }
 
-    virtual void onMouseMove(int x, int y, int xrelative, int yrelative) override
-    {}
-
-    virtual void onMouseButtonClick(ts::MouseButton button, bool isReleased) override
-    {}
-
-    virtual void onKeyPressed(ts::Key k) override
-    {}
-
-    virtual void onKeyReleased(ts::Key k) override
-    {}
-
     std::chrono::steady_clock::duration renderingDuration;
 };
 }

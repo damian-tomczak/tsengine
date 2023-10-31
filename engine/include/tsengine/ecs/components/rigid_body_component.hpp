@@ -2,7 +2,13 @@
 
 #include "tsengine/math.hpp"
 
+namespace ts
+{
 struct RigidBodyComponent
 {
-    ts::math::Vec2 velocity;
+    float velocity;
+
+    RigidBodyComponent(const float velocity = 1.f) : velocity{velocity}
+    {}
 };
+}

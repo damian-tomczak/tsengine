@@ -159,8 +159,6 @@ namespace ts
 {
 void compileShaders(const std::filesystem::path shadersPath)
 {
-    const auto fullShadersPath = "assets" / shadersPath;
-
     if (!glslang_initialize_process())
     {
         LOGGER_ERR("Glslang initialization failure");

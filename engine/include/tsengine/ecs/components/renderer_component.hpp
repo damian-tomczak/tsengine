@@ -18,7 +18,7 @@ enum class PipelineType
 template<PipelineType pipeType>
 struct RendererComponent
 {
-    PipelineType pipeline{PipelineType::NORMAL_LIGHTING};
+    PipelineType pipeline{pipeType};
 };
 
 template<>
