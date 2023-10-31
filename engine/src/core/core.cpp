@@ -211,10 +211,10 @@ int run(Engine* const engine) try
 #endif
 
 #ifdef CYBSDK_FOUND
-            auto ringHeight = device->GetPlayerHeight();
+            const auto ringHeight = device->GetPlayerHeight();
             auto ringAngle = device->GetPlayerOrientation();
-            auto movementDirection = device->GetMovementDirection();
-            auto movementSpeed = device->GetMovementSpeed();
+            const auto movementDirection = device->GetMovementDirection();
+            const auto movementSpeed = device->GetMovementSpeed();
 
             if (movementSpeed > 0.f)
             {
