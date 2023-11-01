@@ -18,7 +18,7 @@ std::shared_ptr<Window> Window::createWindowInstance(const std::string_view wind
 {
     if (isWindowAlreadyCreated)
     {
-        LOGGER_ERR("Window is already created");
+        TS_ERR("Window is already created");
     }
 
     std::shared_ptr<Window> window;

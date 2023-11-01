@@ -17,7 +17,7 @@ void Win32Window::createWindow()
 
     if (!RegisterClassEx(&wc))
     {
-        LOGGER_ERR("WNDCLASSEX registration failure");
+        TS_ERR("WNDCLASSEX registration failure");
     }
 
     mHwnd = CreateWindow(
@@ -35,7 +35,7 @@ void Win32Window::createWindow()
 
     if (mHwnd == nullptr)
     {
-        LOGGER_ERR("Window creation failure");
+        TS_ERR("Window creation failure");
     }
 }
 

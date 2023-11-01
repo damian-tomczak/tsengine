@@ -256,7 +256,7 @@ void MirrorView::present()
     }
     else if (result != VK_SUCCESS)
     {
-        LOGGER_ERR(("vkQueuePresentKHR failed with status: " + khronos_utils::vkResultToString(result)).c_str());
+        TS_ERR(("vkQueuePresentKHR failed with status: " + khronos_utils::vkResultToString(result)).c_str());
     }
 }
 
@@ -265,7 +265,7 @@ void MirrorView::createSurface()
     const auto window = mWindow.lock();
     if (window == nullptr)
     {
-        LOGGER_ERR("invalid window");
+        TS_ERR("invalid window");
     }
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
@@ -274,7 +274,7 @@ void MirrorView::createSurface()
 
     if (winWindow == nullptr)
     {
-        LOGGER_ERR("invalid window");
+        TS_ERR("invalid window");
     }
 
     const VkWin32SurfaceCreateInfoKHR ci{
@@ -324,7 +324,7 @@ void MirrorView::getSurfaceCapabilitiesAndExtent()
 
     if (!(mSurfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
     {
-        LOGGER_ERR("Invalid surface");
+        TS_ERR("Invalid surface");
     }
 
     if ((mSurfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) &&
@@ -337,7 +337,7 @@ void MirrorView::getSurfaceCapabilitiesAndExtent()
         std::shared_ptr<Window> window;
         if (window = mWindow.lock(); window == nullptr)
         {
-            LOGGER_ERR("Invalid window");
+            TS_ERR("Invalid window");
         }
 
         auto width{static_cast<uint32_t>(window->getWidth())};
@@ -373,7 +373,7 @@ void MirrorView::pickSurfaceFormat()
 
     if (!surfaceFormatFound)
     {
-        LOGGER_ERR("surface format isn't available");
+        TS_ERR("surface format isn't available");
     }
 }
 

@@ -12,6 +12,7 @@ namespace ts
     PIPELINE(NORMAL_LIGHTING) \
     PIPELINE(PBR)             \
     PIPELINE(LIGHT)           \
+    PIPELINE(GRID)            \
 
 
 enum class PipelineType

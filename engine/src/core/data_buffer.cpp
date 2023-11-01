@@ -47,7 +47,7 @@ void DataBuffer::createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryP
     if (!khronos_utils::findSuitableMemoryTypeIndex(mCtx.getVkPhysicalDevice(), memoryRequirements, memoryProperties,
         suitableMemoryTypeIndex))
     {
-        LOGGER_ERR("Can not find the suitable memory index");
+        TS_ERR("Can not find the suitable memory index");
     }
 
     VkMemoryAllocateInfo memoryAllocateInfo{

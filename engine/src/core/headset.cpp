@@ -123,7 +123,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
 
     if (viewCount != mEyeCount)
     {
-        LOGGER_ERR("Trying to display more views than defined eyes");
+        TS_ERR("Trying to display more views than defined eyes");
     }
 
     for (size_t eyeIndex{}; eyeIndex < mEyeCount; ++eyeIndex)
@@ -325,7 +325,7 @@ void Headset::createXrSwapchain()
 
     if (!isFormatFound)
     {
-        LOGGER_ERR("openxr color doesn't support color format");
+        TS_ERR("openxr color doesn't support color format");
     }
 
     const auto eyeResolution = getEyeResolution(0);

@@ -11,7 +11,7 @@ std::string readShader(const std::filesystem::path& path)
     std::ifstream file(path);
     if (!file.is_open())
     {
-        LOGGER_ERR(("Shader file can not be opened: " + path.string()).c_str());
+        TS_ERR(("Shader file can not be opened: " + path.string()).c_str());
     }
 
     std::ostringstream buffer;
@@ -75,7 +75,7 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::file
             << "\n"
             << glslang_shader_get_info_debug_log(shader);
 
-        LOGGER_ERR(message.str().c_str());
+        TS_ERR(message.str().c_str());
     }};
 
     if (!glslang_shader_preprocess(shader, &input))
@@ -105,7 +105,7 @@ std::vector<uint32_t> processShader(const glslang_stage_t stage, const std::file
 
     if (spirvMessages != nullptr)
     {
-        LOGGER_ERR(("Glslang program spriv message: "s + spirvMessages).c_str());
+        TS_ERR(("Glslang program spriv message: "s + spirvMessages).c_str());
     }
 
     glslang_program_delete(program);
@@ -119,14 +119,14 @@ std::vector<uint32_t> compileShaderFile(const std::filesystem::path& filePath)
     const auto src = readShader(filePath);
     if (src.empty())
     {
-        LOGGER_ERR(("Shader file is empty: " + filePath.string()).c_str());
+        TS_ERR(("Shader file is empty: " + filePath.string()).c_str());
     }
 
     const auto shaderStage = getShaderStage(filePath);
 
     if (shaderStage == GLSLANG_STAGE_COUNT)
     {
-        LOGGER_ERR(("Shader file extension isn't supported: " + filePath.string()).c_str());
+        TS_ERR(("Shader file extension isn't supported: " + filePath.string()).c_str());
     }
 
     return processShader(shaderStage, filePath, src.c_str());
@@ -137,20 +137,20 @@ void saveSPIRV(const std::filesystem::path& outputFilePath, const std::vector<ui
     std::ofstream file{outputFilePath, std::ios::binary};
     if (!file.is_open())
     {
-        LOGGER_ERR(("Shader file can not be opened: " + outputFilePath.string()).c_str());
+        TS_ERR(("Shader file can not be opened: " + outputFilePath.string()).c_str());
     }
 
     file.write(reinterpret_cast<const char*>(spirv.data()), spirv.size() * sizeof(uint32_t));
 
     if (file.bad())
     {
-        LOGGER_ERR(("Failed to write to the shader file: " + outputFilePath.string()).c_str());
+        TS_ERR(("Failed to write to the shader file: " + outputFilePath.string()).c_str());
     }
 
     file.close();
     if (file.fail())
     {
-        LOGGER_ERR(("Failed to close the shader file: " + outputFilePath.string()).c_str());
+        TS_ERR(("Failed to close the shader file: " + outputFilePath.string()).c_str());
     }
 }
 }
@@ -161,12 +161,12 @@ void compileShaders(const std::filesystem::path shadersPath)
 {
     if (!glslang_initialize_process())
     {
-        LOGGER_ERR("Glslang initialization failure");
+        TS_ERR("Glslang initialization failure");
     }
 
     if (!std::filesystem::is_directory(shadersPath))
     {
-        LOGGER_ERR(("Path couldn't be found: " + shadersPath.string()).c_str());
+        TS_ERR(("Path couldn't be found: " + shadersPath.string()).c_str());
     }
 
     // TODO: compile only modified shaders
@@ -196,7 +196,7 @@ void compileShaders(const std::filesystem::path shadersPath)
 
     if (shadersFoundCount == 0)
     {
-        LOGGER_WARN("No shaders found");
+        TS_WARN("No shaders found");
     }
 
     glslang_finalize_process();

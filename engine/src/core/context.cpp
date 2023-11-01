@@ -163,7 +163,7 @@ uint32_t Context::getVkGraphicsQueueFamilyIndex() const
 {
     if (mVkGraphicsQueueFamilyIndex == std::nullopt)
     {
-        LOGGER_ERR("graphics queue index isn't selected yet");
+        TS_ERR("graphics queue index isn't selected yet");
     }
 
     return *mVkGraphicsQueueFamilyIndex;
@@ -172,7 +172,7 @@ uint32_t Context::getVkPresentQueueFamilyIndex() const
 {
     if (mVkPresentQueueFamilyIndex == std::nullopt)
     {
-        LOGGER_ERR("present queue index isn't selected yet");
+        TS_ERR("present queue index isn't selected yet");
     }
 
     return *mVkPresentQueueFamilyIndex;
@@ -189,7 +189,7 @@ void Context::initXrSystemId()
 
     if (XR_FAILED(result))
     {
-        LOGGER_ERR("No headset detected");
+        TS_ERR("No headset detected");
     }
 }
 
@@ -234,7 +234,7 @@ void Context::isXrBlendModeAvailable()
 
     if (!isModeFound)
     {
-        LOGGER_ERR("selected XrEnvironmentBlendMode isn't supported");
+        TS_ERR("selected XrEnvironmentBlendMode isn't supported");
     }
 }
 
@@ -285,11 +285,11 @@ void Context::isVulkanInstanceExtensionsAvailable(const std::vector<std::string>
 
         if ((!isExtensionSupported) && (requiredExtension != VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
         {
-            LOGGER_ERR((requiredExtension + " extension isn't supported").c_str());
+            TS_ERR((requiredExtension + " extension isn't supported").c_str());
         }
         else if ((!isExtensionSupported) && requiredExtension == VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
         {
-            LOGGER_WARN(VK_EXT_DEBUG_UTILS_EXTENSION_NAME " extension isn't supported");
+            TS_WARN(VK_EXT_DEBUG_UTILS_EXTENSION_NAME " extension isn't supported");
         }
     }
 }
@@ -355,7 +355,7 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
 
         if (!isLayerSupported)
         {
-            LOGGER_WARN(("Vulkan validation layer isn't supported: "s + layer).c_str());
+            TS_WARN(("Vulkan validation layer isn't supported: "s + layer).c_str());
         }
     }
 
@@ -402,7 +402,7 @@ void Context::getGraphicsQueue()
 
     if (mVkGraphicsQueueFamilyIndex == std::nullopt)
     {
-        LOGGER_ERR("Graphics queue couldn't be found");
+        TS_ERR("Graphics queue couldn't be found");
     }
 }
 
@@ -441,7 +441,7 @@ void Context::getPresentQueue(const VkSurfaceKHR mirrorSurface)
 
     if (mVkPresentQueueFamilyIndex == std::nullopt)
     {
-        LOGGER_ERR("presentation queue couldn't be found");
+        TS_ERR("presentation queue couldn't be found");
     }
 }
 
@@ -468,7 +468,7 @@ void Context::isVulkanDeviceExtensionsAvailable(
 
         if (!isExtensionSupported)
         {
-            LOGGER_ERR(("Vulkan extension isn't supported: " + requiredExtension).c_str());
+            TS_ERR(("Vulkan extension isn't supported: " + requiredExtension).c_str());
         }
     }
 
@@ -490,7 +490,7 @@ void Context::isVulkanDeviceExtensionsAvailable(
     vkGetPhysicalDeviceFeatures(mPhysicalDevice, &physicalDeviceFeatures);
     if (!physicalDeviceFeatures.shaderStorageImageMultisample)
     {
-        LOGGER_ERR("Multisampling feature isn't available");
+        TS_ERR("Multisampling feature isn't available");
     }
 
     vkGetPhysicalDeviceFeatures(mPhysicalDevice, &physicalDeviceFeatures);
@@ -498,7 +498,7 @@ void Context::isVulkanDeviceExtensionsAvailable(
     vkGetPhysicalDeviceFeatures2(mPhysicalDevice, &physicalDeviceFeatures2);
     if (!physicalDeviceMultiviewFeatures.multiview)
     {
-        LOGGER_ERR("Multview feature isn't available");
+        TS_ERR("Multview feature isn't available");
     }
 }
 
@@ -663,11 +663,11 @@ void Context::createXrInstance()
 
         if ((!isExtensionSupported) && (extension != XR_EXT_DEBUG_UTILS_EXTENSION_NAME))
         {
-            LOGGER_ERR(("OpenXr extension isn't supported: "s + extension).c_str());
+            TS_ERR(("OpenXr extension isn't supported: "s + extension).c_str());
         }
         else if (!isExtensionSupported)
         {
-            LOGGER_WARN(("OpenXr debug extension isn't supported: "s + extension).c_str());
+            TS_WARN(("OpenXr debug extension isn't supported: "s + extension).c_str());
         }
     }
 

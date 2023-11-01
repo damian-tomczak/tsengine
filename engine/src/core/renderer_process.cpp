@@ -1,11 +1,14 @@
 #include "renderer_process.h"
+
 #include "context.h"
 #include "vulkan_tools/vulkan_functions.h"
 #include "tsengine/logger.h"
 #include "khronos_utils.h"
 #include "data_buffer.h"
 #include "headset.h"
-#include "game_object.hpp"
+
+#include "tsengine/ecs/ecs.hpp"
+#include "tsengine/ecs/components/renderer_component.hpp"
 
 namespace ts
 {
@@ -84,12 +87,12 @@ void RenderProcess::createRendererProcess(
 
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
         .offset = descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment),
-        .range = sizeof(lightUniformData),
+        .range = sizeof(math::Vec3) * gRegistry.getEntitiesWithComponents<RendererComponent<PipelineType::LIGHT>>().size()
     });
 
     if (descriptorBufferInfos.empty())
     {
-        LOGGER_ERR("path not yet prepared");
+        TS_ERR("Workflow isn't yet prepared");
     }
 
     const auto uniformBufferSize = descriptorBufferInfos.back().offset + descriptorBufferInfos.back().range;
@@ -102,7 +105,7 @@ void RenderProcess::createRendererProcess(
     mUniformBufferMemory = mUniformBuffer->map();
     if (!mUniformBufferMemory)
     {
-        LOGGER_ERR("Invalid mapping memory");
+        TS_ERR("Invalid mapping memory");
     }
 
     const VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{
@@ -160,7 +163,7 @@ void RenderProcess::updateUniformBufferData()
 {
     if (mUniformBufferMemory == nullptr)
     {
-        LOGGER_ERR("Uniform buffer wasn't allocated");
+        TS_ERR("Uniform buffer wasn't allocated");
     }
 
     const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
@@ -182,10 +185,10 @@ void RenderProcess::updateUniformBufferData()
         offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
     }
 
-    {
-        constexpr VkDeviceSize length = sizeof(lightUniformData);
-        memcpy(offset, &lightUniformData, length);
-        offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
-    }
+    //{
+    //    constexpr VkDeviceSize length = sizeof(lightUniformData);
+    //    memcpy(offset, &lightUniformData, length);
+    //    offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+    //}
 }
 }

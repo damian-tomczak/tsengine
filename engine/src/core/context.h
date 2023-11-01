@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef _WIN32
-#define NOMINMAX
-#endif
-
 #include "internal_utils.h"
 
 #include "vulkan/vulkan.h"

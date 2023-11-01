@@ -3,10 +3,6 @@
 #include "internal_utils.h"
 #include "tsengine/math.hpp"
 
-#ifdef _WIN32
-#define NOMINMAX
-#endif // _WIN32
-
 #include "vulkan/vulkan.h"
 
 namespace ts
@@ -26,10 +22,7 @@ class Renderer
     static constexpr size_t framesInFlightCount{2};
 
 public:
-    Renderer(
-        const Context& ctx,
-        const Headset& headset,
-        const AssetStore& assetStore);
+    Renderer(const Context& ctx, const Headset& headset);
 
     virtual ~Renderer();
 
@@ -44,16 +37,16 @@ public:
 private:
     void createVertexIndexBuffer();
     void updateUniformData(const math::Vec3& cameraMatrix, const std::unique_ptr<RenderProcess>& renderProcess);
+    void initRenderSystem();
 
     const Context& mCtx;
     const Headset& mHeadset;
-    const AssetStore& mAssetStore;
     VkCommandPool mCommandPool{};
     VkDescriptorPool mDescriptorPool{};
-    VkDescriptorSetLayout mDescriptorSetLayout{}, mLightCubeDescriptorSetLayout{};
-    VkPipelineLayout mPipelineLayout{}, mLightCubeLayout{};
+    VkDescriptorSetLayout mDescriptorSetLayout{};
+    VkPipelineLayout mPipelineLayout{};
     std::array<std::unique_ptr<RenderProcess>, framesInFlightCount> mRenderProcesses{};
-    std::unique_ptr<Pipeline> mGridPipeline, mNormalLightingPipeline, mPbrPipeline, mLightCubePipeline;
+    std::shared_ptr<Pipeline> mGridPipeline, mNormalLightingPipeline, mPbrPipeline, mLightCubePipeline;
     size_t mIndexOffset{};
     std::unique_ptr<DataBuffer> mVertexIndexBuffer;
     size_t mCurrentRenderProcessIndex{};

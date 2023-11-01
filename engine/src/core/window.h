@@ -3,10 +3,7 @@
 #include "internal_utils.h"
 
 #ifdef _WIN32
-    #define NOMINMAX
     #include <Windows.h>
-#else
-    #error not implemented
 #endif // _WIN32
 
 namespace ts

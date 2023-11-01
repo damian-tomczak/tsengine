@@ -3,7 +3,7 @@
 #include "internal_utils.h"
 
 #ifdef _WIN32
-#include <windows.h>
+#include <Windows.h>
 #endif
 
 namespace

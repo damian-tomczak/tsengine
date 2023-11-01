@@ -157,10 +157,10 @@ public:
 
     bool init(const char*& gameName, unsigned& width, unsigned& height) override { return true; }
 
+    bool tick() override { return true; }
+
     void close() override
     {}
-
-    bool tick() override { return true; }
 };
 
 TEST(GameTests, RunReturnsZero)

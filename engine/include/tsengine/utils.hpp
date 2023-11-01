@@ -1,6 +1,6 @@
 #pragma once
 
-// TODO: Remove the need of providing class name
+// TODO: Remove the need of providing class name - reflection
 
 #define NOT_COPYABLE(ClassName)                      \
     ClassName(const ClassName&) = delete;            \
@@ -68,6 +68,7 @@ class Singleton
 public:
     static auto& getInstance()
     {
+        // TODO: common abi
         std::lock_guard _(mutex);
         static DerivedClass instance;
         return instance;

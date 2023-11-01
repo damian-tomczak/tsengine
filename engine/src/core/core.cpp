@@ -1,9 +1,6 @@
 #include "tsengine/core.h"
 
 #include "tsengine/asset_store.h" 
-#include "tsengine/ecs/systems/movement_system.hpp" 
-#include "tsengine/ecs/systems/render_system.hpp" 
-
 #include "context.h"
 #include "window.h"
 #include "tsengine/logger.h"
@@ -11,10 +8,11 @@
 #include "headset.h"
 #include "controllers.h"
 #include "vulkan_tools/shaders_compiler.h"
-#include "game_object.hpp"
 #include "renderer.h"
-
 #include "tests_core_adapter.h"
+
+#include "ecs/movement_system.hpp" 
+#include "ecs/render_system.hpp" 
 
 #ifdef CYBSDK_FOUND
     #include "CVirt.h"
@@ -42,12 +40,12 @@ int run(Engine* const engine) try
 
     if (!engine)
     {
-        LOGGER_ERR("Game pointer is invalid");
+        TS_ERR("Game pointer is invalid");
     }
 
     if (isAlreadyInitiated)
     {
-        LOGGER_ERR("Game is already initialized");
+        TS_ERR("Game is already initialized");
     }
     isAlreadyInitiated = true;
 
@@ -60,18 +58,18 @@ int run(Engine* const engine) try
     const char* gameName = nullptr;
     if (!engine->init(gameName, width, height))
     {
-        LOGGER_ERR("Game initialization unsuccessful");
+        TS_ERR("Game initialization unsuccessful");
     }
 
     if (gameName == nullptr)
     {
         gameName = defaultGameName.data();
-        LOGGER_WARN(("Game name wasn't set! Default game name selected: "s + gameName).c_str());
+        TS_WARN(("Game name wasn't set! Default game name selected: "s + gameName).c_str());
     }
 
     if (!std::filesystem::is_directory("assets"))
     {
-        LOGGER_ERR("Assets can not be found");
+        TS_ERR("Assets can not be found");
     }
 
     compileShaders("assets/shaders");
@@ -88,12 +86,7 @@ int run(Engine* const engine) try
     Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
     controllers.setupControllers();
 
-    auto& assetStore = AssetStore::getInstance();
-    assetStore.loadModel("assets/models/village.obj");
-    assetStore.loadModel("assets/models/polonez.obj");
-    assetStore.loadModel("assets/models/sphere.obj");
-
-    Renderer renderer{ctx, headset, assetStore};
+    Renderer renderer{ctx, headset};
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
 
@@ -103,9 +96,9 @@ int run(Engine* const engine) try
     player.addComponent<ts::RigidBodyComponent>(2.f);
 
     gRegistry.addSystem<MovementSystem>();
-    gRegistry.addSystem<RenderSystem>();
+    gRegistry.addSystem<RenderSystem>(ctx.getUniformBufferOffsetAlignment());
 
-    LOGGER_LOG("tsengine initialization completed successfully");
+    TS_LOG("tsengine initialization completed successfully");
 
     window->show();
     math::Vec3 cameraPosition{1.f};
@@ -149,7 +142,7 @@ int run(Engine* const engine) try
         }
 #endif
 
-        if (headset.isExitRequested())
+        if ((!engine->tick()) || headset.isExitRequested())
         {
             loop = false;
         }
@@ -168,14 +161,13 @@ int run(Engine* const engine) try
         const auto nowTime = std::chrono::high_resolution_clock::now();
         const long long elapsedNanoseconds =
             std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - previousTime).count();
-        constexpr auto nanosecondsPerSecond = 1e9f;
+        static constexpr auto nanosecondsPerSecond = 1e9f;
         const auto deltaTime = static_cast<float>(elapsedNanoseconds) / nanosecondsPerSecond;
         previousTime = nowTime;
 
         gRegistry.update();
 
         gRegistry.getSystem<MovementSystem>().update(deltaTime);
-        gRegistry.getSystem<RenderSystem>().update(deltaTime);
 
         uint32_t swapchainImageIndex;
         const auto frameResult = headset.beginFrame(swapchainImageIndex);
@@ -225,7 +217,7 @@ int run(Engine* const engine) try
                     }
                     else
                     {
-                        LOGGER_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
+                        TS_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
                     }
                 }
             }

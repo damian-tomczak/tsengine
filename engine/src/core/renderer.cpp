@@ -1,10 +1,8 @@
 #include "renderer.h"
 
-#include "tsengine/asset_store.h"
 #include "tsengine/math.hpp"
 
 #include "context.h"
-#include "game_object.hpp"
 #include "vulkan_tools/vulkan_functions.h"
 #include "renderer_process.h"
 #include "pipeline.h"
@@ -15,16 +13,12 @@
 #include "render_target.h"
 
 #include "tsengine/ecs/components/renderer_component.hpp"
-
-#include "shaders/light_cube.h"
-#include "shaders/grid.h"
+#include "tsengine/ecs/components/mesh_component.hpp"
+#include "ecs/render_system.hpp"
 
 namespace ts
 {
-Renderer::Renderer(const Context& ctx, const Headset& headset, const AssetStore& assetStore) :
-    mCtx{ctx},
-    mHeadset{headset},
-    mAssetStore{assetStore}
+Renderer::Renderer(const Context& ctx, const Headset& headset) : mCtx{ctx}, mHeadset{headset}
 {}
 
 Renderer::~Renderer()
@@ -149,14 +143,14 @@ void Renderer::createRenderer()
         //renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, mModels.size());
     }
 
-    mGridPipeline = std::make_unique<Pipeline>(mCtx);
+    mGridPipeline = std::make_shared<Pipeline>(mCtx);
     mGridPipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
         "assets/shaders/grid.vert.spirv",
         "assets/shaders/grid.frag.spirv");
 
-    mLightCubePipeline = std::make_unique<Pipeline>(mCtx);
+    mLightCubePipeline = std::make_shared<Pipeline>(mCtx);
     mLightCubePipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
@@ -165,7 +159,7 @@ void Renderer::createRenderer()
 
     const VkVertexInputBindingDescription vertexInputBindingDescription{
         .binding = 0,
-        .stride = sizeof(Vertex),
+        .stride = sizeof(MeshComponent::Vertex),
         .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
     };
 
@@ -173,24 +167,24 @@ void Renderer::createRenderer()
         .location = 0,
         .binding = 0,
         .format = VK_FORMAT_R32G32B32_SFLOAT,
-        .offset = offsetof(Vertex, position)
+        .offset = offsetof(MeshComponent::Vertex, position)
     };
 
     const VkVertexInputAttributeDescription vertexInputAttributeNormal{
         .location = 1,
         .binding = 0,
         .format = VK_FORMAT_R32G32B32_SFLOAT,
-        .offset = offsetof(Vertex, normal),
+        .offset = offsetof(MeshComponent::Vertex, normal),
     };
 
     const VkVertexInputAttributeDescription vertexInputAttributeColor{
         .location = 2,
         .binding = 0,
         .format = VK_FORMAT_R32G32B32_SFLOAT,
-        .offset = offsetof(Vertex, color),
+        .offset = offsetof(MeshComponent::Vertex, color),
     };
 
-    mNormalLightingPipeline = std::make_unique<Pipeline>(mCtx);
+    mNormalLightingPipeline = std::make_shared<Pipeline>(mCtx);
     mNormalLightingPipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
@@ -199,7 +193,7 @@ void Renderer::createRenderer()
         {vertexInputBindingDescription},
         {vertexInputAttributePosition, vertexInputAttributeNormal});
 
-    mPbrPipeline = std::make_unique<Pipeline>(mCtx);
+    mPbrPipeline = std::make_shared<Pipeline>(mCtx);
     mPbrPipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
@@ -270,89 +264,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
 
     const auto descriptorSet = renderProcess->getDescriptorSet();
 
-    //// TODO: it needs refactoring
-    //for (decltype(std::ssize(mModels)) modelIdx{}; modelIdx < (1 + std::ssize(lightUniformData) + std::ssize(mModels)); ++modelIdx)
-    //{
-    //    const auto modelIdxWithOffset = std::abs(modelIdx - std::ssize(lightUniformData) - 1);
-
-    //    const auto uniformBufferOffset = static_cast<uint32_t>(
-    //        khronos_utils::align(
-    //            static_cast<VkDeviceSize>(sizeof(decltype(RenderProcess::mIndividualUniformData)::value_type)),
-    //            mCtx.getUniformBufferOffsetAlignment()) * static_cast<VkDeviceSize>(modelIdxWithOffset));
-
-    //    vkCmdBindDescriptorSets(
-    //        commandBuffer,
-    //        VK_PIPELINE_BIND_POINT_GRAPHICS,
-    //        mPipelineLayout,
-    //        0,
-    //        1,
-    //        &descriptorSet,
-    //        1,
-    //        &uniformBufferOffset);
-
-    //    if (modelIdx == 0)
-    //    {
-    //        mGridPipeline->bind(commandBuffer);
-    //        vkCmdDraw(commandBuffer, GRID_DRAW_CALL_VERTEX_COUNT, 1, 0, 0);
-
-    //        continue;
-    //    }
-    //    else if ((modelIdx >= 1) && (modelIdx < (1 + std::ssize(lightUniformData))))
-    //    {
-    //        mLightCubePipeline->bind(commandBuffer);
-    //        vkCmdPushConstants(commandBuffer,
-    //            mPipelineLayout,
-    //            VK_SHADER_STAGE_VERTEX_BIT,
-    //            0,
-    //            sizeof(math::Vec3),
-    //            &lightUniformData.at(modelIdx - 1));
-
-    //        vkCmdDraw(commandBuffer, LIGHT_CUBE_DRAW_CALL_VERTEX_COUNT, 1, 0, 0);
-
-    //        continue;
-    //    }
-
-    //    const auto& model = mModels.at(modelIdxWithOffset);
-    //    vkCmdPushConstants(commandBuffer,
-    //        mPipelineLayout,
-    //        VK_SHADER_STAGE_VERTEX_BIT,
-    //        0,
-    //        sizeof(math::Vec3),
-    //        &model->pos);
-
-    //    switch(model->pipeline)
-    //    {
-    //    case PipelineType::COLOR:
-    //    {
-    //        LOGGER_ERR("PipelineType::COLOR is not implemented yet");
-    //    }
-    //    case PipelineType::NORMAL_LIGHTING:
-    //    {
-    //        mNormalLightingPipeline->bind(commandBuffer);
-    //        break;
-    //    }
-    //    case PipelineType::PBR:
-    //    {
-    //        mPbrPipeline->bind(commandBuffer);
-    //        vkCmdPushConstants(commandBuffer,
-    //            mPipelineLayout,
-    //            VK_SHADER_STAGE_FRAGMENT_BIT,
-    //            sizeof(math::Vec3),
-    //            sizeof(RendererComponent<PipelineType::PBR>::Material),
-    //            &model->material);
-    //        break;
-    //    }
-    //    default:
-    //        LOGGER_ERR(("Invalid pipeline type: " + std::to_string(static_cast<uint32_t>(model->pipeline))).c_str());
-    //    }
-
-    //    vkCmdDrawIndexed(commandBuffer,
-    //        static_cast<uint32_t>(model->indexCount),
-    //        1,
-    //        static_cast<uint32_t>(model->firstIndex),
-    //        0,
-    //        0);
-    //}
+    gRegistry.getSystem<RenderSystem>().update(commandBuffer, descriptorSet);
 
     vkCmdEndRenderPass(commandBuffer);
 }
@@ -408,7 +320,7 @@ void Renderer::createVertexIndexBuffer()
     //auto bufferData = static_cast<char*>(stagingBuffer->map());
     //if (!bufferData)
     //{
-    //    LOGGER_ERR("Invalid mapping memory");
+    //    TS_ERR("Invalid mapping memory");
     //}
 
     ////mMeshData->writeTo(bufferData);
@@ -424,7 +336,7 @@ void Renderer::createVertexIndexBuffer()
 
     //if (mRenderProcesses.size() == 0)
     //{
-    //    LOGGER_ERR("Render processes weren't created");
+    //    TS_ERR("Render processes weren't created");
     //}
 
     //stagingBuffer->copyTo(*mVertexIndexBuffer, mRenderProcesses.at(0)->getCommandBuffer(), mCtx.getVkGraphicsQueue());
@@ -450,5 +362,15 @@ void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::un
     }
 
     renderProcess->updateUniformBufferData();
+}
+void Renderer::initRenderSystem()
+{
+    auto& renderSystem = gRegistry.getSystem<RenderSystem>();
+    renderSystem.mpGridPipeline = mGridPipeline;
+    renderSystem.mpNormalLightingPipeline = mNormalLightingPipeline;
+    renderSystem.mpPbrPipeline = mPbrPipeline;
+    renderSystem.mpLightCubePipeline = mLightCubePipeline;
+
+    renderSystem.mpPipelineLayout = mPipelineLayout;
 }
 }

@@ -2,7 +2,6 @@
 
 #include "internal_utils.h"
 
-#define NOMINMAX
 #include "vulkan/vulkan.h"
 
 namespace ts

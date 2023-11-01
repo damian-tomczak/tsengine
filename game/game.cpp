@@ -7,6 +7,7 @@
 #include "tsengine/ecs/components/transform_component.hpp"
 #include "tsengine/ecs/components/rigid_body_component.hpp"
 #include "tsengine/ecs/components/renderer_component.hpp"
+#include "tsengine/ecs/components/mesh_component.hpp"
 
 bool Game::init(const char*& gameName, unsigned&, unsigned&)
 {
@@ -17,21 +18,24 @@ bool Game::init(const char*& gameName, unsigned&, unsigned&)
 
 void Game::loadLvl()
 {
-    ts::Entity ruins = ts::gRegistry.createEntity();
-    ruins.addComponent<ts::TransformComponent>();
-    ruins.addComponent<ts::RendererComponent<ts::PipelineType::NORMAL_LIGHTING>>();
+    ts::Entity village = ts::gRegistry.createEntity();
+    village.addComponent<ts::TransformComponent>();
+    village.addComponent<ts::RendererComponent<ts::PipelineType::NORMAL_LIGHTING>>();
+    village.addComponent<ts::MeshComponent>("assets/models/village.obj");
 
     ts::Entity polonez = ts::gRegistry.createEntity();
     polonez.addComponent<ts::TransformComponent>(ts::math::Vec3{0.f, 0.f, -10.f});
     polonez.addComponent<ts::RendererComponent<ts::PipelineType::NORMAL_LIGHTING>>();
+    polonez.addComponent<ts::MeshComponent>("assets/models/polonez.obj");
 
-    constexpr size_t spheresCount = 3;
+    static constexpr size_t spheresNumber = 3;
 
-    for (size_t i{}; i < spheresCount; ++i)
+    for (size_t i{}; i < spheresNumber; ++i)
     {
         ts::Entity sphere = ts::gRegistry.createEntity();
-        sphere.addComponent<ts::TransformComponent>(ts::math::Vec3{spheresCount / 3 * -5.f + 5.f * i, 2.f, -5.f});
+        sphere.addComponent<ts::TransformComponent>(ts::math::Vec3{spheresNumber / 3 * -5.f + 5.f * i, 2.f, -5.f});
         sphere.addComponent<ts::RendererComponent<ts::PipelineType::PBR>>();
+        polonez.addComponent<ts::MeshComponent>("assets/models/sphere.obj");
     }
 
     ts::Entity light1 = ts::gRegistry.createEntity();
@@ -45,7 +49,7 @@ void Game::loadLvl()
 
 bool Game::tick()
 {
-    return false;
+    return true;
 }
 
 void Game::close()

@@ -14,6 +14,8 @@
 
 namespace ts
 {
+using Id = uint32_t;
+
 inline constexpr auto maxComponents = 32;
 
 using Signature = std::bitset<maxComponents>;
@@ -21,27 +23,28 @@ using Signature = std::bitset<maxComponents>;
 struct IComponent
 {
 protected:
-    inline static uint32_t nextId{};
+    inline static Id nextId{};
 };
 
 template <typename T>
 class Component : public IComponent
 {
 public:
-    static uint32_t getId() { return nextId++; }
+    static Id getId() { return nextId++; }
 };
 
 class Entity
 {
-    uint32_t id;
+    Id id;
     class Registry* mpRegistry;
 
 public:
-    Entity(const uint32_t id, Registry* const registry = nullptr) : id{id}, mpRegistry{registry} {}
+    Entity(const Id id, Registry* const registry = nullptr) : id{id}, mpRegistry{registry} {}
 
-    uint32_t getId() const { return id; }
+    Id getId() const { return id; }
     void kill();
 
+    // TODO: hash tags
     void tag(const std::string& tag);
     bool hasTag(const std::string& tag) const;
     void group(const std::string& group);
@@ -57,7 +60,8 @@ public:
 
 class System
 {
-private:
+    friend Registry;
+
     std::vector<Entity> entities;
     Signature componentSignature;
 
@@ -67,51 +71,51 @@ public:
     std::vector<Entity> getSystemEntities() const { return entities; }
     const Signature& getComponentSignature() const { return componentSignature; }
 
-    template <typename TComponent> void requireComponent();
+    template<typename TComponent> void requireComponent();
 };
 
 class IPool
 {
 public:
-    virtual void removeEntityFromPool(const uint32_t entityId) = 0;
+    virtual void removeEntityFromPool(const Id entityId) = 0;
 };
 
 template <typename T>
 class Pool : public IPool
 {
-    std::unordered_map<uint32_t, uint32_t> entityIdToIndex;
-    std::unordered_map<uint32_t, uint32_t> indexToEntityId;
+    std::unordered_map<Id, Id> entityIdToIndex;
+    std::unordered_map<Id, Id> indexToEntityId;
     std::vector<T> data;
-    uint32_t size{};
+    size_t size{};
 
 public:
-    Pool(uint32_t capacity = 100) : data(capacity, T{}) {}
+    Pool(size_t capacity = 100) : data(capacity, T{}) {}
 
     bool isEmpty() const { return size == 0; }
-    uint32_t getSize() const { return size; }
+    size_t getSize() const { return size; }
     void reset();
-    void set(const uint32_t entityId, const T object);
-    void remove(const uint32_t entityId);
-    void removeEntityFromPool(const uint32_t entityId) override;
-    T& get(const uint32_t entityId);
+    void set(const Id entityId, const T object);
+    void remove(const Id entityId);
+    void removeEntityFromPool(const Id entityId) override;
+    T& get(const Id entityId);
 
-    T& operator [](const uint32_t index) { return data.at(index); }
-    const T& operator [](const uint32_t index) const { return data.at(index); }
+    T& operator [](const Id index) { return data.at(index); }
+    const T& operator [](const Id index) const { return data.at(index); }
 };
 
 inline class Registry
 {
     std::unordered_map<std::type_index, std::shared_ptr<System>> systems;
     std::unordered_map<std::string, Entity> entityPerTag;
-    std::unordered_map<uint32_t, std::string> tagPerEntity;
+    std::unordered_map<Id, std::string> tagPerEntity;
     std::unordered_map<std::string, std::set<Entity>> entitiesPerGroup;
-    std::unordered_map<uint32_t, std::string> groupPerEntity;
+    std::unordered_map<Id, std::string> groupPerEntity;
     std::set<Entity> entitiesToBeAdded;
     std::set<Entity> entitiesToBeKilled;
     std::vector<std::shared_ptr<IPool>> componentPools;
     std::vector<Signature> entityComponentSignatures;
-    std::deque<uint32_t> freeIds;
-    uint32_t numEntities{};
+    std::deque<Id> freeIds;
+    Id numEntities{};
 
 public:
     Registry() = default;
@@ -131,15 +135,21 @@ public:
     std::vector<Entity> getEntitiesByGroup(const std::string& group) const;
     void removeEntityGroup(const Entity entity);
 
-    template<typename TComponent, typename ...TArgs> void addComponent(const Entity entity, TArgs&& ...args);
-    template<typename TComponent> void removeComponent(const Entity entity);
-    template<typename TComponent> bool hasComponent(const Entity entity) const;
-    template<typename TComponent> TComponent& getComponent(const Entity entity) const;
+    template<typename ...Components>
+    std::vector<Entity> getEntitiesWithComponents();
 
     template<typename TSystem, typename ...TArgs> void addSystem(TArgs&& ...args);
     template<typename TSystem> void removeSystem();
     template<typename TSystem> bool hasSystem() const;
     template<typename TSystem> TSystem& getSystem() const;
+
+private:
+    friend Entity;
+
+    template<typename TComponent, typename ...TArgs> void addComponent(const Entity entity, TArgs&& ...args);
+    template<typename TComponent> void removeComponent(const Entity entity);
+    template<typename TComponent> bool hasComponent(const Entity entity) const;
+    template<typename TComponent> TComponent& getComponent(const Entity entity) const;
 
     void addEntityToSystems(const Entity entity);
     void removeEntityFromSystems(const Entity entity);
@@ -207,7 +217,7 @@ void Pool<T>::reset()
 }
 
 template<typename T>
-void Pool<T>::set(const uint32_t entityId, const T object)
+void Pool<T>::set(const Id entityId, const T object)
 {
     if (entityIdToIndex.find(entityId) != entityIdToIndex.end())
     {
@@ -216,7 +226,7 @@ void Pool<T>::set(const uint32_t entityId, const T object)
     }
     else
     {
-        const auto index = size;
+        const auto index = static_cast<Id>(size);
         entityIdToIndex.emplace(entityId, index);
         indexToEntityId.emplace(index, entityId);
         if (index >= data.capacity())
@@ -229,10 +239,10 @@ void Pool<T>::set(const uint32_t entityId, const T object)
 }
 
 template<typename T>
-void Pool<T>::remove(const uint32_t entityId)
+void Pool<T>::remove(const Id entityId)
 {
     const auto indexOfRemoved = entityIdToIndex[entityId];
-    const auto indexOfLast = size - 1;
+    const auto indexOfLast = static_cast<Id>(size - 1);
     data.at(indexOfRemoved) = data[indexOfLast];
 
     const auto entityIdOfLastElement = indexToEntityId[indexOfLast];
@@ -246,7 +256,7 @@ void Pool<T>::remove(const uint32_t entityId)
 }
 
 template<typename T>
-void Pool<T>::removeEntityFromPool(const uint32_t entityId)
+void Pool<T>::removeEntityFromPool(const Id entityId)
 {
     if (entityIdToIndex.find(entityId) != entityIdToIndex.cend())
     {
@@ -254,7 +264,7 @@ void Pool<T>::removeEntityFromPool(const uint32_t entityId)
     }
 }
 template<typename T>
-T& Pool<T>::get(const uint32_t entityId)
+T& Pool<T>::get(const Id entityId)
 {
     const auto index = entityIdToIndex[entityId];
     return static_cast<T&>(data[index]);
@@ -311,7 +321,7 @@ inline void Registry::update()
 
 inline Entity Registry::createEntity()
 {
-    uint32_t entityId;
+    Id entityId;
 
     if (freeIds.empty())
     {
@@ -410,6 +420,25 @@ inline void Registry::removeEntityGroup(const Entity entity)
     }
 }
 
+template<typename ...Components>
+std::vector<Entity> Registry::getEntitiesWithComponents()
+{
+    std::vector<Entity> result;
+
+    for (const auto& system : systems)
+    {
+        for (const auto& entity : system.second->entities)
+        {
+            if ((entity.hasComponent<Components>() && ...))
+            {
+                result.push_back(entity);
+            }
+        }
+    }
+
+    return result;
+}
+
 template<typename TSystem, typename ...TArgs>
 void Registry::addSystem(TArgs&& ...args)
 {
@@ -457,7 +486,7 @@ void Registry::addComponent(const Entity entity, TArgs&& ...args)
 
     const auto componentPool = std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
 
-    TComponent newComponent{std::forward<TArgs>(args)...};
+    const TComponent newComponent{std::forward<TArgs>(args)...};
 
     componentPool->set(entityId, newComponent);
 

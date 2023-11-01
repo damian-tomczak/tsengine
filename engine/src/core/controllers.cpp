@@ -105,7 +105,7 @@ void Controllers::sync(const XrSpace space, const XrTime time)
     auto result = xrSyncActions(mSession, &actionsSyncInfo);
     if (XR_FAILED(result))
     {
-        LOGGER_ERR(("xrSyncActions failed with status: " + khronos_utils::xrResultToString(result)).c_str());
+        TS_ERR(("xrSyncActions failed with status: " + khronos_utils::xrResultToString(result)).c_str());
     }
 
     for (size_t controllerIndex{}; controllerIndex < controllerCount; ++controllerIndex)
