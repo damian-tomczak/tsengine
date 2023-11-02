@@ -2,8 +2,6 @@
 
 #include <cmath>
 
-// TODO: impl rotate func
-
 namespace ts::math
 {
 struct Vec2;
@@ -143,7 +141,7 @@ struct Quat
 template<typename T>
 inline auto radians(T degrees)
 {
-    constexpr auto factor = std::numbers::pi / 180;
+    constexpr auto factor = std::numbers::pi_v<T> / 180;
     return degrees * factor;
 }
 
@@ -502,6 +500,38 @@ inline Mat3 inverse(const Mat3& mat)
     };
 }
 
+template<typename T>
+inline Mat3 rotate(const Mat3& matrix, const Vec3& axis, T angle)
+{
+    const T c = std::cos(angle);
+    const T s = std::sin(angle);
+    const T t = 1 - c;
+
+    const Vec3 normalizedAxis = normalize(axis);
+
+    const T x = normalizedAxis.x;
+    const T y = normalizedAxis.y;
+    const T z = normalizedAxis.z;
+
+    const T tx = t * x;
+    const T ty = t * y;
+    const T tz = t * z;
+    const T txy = tx * y;
+    const T txz = tx * z;
+    const T tyz = ty * z;
+    const T sx = s * x;
+    const T sy = s * y;
+    const T sz = s * z;
+
+    Mat3 rotationMatrix{
+        tx * x + c, txy - sz  , txz + sy  ,
+        txy + sz  , ty * y + c, tyz - sx  ,
+        txz - sy  , tyz + sx  , tz * z + c,
+    };
+
+    return matrix * rotationMatrix;
+}
+
 inline std::string to_string(const Mat3& mat)
 {
     return std::format("\n"
@@ -619,6 +649,39 @@ inline Mat4 translate(const Mat4& matrix, const Vec3& translation)
                         matrix[2].x,                 matrix[2].y,                 matrix[2].z, matrix[2].w,
         matrix[3].x + translation.x, matrix[3].y + translation.y, matrix[3].z + translation.z, matrix[3].w,
     };
+}
+
+template<typename T>
+inline Mat4 rotate(const Mat4& matrix, const Vec3& axis, T angle)
+{
+    const T c = std::cos(angle);
+    const T s = std::sin(angle);
+    const T t = 1 - c;
+
+    const Vec3 normalizedAxis = normalize(axis);
+
+    const T x = normalizedAxis.x;
+    const T y = normalizedAxis.y;
+    const T z = normalizedAxis.z;
+
+    const T tx = t * x;
+    const T ty = t * y;
+    const T tz = t * z;
+    const T txy = tx * y;
+    const T txz = tx * z;
+    const T tyz = ty * z;
+    const T sx = s * x;
+    const T sy = s * y;
+    const T sz = s * z;
+
+    Mat4 rotationMatrix{
+        tx * x + c, txy - sz  , txz + sy  , 0,
+        txy + sz  , ty * y + c, tyz - sx  , 0,
+        txz - sy  , tyz + sx  , tz * z + c, 0,
+        0         , 0         , 0         , 1,
+    };
+
+    return matrix * rotationMatrix;
 }
 
 inline std::string to_string(const Mat4 mat)
