@@ -130,6 +130,23 @@ TEST(MathTests, mat4InversionTest)
     ASSERT_EQ(ts::math::to_string(invertedMatrix), ts::math::to_string(expected));
 }
 
+TEST(MathTests, mat4rotationTest)
+{
+    const ts::math::Mat4 matrix = ts::math::Mat4(1.f);
+
+    const ts::math::Vec3 axis { 0.f, 1.f, 0.f };
+    const auto result = ts::math::rotate(matrix, axis, ts::math::radians(180.f));
+
+    const ts::math::Mat4 expected
+    {
+        -1.f, +0.f, +0.f, +0.f,
+        +0.f, +1.f, +0.f, +0.f,
+        +0.f, +0.f, -1.f, +0.f,
+        +0.f, +0.f, +0.f, +1.f,
+    };
+    ASSERT_TRUE(expected[0].x == result[0].x and expected[1].y == result[1].y and expected[2].z == result[2].z);
+}
+
 class TestGame final : public ts::TesterEngine
 {
     static constexpr std::chrono::steady_clock::duration renderingDuration{3s};
