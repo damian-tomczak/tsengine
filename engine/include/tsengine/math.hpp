@@ -513,17 +513,18 @@ inline Mat3 rotate(const Mat3& matrix, const Vec3& axis, T angle)
     const T y = normalizedAxis.y;
     const T z = normalizedAxis.z;
 
-    const T tx = t * x;
-    const T ty = t * y;
-    const T tz = t * z;
+    const T tx  = t * x ;
+    const T ty  = t * y ;
+    const T tz  = t * z ;
     const T txy = tx * y;
     const T txz = tx * z;
     const T tyz = ty * z;
-    const T sx = s * x;
-    const T sy = s * y;
-    const T sz = s * z;
+    const T sx  = s * x ;
+    const T sy  = s * y ;
+    const T sz  = s * z ;
 
-    Mat3 rotationMatrix{
+    const Mat3 rotationMatrix
+    {
         tx * x + c, txy - sz  , txz + sy  ,
         txy + sz  , ty * y + c, tyz - sx  ,
         txz - sy  , tyz + sx  , tz * z + c,
@@ -664,17 +665,18 @@ inline Mat4 rotate(const Mat4& matrix, const Vec3& axis, T angle)
     const T y = normalizedAxis.y;
     const T z = normalizedAxis.z;
 
-    const T tx = t * x;
-    const T ty = t * y;
-    const T tz = t * z;
+    const T tx  = t * x ;
+    const T ty  = t * y ;
+    const T tz  = t * z ;
     const T txy = tx * y;
     const T txz = tx * z;
     const T tyz = ty * z;
-    const T sx = s * x;
-    const T sy = s * y;
-    const T sz = s * z;
+    const T sx  = s * x ;
+    const T sy  = s * y ;
+    const T sz  = s * z ;
 
-    Mat4 rotationMatrix{
+    const Mat4 rotationMatrix
+    {
         tx * x + c, txy - sz  , txz + sy  , 0,
         txy + sz  , ty * y + c, tyz - sx  , 0,
         txz - sy  , tyz + sx  , tz * z + c, 0,

@@ -132,15 +132,10 @@ TEST(MathTests, mat4InversionTest)
 
 TEST(MathTests, mat4rotationTest)
 {
-    const ts::math::Mat4 matrix
-    {
-        1.f, 0.f, 0.f, 0.f,
-        0.f, 1.f, 0.f, 0.f,
-        0.f, 0.f, 1.f, 0.f,
-        0.f, 0.f, 0.f, 1.f,
-    };
+    const ts::math::Mat4 matrix = ts::math::Mat4(1.f);
 
-    const ts::math::Vec3 axis = { 0.f, 1.f, 0.f };
+
+    const ts::math::Vec3 axis { 0.f, 1.f, 0.f };
     const auto result = ts::math::rotate(matrix, axis, ts::math::radians(180.f));
 
     const ts::math::Mat4 expected
