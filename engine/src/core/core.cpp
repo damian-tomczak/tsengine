@@ -11,6 +11,7 @@
 #include "renderer.h"
 #include "tests_core_adapter.h"
 
+#include "tsengine/ecs/ecs.hpp" 
 #include "ecs/movement_system.hpp" 
 #include "ecs/render_system.hpp" 
 
@@ -18,27 +19,26 @@
     #include "CVirt.h"
 #endif
 
-std::mutex engineInit;
-
+namespace ts
+{
 namespace
 {
-std::string_view defaultGameName{"Awesome unamed game"};
-bool isAlreadyInitiated{};
+    std::mutex engineInit;
+    std::string_view defaultGameName{ "Awesome unamed game" };
+    bool isAlreadyInitiated{};
 
-__forceinline void runCleaner()
-{
-    isAlreadyInitiated = false;
-}
+    __forceinline void runCleaner()
+    {
+        isAlreadyInitiated = false;
+    }
 } // namespace
 
 // TODO: maybe would be possible to fancy break down run function?
-namespace ts
-{
-int run(Engine* const engine) try
+int run(Engine* const game) try
 {
     std::lock_guard<std::mutex> _{engineInit};
 
-    if (!engine)
+    if (!game)
     {
         TS_ERR("Game pointer is invalid");
     }
@@ -50,13 +50,13 @@ int run(Engine* const engine) try
     isAlreadyInitiated = true;
 
 #ifdef TESTER_ADAPTER
-    const auto testerAdapter = dynamic_cast<TesterEngine*>(engine);
+    const auto testerAdapter = dynamic_cast<TesterEngine*>(game);
     bool isRenderingStarted{};
 #endif
 
     unsigned width{1280}, height{720};
     const char* gameName = nullptr;
-    if (!engine->init(gameName, width, height))
+    if (!game->init(gameName, width, height))
     {
         TS_ERR("Game initialization unsuccessful");
     }
@@ -74,8 +74,24 @@ int run(Engine* const engine) try
 
     compileShaders("assets/shaders");
 
+    auto player = ts::gRegistry.createEntity();
+    player.tag("player");
+    player.addComponent<ts::TransformComponent>();
+    player.addComponent<ts::RigidBodyComponent>(2.f);
+    // TODO: try to delay it
+    game->loadLvL();
+
     Context ctx{gameName};
     ctx.createOpenXrContext().createVulkanContext();
+
+    gRegistry.addSystem<AssetStore>();
+    gRegistry.addSystem<MovementSystem>();
+    gRegistry.addSystem<RenderSystem>(ctx.getUniformBufferOffsetAlignment());
+
+    auto n1 = ComponentManager<RendererComponent<PipelineType::COLOR>>::getId();;
+    auto n2 = ComponentManager<RendererComponent<PipelineType::PBR>>::getId();;
+
+    gRegistry.update();
 
     auto window = Window::createWindowInstance(gameName, width, height);
     MirrorView mirrorView{ctx, window};
@@ -89,14 +105,6 @@ int run(Engine* const engine) try
     Renderer renderer{ctx, headset};
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
-
-    auto player = ts::gRegistry.createEntity();
-    player.tag("player");
-    player.addComponent<ts::TransformComponent>();
-    player.addComponent<ts::RigidBodyComponent>(2.f);
-
-    gRegistry.addSystem<MovementSystem>();
-    gRegistry.addSystem<RenderSystem>(ctx.getUniformBufferOffsetAlignment());
 
     TS_LOG("tsengine initialization completed successfully");
 
@@ -142,7 +150,7 @@ int run(Engine* const engine) try
         }
 #endif
 
-        if ((!engine->tick()) || headset.isExitRequested())
+        if ((!game->tick()) || headset.isExitRequested())
         {
             loop = false;
         }
@@ -242,7 +250,7 @@ int run(Engine* const engine) try
         }
     }
 
-    engine->close();
+    game->close();
     ctx.sync();
     isAlreadyInitiated = false;
 

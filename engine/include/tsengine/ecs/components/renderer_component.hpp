@@ -24,14 +24,19 @@ enum class PipelineType
     COUNT
 };
 
+struct RendererComponentBase : public Component
+{
+    using Base = RendererComponentBase;
+};
+
 template<PipelineType pipeType>
-struct RendererComponent
+struct RendererComponent : public RendererComponentBase 
 {
     PipelineType pipeline{pipeType};
 };
 
 template<>
-struct RendererComponent<PipelineType::PBR>
+struct RendererComponent<PipelineType::PBR> : public RendererComponentBase
 {
 #define TS_MATERIALS_LIST \
     MATERIAL(WHITE,    .color = {     1.0f,       1.0f,     1.0f}, .roughness = 0.5f, .metallic = 1.0f) \

@@ -4,12 +4,14 @@ namespace ts
 {
 class AssetStore;
 
-struct AssetComponent
+struct AssetComponent : public Component
 {
-    AssetComponent(const std::string_view assetName_) : assetName{assetName_}
+    using Base = AssetComponent;
+
+    AssetComponent(const std::string_view assetName_ = "") : assetName{assetName_}
     {}
 
-private:
+protected:
     friend AssetStore;
     std::string assetName;
 };

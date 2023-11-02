@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tsengine/utils.hpp"
+#include "tsengine/logger.h"
 
 #include <cstdint>
 #include <bitset>
@@ -27,11 +28,32 @@ protected:
 };
 
 template <typename T>
-class Component : public IComponent
+class ComponentManager final : public IComponent
 {
 public:
-    static Id getId() { return nextId++; }
+    static Id getId()
+    {
+        static auto id = nextId++;
+        return id;
+    }
 };
+
+struct Component
+{
+    using Base = Component;
+};
+
+template <typename T>
+concept IsComponent = std::derived_from<T, Component>;
+
+template <IsComponent Derived, bool = std::is_same_v<Component::Base, Derived>>
+struct is_component_of : std::false_type {};
+
+template <IsComponent Derived>
+struct is_component_of<Derived, true> : std::true_type {};
+
+template <IsComponent Derived>
+inline constexpr bool is_component_of_v = is_component_of<Derived>::value;
 
 class Entity
 {
@@ -71,8 +93,7 @@ public:
     std::vector<Entity> getSystemEntities() const { return entities; }
     const Signature& getComponentSignature() const { return componentSignature; }
 
-    template<typename TComponent> void requireComponent();
-};
+    template<typename TComponent> void requireComponent();};
 
 class IPool
 {
@@ -128,6 +149,7 @@ public:
     void tagEntity(const Entity entity, const std::string& tag);
     bool entityHasTag(const Entity entity, const std::string& tag) const;
     Entity getEntityByTag(const std::string& tag) const { return entityPerTag.at(tag); }
+    std::string_view getTagByEntity(const Entity entity) const { return tagPerEntity.at(entity.getId()); }
     void removeEntityTag(const Entity entity);
 
     void groupEntity(const Entity entity, const std::string& group);
@@ -135,18 +157,16 @@ public:
     std::vector<Entity> getEntitiesByGroup(const std::string& group) const;
     void removeEntityGroup(const Entity entity);
 
-    template<typename ...Components>
-    std::vector<Entity> getEntitiesWithComponents();
-
     template<typename TSystem, typename ...TArgs> void addSystem(TArgs&& ...args);
     template<typename TSystem> void removeSystem();
     template<typename TSystem> bool hasSystem() const;
     template<typename TSystem> TSystem& getSystem() const;
 
 private:
-    friend Entity;
+    friend Entity; // TODO: reduce access
 
-    template<typename TComponent, typename ...TArgs> void addComponent(const Entity entity, TArgs&& ...args);
+    template<IsComponent TComponent, typename ...TArgs> void addComponent(const Entity entity, TArgs&& ...args);
+    template<IsComponent TComponent, typename ...TArgs> void _addComponent(const Entity entity, TArgs&& ...args);
     template<typename TComponent> void removeComponent(const Entity entity);
     template<typename TComponent> bool hasComponent(const Entity entity) const;
     template<typename TComponent> TComponent& getComponent(const Entity entity) const;
@@ -282,7 +302,7 @@ inline void System::removeEntityFromSystem(const Entity entity)
 template<typename TComponent>
 void System::requireComponent()
 {
-    const auto componentId = Component<TComponent>::getId();
+    const auto componentId = ComponentManager<TComponent>::getId();
     componentSignature.set(componentId);
 }
 
@@ -337,12 +357,9 @@ inline Entity Registry::createEntity()
         freeIds.pop_front();
     }
 
-    const auto [entity, isQueued] = entitiesToBeAdded.emplace(entityId, nullptr);
+    const auto [entity, isQueued] = entitiesToBeAdded.emplace(entityId, this);
 
-    if (!isQueued)
-    {
-        throw Exception{"Entity couldn't be added to the queue of entities to be added."};
-    }
+    TS_ASSERT(isQueued, "Entity couldn't be added to the queue of entities to be added.");
 
     return *entity;
 }
@@ -420,25 +437,6 @@ inline void Registry::removeEntityGroup(const Entity entity)
     }
 }
 
-template<typename ...Components>
-std::vector<Entity> Registry::getEntitiesWithComponents()
-{
-    std::vector<Entity> result;
-
-    for (const auto& system : systems)
-    {
-        for (const auto& entity : system.second->entities)
-        {
-            if ((entity.hasComponent<Components>() && ...))
-            {
-                result.push_back(entity);
-            }
-        }
-    }
-
-    return result;
-}
-
 template<typename TSystem, typename ...TArgs>
 void Registry::addSystem(TArgs&& ...args)
 {
@@ -467,10 +465,21 @@ TSystem& Registry::getSystem() const
     return *(std::static_pointer_cast<TSystem>(system->second));
 }
 
-template<typename TComponent, typename ...TArgs>
+template<IsComponent TComponent, typename ...TArgs>
 void Registry::addComponent(const Entity entity, TArgs&& ...args)
 {
-    const auto componentId = Component<TComponent>::getId();
+    if constexpr (!is_component_of_v<typename TComponent::Base>)
+    {
+        _addComponent<typename TComponent::Base>(entity, std::forward<TArgs>(args)...);
+    }
+
+    _addComponent<TComponent>(entity, std::forward<TArgs>(args)...);
+}
+
+template<IsComponent TComponent, typename ...TArgs>
+void Registry::_addComponent(const Entity entity, TArgs&& ...args)
+{
+    const auto componentId = ComponentManager<TComponent>::getId();
     const auto entityId = entity.getId();
 
     if (componentId >= componentPools.size())
@@ -496,7 +505,7 @@ void Registry::addComponent(const Entity entity, TArgs&& ...args)
 template<typename TComponent>
 void Registry::removeComponent(const Entity entity)
 {
-    const auto componentId = Component<TComponent>::getId();
+    const auto componentId = ComponentManager<TComponent>::getId();
     const auto entityId = entity.getId();
 
     const auto componentPool = std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
@@ -508,7 +517,7 @@ void Registry::removeComponent(const Entity entity)
 template<typename TComponent>
 bool Registry::hasComponent(const Entity entity) const
 {
-    const auto componentId = Component<TComponent>::getId();
+    const auto componentId = ComponentManager<TComponent>::getId();
     const auto entityId = entity.getId();
     return entityComponentSignatures.at(entityId).test(componentId);
 }
@@ -516,14 +525,17 @@ bool Registry::hasComponent(const Entity entity) const
 template<typename TComponent>
 TComponent& Registry::getComponent(const Entity entity) const
 {
-    const auto componentId = Component<TComponent>::getId();
+    const auto componentId = ComponentManager<TComponent>::getId();
     const auto entityId = entity.getId();
-    const auto componentPool = std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
+    auto var = componentPools[componentId];
+    const auto componentPool = std::static_pointer_cast<Pool<TComponent>>(var);
     return componentPool->get(entityId);
 }
 
 inline void Registry::addEntityToSystems(const Entity entity)
 {
+    auto var = getTagByEntity(entity);
+
     const auto entityId = entity.getId();
 
     const auto& entityComponentSignature = entityComponentSignatures[entityId];

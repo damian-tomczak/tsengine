@@ -15,7 +15,7 @@ public:
     Game() = default;
 
     bool init(const char*& gameName, unsigned& width, unsigned& height) override;
-    void loadLvl() override;
+    void loadLvL() override;
     bool tick() override;
     void close() override;
 };

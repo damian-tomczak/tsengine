@@ -64,6 +64,7 @@ template<typename DerivedClass>
 class Singleton
 {
     NOT_COPYABLE(Singleton);
+    NOT_MOVEABLE(Singleton);
 
 public:
     static auto& getInstance()

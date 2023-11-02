@@ -19,7 +19,7 @@ namespace
 // TODO: avoid the same files
 void AssetStore::Models::load()
 {
-    for (const auto entity : gRegistry.getEntitiesWithComponents<MeshComponent>())
+    for (const auto entity : AssetStore::getInstance().getSystemEntities())
     {
         auto meshComponent = entity.getComponent<MeshComponent>();
         const auto& fileName = meshComponent.assetName;

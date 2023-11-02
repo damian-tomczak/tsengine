@@ -13,7 +13,7 @@ public:
     Engine& operator=(Engine&&) = delete;
 
     virtual bool init(const char*& gameName, unsigned& width, unsigned& height) = 0;
-    virtual void loadLvl() {};
+    virtual void loadLvL() {};
     virtual bool tick() = 0;
     virtual void close() = 0;
 };

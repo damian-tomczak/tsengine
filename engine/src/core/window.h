@@ -14,7 +14,7 @@ class Window
 
 public:
     Window(const std::string_view windowName, const size_t width, const size_t height) :
-        mWindowName{windowName.data() + "powered by tsengine"s}, mWidth{width}, mHeight{height}
+        mWindowName{windowName.data() + " powered by tsengine"s}, mWidth{width}, mHeight{height}
     {}
     virtual ~Window();
     enum class Message

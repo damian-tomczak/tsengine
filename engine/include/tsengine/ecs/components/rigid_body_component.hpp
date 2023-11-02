@@ -4,7 +4,7 @@
 
 namespace ts
 {
-struct RigidBodyComponent
+struct RigidBodyComponent : public Component
 {
     float velocity;
 

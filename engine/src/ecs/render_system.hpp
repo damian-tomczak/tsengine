@@ -18,19 +18,20 @@
 namespace ts
 {
 class Renderer;
+class LightRenderSystem;
 
-class RenderSystem : public ts::System
+class RenderSystem : public System
 {
 public:
     RenderSystem(const VkDeviceSize vkUniformBufferOffsetAlignment) :
         mVkUniformBufferOffsetAlignment{vkUniformBufferOffsetAlignment}
     {
-#define PIPELINE(type) requireComponent<RendererComponent<PipelineType::type>>();
-        TS_PIPELINES_LIST
-#undef PIPELINE
+        requireComponent<RendererComponentBase>();
+
+        gRegistry.addSystem<LightRenderSystem>();
     }
 
-    void update(VkCommandBuffer cmdBuf, const VkDescriptorSet descriptorSet)
+    void update(const VkCommandBuffer cmdBuf, const VkDescriptorSet descriptorSet)
     {
         size_t entityIndexforUniformBufferOffset{};
         const auto uniformBufferOffset = static_cast<uint32_t>(
@@ -142,5 +143,15 @@ private:
     const VkDeviceSize& mVkUniformBufferOffsetAlignment;
     std::weak_ptr<Pipeline> mpGridPipeline, mpNormalLightingPipeline, mpPbrPipeline, mpLightCubePipeline;
     VkPipelineLayout mpPipelineLayout{};
+};
+
+class LightRenderSystem : public System
+{
+public:
+    LightRenderSystem()
+    {
+        requireComponent<RendererComponent<PipelineType::LIGHT>>();
+    }
+
 };
 }

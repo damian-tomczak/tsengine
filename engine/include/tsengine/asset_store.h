@@ -2,19 +2,29 @@
 
 #include "utils.hpp"
 
+#include "tsengine/ecs/ecs.hpp"
+#include "tsengine/ecs/components/mesh_component.hpp"
+
 namespace ts
 {
-class AssetStore final : Singleton<AssetStore>
+class AssetStore final : public System, public Singleton<AssetStore>
 {
-    SINGLETON_BODY(AssetStore);
+    NOT_COPYABLE(AssetStore);
+    friend Singleton<AssetStore>;
 
-    class Models
+public:
+    AssetStore()
+    {
+        requireComponent<MeshComponent>();
+    }
+
+    struct Models
     {
         static void load();
         static void writeTo(char* const destination);
 
-        size_t getIndexOffset();
-        size_t getSize();
+        static size_t getIndexOffset();
+        static size_t getSize();
     };
 };
 } // namespace ts

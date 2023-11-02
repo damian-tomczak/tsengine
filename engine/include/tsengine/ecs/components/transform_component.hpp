@@ -4,7 +4,7 @@
 
 namespace ts
 {
-struct TransformComponent
+struct TransformComponent : public Component
 {
     math::Vec3 pos;
     math::Mat4 modelMat{1.f};

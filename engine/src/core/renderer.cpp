@@ -11,6 +11,7 @@
 #include "khronos_utils.h"
 #include "headset.h"
 #include "render_target.h"
+#include "tsengine/asset_store.h"
 
 #include "tsengine/ecs/components/renderer_component.hpp"
 #include "tsengine/ecs/components/mesh_component.hpp"
@@ -137,10 +138,11 @@ void Renderer::createRenderer()
     };
     LOGGER_VK(vkCreatePipelineLayout, device, &pipelinelineLayoutCreateInfo, nullptr, &mPipelineLayout);
 
+    auto v = AssetStore::getInstance().getSystemEntities().size();
     for (auto& renderProcess : mRenderProcesses)
     {
         renderProcess = std::make_unique<RenderProcess>(mCtx, mHeadset);
-        //renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, mModels.size());
+        renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, v);
     }
 
     mGridPipeline = std::make_shared<Pipeline>(mCtx);
@@ -204,7 +206,7 @@ void Renderer::createRenderer()
 
     createVertexIndexBuffer();
 
-    //mIndexOffset = mMeshData->getIndexOffset();
+    mIndexOffset = AssetStore::Models::getIndexOffset();
 }
 
 void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainImageIndex)

@@ -9,6 +9,7 @@
 
 #include "tsengine/ecs/ecs.hpp"
 #include "tsengine/ecs/components/renderer_component.hpp"
+#include "ecs/render_system.hpp"
 
 namespace ts
 {
@@ -85,9 +86,10 @@ void RenderProcess::createRendererProcess(
         .range = sizeof(mCommonUniformData),
     });
 
+    auto n = sizeof(math::Vec3) * gRegistry.getSystem<LightRenderSystem>().getSystemEntities().size();
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
         .offset = descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment),
-        .range = sizeof(math::Vec3) * gRegistry.getEntitiesWithComponents<RendererComponent<PipelineType::LIGHT>>().size()
+        .range = n
     });
 
     if (descriptorBufferInfos.empty())
