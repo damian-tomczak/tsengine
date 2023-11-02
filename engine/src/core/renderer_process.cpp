@@ -86,10 +86,9 @@ void RenderProcess::createRendererProcess(
         .range = sizeof(mCommonUniformData),
     });
 
-    auto n = sizeof(math::Vec3) * gRegistry.getSystem<LightRenderSystem>().getSystemEntities().size();
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
         .offset = descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment),
-        .range = n
+        .range = sizeof(math::Vec3) * gRegistry.getSystem<LightRenderSystem>().getSystemEntities().size()
     });
 
     if (descriptorBufferInfos.empty())

@@ -35,7 +35,7 @@ void Game::loadLvL()
     for (size_t i{}; i < spheresNumber; ++i)
     {
         ts::Entity sphere = ts::gRegistry.createEntity();
-        sphere.tag("sphere" + i);
+        sphere.tag("sphere" + std::to_string(i));
         sphere.addComponent<ts::TransformComponent>(ts::math::Vec3{spheresNumber / 3 * -5.f + 5.f * i, 2.f, -5.f});
         sphere.addComponent<ts::RendererComponent<ts::PipelineType::PBR>>();
         sphere.addComponent<ts::MeshComponent>("assets/models/sphere.obj");
@@ -47,7 +47,7 @@ void Game::loadLvL()
     light1.addComponent<ts::RendererComponent<ts::PipelineType::LIGHT>>();
 
     ts::Entity light2 = ts::gRegistry.createEntity();
-    light1.tag("light2");
+    light2.tag("light2");
     light2.addComponent<ts::TransformComponent>(ts::math::Vec3{0.f, 5.f,  0.f});
     light2.addComponent<ts::RendererComponent<ts::PipelineType::LIGHT>>();
 }

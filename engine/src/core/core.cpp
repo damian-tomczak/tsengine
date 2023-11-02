@@ -88,10 +88,9 @@ int run(Engine* const game) try
     gRegistry.addSystem<MovementSystem>();
     gRegistry.addSystem<RenderSystem>(ctx.getUniformBufferOffsetAlignment());
 
-    auto n1 = ComponentManager<RendererComponent<PipelineType::COLOR>>::getId();;
-    auto n2 = ComponentManager<RendererComponent<PipelineType::PBR>>::getId();;
-
     gRegistry.update();
+
+    AssetStore::Models::load();
 
     auto window = Window::createWindowInstance(gameName, width, height);
     MirrorView mirrorView{ctx, window};

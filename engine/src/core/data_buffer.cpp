@@ -26,7 +26,7 @@ DataBuffer::~DataBuffer()
     }
 }
 
-void DataBuffer::createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryPropertyFlags memoryProperties, VkDeviceSize size)
+void DataBuffer::createDataBuffer(const VkBufferUsageFlags bufferUsageFlags, const VkMemoryPropertyFlags memoryProperties, const VkDeviceSize size)
 {
     mSize = size;
 

@@ -7,11 +7,8 @@
 
 namespace ts
 {
-class AssetStore final : public System, public Singleton<AssetStore>
+class AssetStore final : public System
 {
-    NOT_COPYABLE(AssetStore);
-    friend Singleton<AssetStore>;
-
 public:
     AssetStore()
     {

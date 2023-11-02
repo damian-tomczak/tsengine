@@ -16,7 +16,7 @@ public:
     DataBuffer(const Context& ctx);
     ~DataBuffer();
 
-    void createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryPropertyFlags memoryProperties, VkDeviceSize size);
+    void createDataBuffer(const VkBufferUsageFlags bufferUsageFlags, const VkMemoryPropertyFlags memoryProperties, const VkDeviceSize size);
 
     [[nodiscard]] VkBuffer getBuffer() const { return mBuffer; }
 

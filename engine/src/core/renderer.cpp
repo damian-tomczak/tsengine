@@ -138,11 +138,10 @@ void Renderer::createRenderer()
     };
     LOGGER_VK(vkCreatePipelineLayout, device, &pipelinelineLayoutCreateInfo, nullptr, &mPipelineLayout);
 
-    auto v = AssetStore::getInstance().getSystemEntities().size();
     for (auto& renderProcess : mRenderProcesses)
     {
         renderProcess = std::make_unique<RenderProcess>(mCtx, mHeadset);
-        renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, v);
+        renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, gRegistry.getSystem<AssetStore>().getSystemEntities().size());
     }
 
     mGridPipeline = std::make_shared<Pipeline>(mCtx);
@@ -312,46 +311,47 @@ VkCommandBuffer Renderer::getCurrentCommandBuffer() const
 
 void Renderer::createVertexIndexBuffer()
 {
-    //const auto bufferSize = static_cast<VkDeviceSize>(mAssetStore->getSize());
-    //auto stagingBuffer = std::make_unique<DataBuffer>(mCtx);
-    //stagingBuffer->createDataBuffer(
-    //    VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-    //    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-    //    bufferSize);
+    const auto bufferSize = static_cast<VkDeviceSize>(AssetStore::Models::getSize());
+    auto stagingBuffer = std::make_unique<DataBuffer>(mCtx);
+    stagingBuffer->createDataBuffer(
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        bufferSize);
 
-    //auto bufferData = static_cast<char*>(stagingBuffer->map());
-    //if (!bufferData)
-    //{
-    //    TS_ERR("Invalid mapping memory");
-    //}
+    auto bufferData = static_cast<char*>(stagingBuffer->map());
+    if (!bufferData)
+    {
+        TS_ERR("Invalid mapping memory");
+    }
 
-    ////mMeshData->writeTo(bufferData);
-    //stagingBuffer->unmap();
+    AssetStore::Models::writeTo(bufferData);
+    stagingBuffer->unmap();
 
-    //mVertexIndexBuffer = std::make_unique<DataBuffer>(mCtx);
-    //mVertexIndexBuffer->createDataBuffer(
-    //    VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-    //    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-    //    VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-    //    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-    //    bufferSize);
+    mVertexIndexBuffer = std::make_unique<DataBuffer>(mCtx);
+    mVertexIndexBuffer->createDataBuffer(
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+        VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        bufferSize);
 
-    //if (mRenderProcesses.size() == 0)
-    //{
-    //    TS_ERR("Render processes weren't created");
-    //}
+    if (mRenderProcesses.size() == 0)
+    {
+        TS_ERR("Render processes weren't created");
+    }
 
-    //stagingBuffer->copyTo(*mVertexIndexBuffer, mRenderProcesses.at(0)->getCommandBuffer(), mCtx.getVkGraphicsQueue());
+    stagingBuffer->copyTo(*mVertexIndexBuffer, mRenderProcesses.at(0)->getCommandBuffer(), mCtx.getVkGraphicsQueue());
 
-    //stagingBuffer.reset();
+    stagingBuffer.reset();
 }
 
 void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::unique_ptr<RenderProcess>& renderProcess)
 {
-    //for (size_t modelIndex{}; modelIndex < mModels.size(); ++modelIndex)
-    //{
-    //    renderProcess->mIndividualUniformData.at(modelIndex).model = mModels.at(modelIndex)->model;
-    //}
+    const auto entities = gRegistry.getSystem<AssetStore>().getSystemEntities();
+    for (size_t modelIndex{}; modelIndex < entities.size(); ++modelIndex)
+    {
+        renderProcess->mIndividualUniformData.at(modelIndex).model = entities.at(modelIndex).getComponent<TransformComponent>().modelMat;
+    }
 
     renderProcess->mCommonUniformData.cameraPosition = cameraPosition;
     for (size_t eyeIndex{}; eyeIndex < mHeadset.getEyeCount(); ++eyeIndex)
