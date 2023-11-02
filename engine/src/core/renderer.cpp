@@ -206,6 +206,8 @@ void Renderer::createRenderer()
     createVertexIndexBuffer();
 
     mIndexOffset = AssetStore::Models::getIndexOffset();
+
+    initRenderSystem();
 }
 
 void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainImageIndex)

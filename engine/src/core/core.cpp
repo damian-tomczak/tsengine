@@ -78,6 +78,11 @@ int run(Engine* const game) try
     player.tag("player");
     player.addComponent<ts::TransformComponent>();
     player.addComponent<ts::RigidBodyComponent>(2.f);
+    
+    auto grid = ts::gRegistry.createEntity();
+    grid.tag("grid");
+    grid.addComponent<ts::RendererComponent<PipelineType::GRID>>();
+
     // TODO: try to delay it
     game->loadLvL();
 

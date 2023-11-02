@@ -14,9 +14,9 @@
     NOT_COPYABLE(ClassName);                 \
     NOT_MOVEABLE(ClassName);
 
-#define SINGLETON_BODY(ClassName)   \
-    NOT_COPYABLE(ClassName);        \
-    private: ClassName() = default; \
+#define SINGLETON_BODY(ClassName)         \
+    NOT_COPYABLE_AND_MOVEABLE(ClassName); \
+    private: ClassName() = default;       \
     friend Singleton<ClassName>;
 
 #define STR(x) XSTR(x)

@@ -534,8 +534,6 @@ TComponent& Registry::getComponent(const Entity entity) const
 
 inline void Registry::addEntityToSystems(const Entity entity)
 {
-    auto var = getTagByEntity(entity);
-
     const auto entityId = entity.getId();
 
     const auto& entityComponentSignature = entityComponentSignatures[entityId];

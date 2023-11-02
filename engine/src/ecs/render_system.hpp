@@ -18,7 +18,6 @@
 namespace ts
 {
 class Renderer;
-class LightRenderSystem;
 
 class RenderSystem : public System
 {
@@ -28,32 +27,73 @@ public:
     {
         requireComponent<RendererComponentBase>();
 
-        gRegistry.addSystem<LightRenderSystem>();
+        gRegistry.addSystem<Lights>();
     }
 
     void update(const VkCommandBuffer cmdBuf, const VkDescriptorSet descriptorSet)
     {
-        size_t entityIndexforUniformBufferOffset{};
-        const auto uniformBufferOffset = static_cast<uint32_t>(
-            khronos_utils::align(
-                static_cast<VkDeviceSize>(sizeof(decltype(RenderProcess::mIndividualUniformData)::value_type)),
-                mVkUniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(entityIndexforUniformBufferOffset));
-
         for (const auto entity : getSystemEntities())
         {
-            if (entity.hasComponent<MeshComponent>() && (!entity.hasComponent<RendererComponent<PipelineType::PBR>>()))
+            size_t entityIndexforUniformBufferOffset{};
+            const auto uniformBufferOffset = static_cast<uint32_t>(
+                khronos_utils::align(
+                    static_cast<VkDeviceSize>(sizeof(decltype(RenderProcess::mIndividualUniformData)::value_type)),
+                    mVkUniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(entityIndexforUniformBufferOffset));
+
+            vkCmdBindDescriptorSets(
+                cmdBuf,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                mpPipelineLayout,
+                0,
+                1,
+                &descriptorSet,
+                1,
+                &uniformBufferOffset);
+
+            if (!entity.hasComponent<TransformComponent>())
+            {
+                vkCmdPushConstants(cmdBuf,
+                    mpPipelineLayout,
+                    VK_SHADER_STAGE_VERTEX_BIT,
+                    0,
+                    sizeof(math::Vec3),
+                    &entity.getComponent<TransformComponent>().pos);
+            }
+
+            if (entity.hasComponent<MeshComponent>())
             {
                 TS_ASSERT(!entity.hasComponent<RendererComponent<PipelineType::COLOR>>(), "Not implemented yet");
 
                 const auto& mesh = entity.getComponent<MeshComponent>();
 
-                if (const auto pipe = mpNormalLightingPipeline.lock())
+                if (entity.hasComponent<RendererComponent<PipelineType::NORMAL_LIGHTING>>())
                 {
-                    pipe->bind(cmdBuf);
+                    if (const auto pipe = mpNormalLightingPipeline.lock())
+                    {
+                        pipe->bind(cmdBuf);
+                    }
+                    else
+                    {
+                        throw Exception{ "Invalid normal lighting pipeline" };
+                    }
                 }
-                else
+                else if (entity.hasComponent<RendererComponent<PipelineType::PBR>>())
                 {
-                    throw Exception{"Invalid normal lighting pipeline"};
+                    if (const auto pipe = mpPbrPipeline.lock())
+                    {
+                        pipe->bind(cmdBuf);
+                    }
+                    else
+                    {
+                        throw Exception{ "Invalid pbr pipeline" };
+                    }
+                
+                    vkCmdPushConstants(cmdBuf,
+                        mpPipelineLayout,
+                        VK_SHADER_STAGE_FRAGMENT_BIT,
+                        sizeof(math::Vec3),
+                        sizeof(RendererComponent<PipelineType::PBR>::Material),
+                        &entity.getComponent<RendererComponent<PipelineType::PBR>>().material);
                 }
 
                 vkCmdDrawIndexed(cmdBuf,
@@ -62,24 +102,6 @@ public:
                     static_cast<uint32_t>(mesh.firstIndex),
                     0,
                     0);
-            }
-            else if (entity.hasComponent<RendererComponent<PipelineType::PBR>>())
-            {
-                if (const auto pipe = mpPbrPipeline.lock())
-                {
-                    pipe->bind(cmdBuf);
-                }
-                else
-                {
-                    throw Exception{"Invalid pbr pipeline"};
-                }
-
-                vkCmdPushConstants(cmdBuf,
-                    mpPipelineLayout,
-                    VK_SHADER_STAGE_FRAGMENT_BIT,
-                    sizeof(math::Vec3),
-                    sizeof(RendererComponent<PipelineType::PBR>::Material),
-                    &entity.getComponent<RendererComponent<PipelineType::PBR>>().material);
             }
             else if (entity.hasComponent<RendererComponent<PipelineType::LIGHT>>())
             {
@@ -111,47 +133,23 @@ public:
             {
                 TS_ERR("Unexpected rendering workflow");
             }
-
-            if (!entity.hasComponent<RendererComponent<PipelineType::GRID>>())
-            {
-                TS_ASSERT(entity.hasComponent<TransformComponent>(), "TransformComponent is missing");
-
-                vkCmdPushConstants(cmdBuf,
-                    mpPipelineLayout,
-                    VK_SHADER_STAGE_VERTEX_BIT,
-                    0,
-                    sizeof(math::Vec3),
-                    &entity.getComponent<TransformComponent>().pos);
-            }
-
-
-
-            vkCmdBindDescriptorSets(
-                cmdBuf,
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                mpPipelineLayout,
-                0,
-                1,
-                &descriptorSet,
-                1,
-                &uniformBufferOffset);
         }
     }
+
+    class Lights : public System
+    {
+    public:
+        Lights()
+        {
+            requireComponent<RendererComponent<PipelineType::LIGHT>>();
+        }
+
+    };
 
 private:
     friend Renderer;
     const VkDeviceSize& mVkUniformBufferOffsetAlignment;
     std::weak_ptr<Pipeline> mpGridPipeline, mpNormalLightingPipeline, mpPbrPipeline, mpLightCubePipeline;
     VkPipelineLayout mpPipelineLayout{};
-};
-
-class LightRenderSystem : public System
-{
-public:
-    LightRenderSystem()
-    {
-        requireComponent<RendererComponent<PipelineType::LIGHT>>();
-    }
-
 };
 }

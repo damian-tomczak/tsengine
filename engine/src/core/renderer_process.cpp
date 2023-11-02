@@ -88,7 +88,7 @@ void RenderProcess::createRendererProcess(
 
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
         .offset = descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment),
-        .range = sizeof(math::Vec3) * gRegistry.getSystem<LightRenderSystem>().getSystemEntities().size()
+        .range = sizeof(math::Vec3) * gRegistry.getSystem<RenderSystem::Lights>().getSystemEntities().size()
     });
 
     if (descriptorBufferInfos.empty())

@@ -7,7 +7,7 @@
 
 namespace ts
 {
-class Context final
+class Context final : public Singleton<Context>
 {
     NOT_COPYABLE_AND_MOVEABLE(Context);
 
