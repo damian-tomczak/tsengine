@@ -26,7 +26,7 @@ DataBuffer::~DataBuffer()
     }
 }
 
-void DataBuffer::createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryPropertyFlags memoryProperties, VkDeviceSize size)
+void DataBuffer::createDataBuffer(const VkBufferUsageFlags bufferUsageFlags, const VkMemoryPropertyFlags memoryProperties, const VkDeviceSize size)
 {
     mSize = size;
 
@@ -47,7 +47,7 @@ void DataBuffer::createDataBuffer(VkBufferUsageFlags bufferUsageFlags, VkMemoryP
     if (!khronos_utils::findSuitableMemoryTypeIndex(mCtx.getVkPhysicalDevice(), memoryRequirements, memoryProperties,
         suitableMemoryTypeIndex))
     {
-        LOGGER_ERR("Can not find the suitable memory index");
+        TS_ERR("Can not find the suitable memory index");
     }
 
     VkMemoryAllocateInfo memoryAllocateInfo{

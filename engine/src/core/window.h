@@ -3,10 +3,7 @@
 #include "internal_utils.h"
 
 #ifdef _WIN32
-    #define NOMINMAX
     #include <Windows.h>
-#else
-    #error not implemented
 #endif // _WIN32
 
 namespace ts
@@ -16,8 +13,8 @@ class Window
     NOT_COPYABLE_AND_MOVEABLE(Window);
 
 public:
-    Window(const std::string& windowName, const size_t width, const size_t height) :
-        mWindowName{windowName}, mWidth{width}, mHeight{height}
+    Window(const std::string_view windowName, const size_t width, const size_t height) :
+        mWindowName{windowName.data() + " powered by tsengine"s}, mWidth{width}, mHeight{height}
     {}
     virtual ~Window();
     enum class Message
@@ -36,7 +33,7 @@ public:
     virtual Message peekMessage() = 0;
     virtual void dispatchMessage() = 0;
 
-    static std::shared_ptr<Window> createWindowInstance(const std::string& windowName, const size_t width, const size_t height);
+    static std::shared_ptr<Window> createWindowInstance(const std::string_view windowName, const size_t width, const size_t height);
 
     [[nodiscard]] size_t getWidth() const { return mWidth; }
     [[nodiscard]] size_t getHeight() const { return mHeight;}

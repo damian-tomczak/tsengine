@@ -1,7 +1,8 @@
 #pragma once
 
-#include <cmath>
+#include "utils.hpp"
 
+// TODO: column major
 namespace ts::math
 {
 struct Vec2;
@@ -14,57 +15,58 @@ struct Quat;
 
 struct Vec2 final
 {
-    float x{}, y{};
+    float x, y;
 
     constexpr Vec2() = default;
     constexpr Vec2(const float v);
     constexpr Vec2(const Vec3& vec3);
     constexpr Vec2(const Vec4& vec4);
     constexpr Vec2(const float x_, const float y_);
-    [[nodiscard]] constexpr Vec2 operator*(const float scalar) const;
-    [[nodiscard]] constexpr Vec2 operator+(const Vec2& rhs) const;
-    constexpr Vec2& operator+=(const Vec2& rhs);
 
-    auto operator<=>(const Vec2& other) const = default;
-    bool isNan() const;
-    bool isInf() const;
+    [[nodiscard]] constexpr Vec2 operator*(const float scalar) const { return {x * scalar, y * scalar}; }
+    [[nodiscard]] constexpr Vec2 operator+(const Vec2& rhs) const { return {x + rhs.x, y * rhs.y}; }
+    constexpr Vec2& operator+=(const Vec2& rhs);
+    constexpr auto operator<=>(const Vec2& other) const = default;
+
+    bool isNan() const { return std::isnan(x) && std::isnan(y); }
+    bool isInf() const { return std::isinf(x) && std::isinf(y); }
 };
 
 inline Vec2 normalize(const Vec2 vec);
 
 struct alignas(16) Vec3 final
 {
-    float x{}, y{}, z{};
+    float x, y, z;
 
     constexpr Vec3() = default;
     constexpr Vec3(const float v);
     constexpr Vec3(const Vec4& vec4);
     constexpr Vec3(const float x_, const float y_, const float z_);
-    [[nodiscard]] constexpr Vec3 operator*(const float scalar) const;
-    [[nodiscard]] constexpr Vec3 operator+(const Vec3& rhs) const;
+    [[nodiscard]] constexpr Vec3 operator*(const float scalar) const { return {x * scalar, y * scalar, z * scalar}; }
+    [[nodiscard]] constexpr Vec3 operator+(const Vec3& rhs) const { return {x + rhs.x, y * rhs.y, z + rhs.z}; }
     constexpr Vec3& operator+=(const Vec3& rhs);
+    constexpr auto operator<=>(const Vec3& other) const = default;
 
-    auto operator<=>(const Vec3& other) const = default;
-    bool isNan() const;
-    bool isInf() const;
+    bool isNan() const { return std::isnan(x) && std::isnan(y) && std::isnan(z); }
+    bool isInf() const { return std::isinf(x) && std::isinf(y) && std::isinf(z); }
 };
 
 inline Vec3 normalize(const Vec3& vec);
 
 struct Vec4 final
 {
-    float x{}, y{}, z{}, w{};
+    float x, y, z, w;
 
     constexpr Vec4() = default;
     constexpr Vec4(const float v);
     constexpr Vec4(const float x_, const float y_, const float z_, const float w_);
-    [[nodiscard]] constexpr Vec4 operator*(const float scalar) const;
-    [[nodiscard]] constexpr Vec4 operator+(const Vec4& rhs) const;
+    [[nodiscard]] constexpr Vec4 operator*(const float scalar) const { return {x * scalar, y * scalar, z * scalar, w * scalar}; }
+    [[nodiscard]] constexpr Vec4 operator+(const Vec4& rhs) const { return {x + rhs.x, y * rhs.y, z + rhs.z, w + rhs.w}; }
     constexpr Vec4& operator+=(const Vec4& rhs);
+    constexpr auto operator<=>(const Vec4& other) const = default;
 
-    auto operator<=>(const Vec4& other) const = default;
-    bool isNan() const;
-    bool isInf() const;
+    bool isNan() const { return std::isnan(x) or std::isnan(y) or std::isnan(z) or std::isnan(w); }
+    bool isInf() const { return std::isinf(x) or std::isinf(y) or std::isinf(z) or std::isinf(w); }
 };
 
 inline Vec4 normalize(const Vec4& vec);
@@ -73,70 +75,78 @@ struct Mat2
 {
     std::array<Vec2, 2> data;
 
-    Mat2();
-    Mat2(
+    constexpr Mat2() = default;
+    constexpr Mat2(
         const float x1, const float y1,
         const float x2, const float y2);
 
-    explicit Mat2(const float value);
+    constexpr Mat2(const float value);
 
     Vec2& operator[](const size_t index);
     const Vec2& operator[](const size_t index) const;
 };
 
-inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs);
+inline constexpr Mat2 operator*(const Mat2& lhs, const Mat2& rhs);
+inline constexpr Mat2 transpose(const Mat2& mat);
 inline Mat2 inverse(const Mat2& mat);
 inline std::string to_string(const Mat2& mat);
 
 struct Mat3
 {
-    std::array<Vec3, 3> data{};
+    std::array<Vec3, 3> data;
 
-    Mat3();
-    Mat3(
+    constexpr Mat3() = default;
+    constexpr Mat3(
         const float x1, const float y1, const float z1,
         const float x2, const float y2, const float z2,
         const float x3, const float y3, const float z3);
 
-    explicit Mat3(const float value);
-    Mat3(const Quat& quat);
+    constexpr Mat3(const float value);
+    constexpr Mat3(const Quat& quat);
 
     Vec3& operator[](const size_t index);
     const Vec3& operator[](const size_t index) const;
 };
 
-inline Mat3 operator*(const Mat3& lhs, const Mat3& rhs);
-inline Mat3 translate(const Mat3& matrix, Vec2 translation);
+inline constexpr Mat3 operator*(const Mat3& lhs, const Mat3& rhs);
+inline constexpr Mat3 transpose(const Mat3& mat);
+inline constexpr Mat3 translate(const Mat3& matrix, Vec2 translation);
 inline Mat3 inverse(const Mat3& mat);
 inline std::string to_string(const Mat3& mat);
 
 struct Mat4
 {
-    std::array<Vec4, 4> data{};
+    std::array<Vec4, 4> data;
 
-    Mat4();
-    Mat4(
+    constexpr Mat4() = default;
+    constexpr Mat4(
         const float x1, const float y1, const float z1, const float w1,
         const float x2, const float y2, const float z2, const float w2,
         const float x3, const float y3, const float z3, const float w3,
         const float x4, const float y4, const float z4, const float w4);
 
-    Mat4(const Quat& quat);
-    explicit Mat4(const float v);
+    constexpr Mat4(const float v);
+    constexpr Mat4(const Quat& quat);
 
     Vec4& operator[](const size_t index);
     const Vec4& operator[](const size_t index) const;
 };
 
-inline Mat4 operator*(const Mat4& lhs, const Mat4& rhs);
-inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec);
-inline Mat4 translate(const Mat4& matrix, const Vec3& translation);
+inline constexpr Mat4 operator*(const Mat4& lhs, const Mat4& rhs);
+inline constexpr Mat4 transpose(const Mat4& mat);
+inline constexpr Mat4 translate(const Mat4& matrix, const Vec3& translation);
+inline constexpr Mat4 scale(const Mat4& matrix, const Vec3& scaleVec);
 inline std::string to_string(const Mat4 mat);
 
 struct Quat
 {
-    float w{}, x{}, y{}, z{};
+    float w, x, y, z;
 };
+
+inline constexpr Vec2::Vec2(const float v) : x{v}, y{v} {}
+inline constexpr Vec2::Vec2(const Vec3& vec3) : x{vec3.x}, y{vec3.y} {}
+inline constexpr Vec2::Vec2(const Vec4& vec4) : x{vec4.x}, y{vec4.y} {}
+inline constexpr Vec2::Vec2(const float x_, const float y_) : x{x_}, y{y_} {}
 
 template<typename T>
 inline auto radians(T degrees)
@@ -179,7 +189,7 @@ inline Mat4 inverse(const Mat4& mat)
 
     if (det == 0)
     {
-        throw std::runtime_error{"Singular matrix, can't find its inverse"};
+        throw Exception{"Singular matrix, can't find its inversion."};
     }
 
     return
@@ -191,43 +201,11 @@ inline Mat4 inverse(const Mat4& mat)
     };
 }
 
-inline constexpr Vec2::Vec2(const float v) : x{v}, y{v}
-{}
-
-inline constexpr Vec2::Vec2(const Vec3& vec3) : x{vec3.x}, y{vec3.y}
-{}
-
-inline constexpr Vec2::Vec2(const Vec4& vec4) : x{vec4.x}, y{vec4.y}
-{}
-
-inline constexpr Vec2::Vec2(const float x_, const float y_) : x{x_}, y{y_}
-{}
-
-inline constexpr Vec2 Vec2::operator*(const float scalar) const
-{
-    return {x * scalar, y * scalar};
-}
-
-inline constexpr Vec2 Vec2::operator+(const Vec2& rhs) const
-{
-    return {x + rhs.x, y * rhs.y};
-}
-
 inline constexpr Vec2& Vec2::operator+=(const Vec2& rhs)
 {
     x += rhs.x;
     y += rhs.y;
     return *this;
-}
-
-inline bool Vec2::isNan() const
-{
-    return std::isnan(x) && std::isnan(y);
-}
-
-inline bool Vec2::isInf() const
-{
-    return std::isinf(x) && std::isinf(y);
 }
 
 inline Vec2 normalize(const Vec2 vec)
@@ -236,24 +214,9 @@ inline Vec2 normalize(const Vec2 vec)
     return {vec.x / mag, vec.y / mag};
 }
 
-inline constexpr Vec3::Vec3(const float v) : x{v}, y{v}, z{v}
-{}
-
-inline constexpr Vec3::Vec3(const Vec4& vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z }
-{}
-
-inline constexpr Vec3::Vec3(const float x_, const float y_, const float z_) : x{ x_ }, y{ y_ }, z{ z_ }
-{}
-
-inline constexpr Vec3 Vec3::operator*(const float scalar) const
-{
-    return {x * scalar, y * scalar, z * scalar};
-}
-
-inline constexpr Vec3 Vec3::operator+(const Vec3& rhs) const
-{
-    return { x + rhs.x, y * rhs.y, z + rhs.z };
-}
+inline constexpr Vec3::Vec3(const float v) : x{ v }, y{ v }, z{ v } {}
+inline constexpr Vec3::Vec3(const Vec4& vec4) : x{ vec4.x }, y{ vec4.y }, z{ vec4.z } {}
+inline constexpr Vec3::Vec3(const float x_, const float y_, const float z_) : x{ x_ }, y{ y_ }, z{ z_ } {}
 
 inline constexpr Vec3& Vec3::operator+=(const Vec3& rhs)
 {
@@ -263,37 +226,10 @@ inline constexpr Vec3& Vec3::operator+=(const Vec3& rhs)
     return *this;
 }
 
-inline bool Vec3::isNan() const
-{
-    return std::isnan(x) && std::isnan(y) && std::isnan(z);
-}
-
-inline bool Vec3::isInf() const
-{
-    return std::isinf(x) && std::isinf(y) && std::isinf(z);
-}
-
 inline Vec3 normalize(const Vec3& vec)
 {
     const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
     return {vec.x / mag, vec.y / mag, vec.z / mag};
-}
-
-inline constexpr Vec4::Vec4(const float v) : x{v}, y{v}, z{v}, w{v}
-{}
-
-inline constexpr Vec4::Vec4(const float x_, const float y_, const float z_, const float w_) :
-    x{x_}, y{y_}, z{z_}, w{w_}
-{}
-
-inline constexpr Vec4 Vec4::operator*(const float scalar) const
-{
-    return {x * scalar, y * scalar, z * scalar, w * scalar};
-}
-
-inline constexpr Vec4 Vec4::operator+(const Vec4& rhs) const
-{
-    return {x + rhs.x, y * rhs.y, z + rhs.z, w + rhs.w};
 }
 
 inline constexpr Vec4& Vec4::operator+=(const Vec4& rhs)
@@ -305,26 +241,13 @@ inline constexpr Vec4& Vec4::operator+=(const Vec4& rhs)
     return *this;
 }
 
-inline bool Vec4::isNan() const
-{
-    return std::isnan(x) or std::isnan(y) or std::isnan(z) or std::isnan(w);
-}
-
-inline bool Vec4::isInf() const
-{
-    return std::isinf(x) or std::isinf(y) or std::isinf(z) or std::isinf(w);
-}
-
 inline Vec4 normalize(const Vec4& vec)
 {
     const auto mag = std::sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w);
     return {vec.x / mag, vec.y / mag, vec.z / mag, vec.w / mag};
 }
 
-inline Mat2::Mat2()
-{}
-
-inline Mat2::Mat2(
+inline constexpr Mat2::Mat2(
     const float x1, const float y1,
     const float x2, const float y2)
     :
@@ -335,7 +258,7 @@ inline Mat2::Mat2(
     }}
 {}
 
-inline Mat2::Mat2(const float value) :
+inline constexpr Mat2::Mat2(const float value) :
     data
 {{
     {value,   0.f},
@@ -345,9 +268,9 @@ inline Mat2::Mat2(const float value) :
 
 inline Vec2& Mat2::operator[](const size_t index)
 {
-    if ((index < 0) || (index > 2))
+    if (index > 2)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
@@ -355,15 +278,15 @@ inline Vec2& Mat2::operator[](const size_t index)
 
 inline const Vec2& Mat2::operator[](const size_t index) const
 {
-    if ((index < 0) || (index > 2))
+    if (index > 2)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
 }
 
-inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs)
+inline constexpr Mat2 operator*(const Mat2& lhs, const Mat2& rhs)
 {
     return
     {
@@ -375,14 +298,24 @@ inline Mat2 operator*(const Mat2& lhs, const Mat2& rhs)
     };
 }
 
+inline constexpr Mat2 transpose(const Mat2& mat)
+{
+    return
+    {
+        mat.data[0].x, mat.data[1].x,
+        mat.data[0].y, mat.data[1].y,
+    };
+}
+
 inline Mat2 inverse(const Mat2& mat)
 {
     const auto det = mat[0].x * mat[1].y - mat[0].y * mat[1].x;
 
     if (det == 0)
     {
-        throw std::runtime_error{ "singular matrix, can't find its inverse" };
+        throw Exception{"singular matrix, can't find its inverse"};
     }
+
     return
     {
        (+mat[1].y) / det, (-mat[0].y) / det,
@@ -399,10 +332,7 @@ inline std::string to_string(const Mat2& mat)
         mat[1].x, mat[1].y);
 }
 
-inline Mat3::Mat3()
-{}
-
-inline Mat3::Mat3(
+inline constexpr Mat3::Mat3(
     const float x1, const float y1, const float z1,
     const float x2, const float y2, const float z2,
     const float x3, const float y3, const float z3)
@@ -415,16 +345,16 @@ inline Mat3::Mat3(
     }}
 {}
 
-inline Mat3::Mat3(const Quat& quat) :
+inline constexpr Mat3::Mat3(const Quat& quat) :
     data
 {{
-    {1 - 2 * (quat.y * quat.y + quat.z * quat.z),     2 * (quat.x * quat.y + quat.z * quat.w),     2 * (quat.x * quat.z - quat.y * quat.w)},
-    {    2 * (quat.x * quat.y - quat.z * quat.w), 1 - 2 * (quat.x * quat.x + quat.z * quat.z),     2 * (quat.y * quat.z + quat.x * quat.w)},
-    {    2 * (quat.x * quat.z + quat.y * quat.w),     2 * (quat.y * quat.z - quat.x * quat.w), 1 - 2 * (quat.x * quat.x + quat.y * quat.y)},
+    {1 - 2 * (quat.y * quat.y + quat.z * quat.z), 2 * (quat.x * quat.y + quat.z * quat.w)    , 2 * (quat.x * quat.z - quat.y * quat.w)    },
+    {2 * (quat.x * quat.y - quat.z * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.z * quat.z), 2 * (quat.y * quat.z + quat.x * quat.w)    },
+    {2 * (quat.x * quat.z + quat.y * quat.w)    , 2 * (quat.y * quat.z - quat.x * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.y * quat.y)},
 }}
 {}
 
-inline Mat3::Mat3(const float value) :
+inline constexpr Mat3::Mat3(const float value) :
     data
 {{
     {value,   0.f,   0.f},
@@ -435,9 +365,9 @@ inline Mat3::Mat3(const float value) :
 
 inline Vec3& Mat3::operator[](const size_t index)
 {
-    if ((index < 0) || (index > 3))
+    if (index > 3)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
@@ -445,15 +375,15 @@ inline Vec3& Mat3::operator[](const size_t index)
 
 inline const Vec3& Mat3::operator[](const size_t index) const
 {
-    if ((index < 0) || (index > 3))
+    if (index > 3)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
 }
 
-inline Mat3 operator*(const Mat3& lhs, const Mat3& rhs)
+inline constexpr Mat3 operator*(const Mat3& lhs, const Mat3& rhs)
 {
     return
     {
@@ -471,7 +401,17 @@ inline Mat3 operator*(const Mat3& lhs, const Mat3& rhs)
     };
 }
 
-inline Mat3 translate(const Mat3& matrix, Vec2 translation)
+inline constexpr Mat3 transpose(const Mat3& mat)
+{
+    return
+    {
+        mat.data[0].x, mat.data[1].x, mat.data[2].x,
+        mat.data[0].y, mat.data[1].y, mat.data[2].y,
+        mat.data[0].z, mat.data[1].z, mat.data[2].z,
+    };
+}
+
+inline constexpr Mat3 translate(const Mat3& matrix, Vec2 translation)
 {
     return
     {
@@ -490,7 +430,7 @@ inline Mat3 inverse(const Mat3& mat)
 
     if (det == 0)
     {
-        throw std::runtime_error{"singular matrix, can't find its inverse"};
+        throw Exception{"singular matrix, can't find its inverse"};
     }
     return
     {
@@ -544,49 +484,49 @@ inline std::string to_string(const Mat3& mat)
         mat[2].x, mat[2].y, mat[2].z);
 }
 
-inline Mat4::Mat4()
-{}
-
-inline Mat4::Mat4(
+inline constexpr Mat4::Mat4(
     const float x1, const float y1, const float z1, const float w1,
     const float x2, const float y2, const float z2, const float w2,
     const float x3, const float y3, const float z3, const float w3,
     const float x4, const float y4, const float z4, const float w4)
     :
     data
-    { {
+    {{
         {x1, y1, z1, w1},
         {x2, y2, z2, w2},
         {x3, y3, z3, w3},
-        {x4, y4, z4, w4}
-    } }
+        {x4, y4, z4, w4},
+    }}
 {}
 
-inline Mat4::Mat4(const Quat& quat) :
+inline constexpr Mat4::Mat4(const Quat& quat) :
     data
 {{
-    {1 - 2 * (quat.y * quat.y + quat.z * quat.z),     2 * (quat.x * quat.y + quat.z * quat.w),     2 * (quat.x * quat.z - quat.y * quat.w), 0},
-    {    2 * (quat.x * quat.y - quat.z * quat.w), 1 - 2 * (quat.x * quat.x + quat.z * quat.z),     2 * (quat.y * quat.z + quat.x * quat.w), 0},
-    {    2 * (quat.x * quat.z + quat.y * quat.w),     2 * (quat.y * quat.z - quat.x * quat.w), 1 - 2 * (quat.x * quat.x + quat.y * quat.y), 0},
-    {                                          0,                                           0,                                           0, 1},
+    {1 - 2 * (quat.y * quat.y + quat.z * quat.z), 2 * (quat.x * quat.y + quat.z * quat.w)    , 2 * (quat.x * quat.z - quat.y * quat.w)    , 0},
+    {2 * (quat.x * quat.y - quat.z * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.z * quat.z), 2 * (quat.y * quat.z + quat.x * quat.w)    , 0},
+    {2 * (quat.x * quat.z + quat.y * quat.w)    , 2 * (quat.y * quat.z - quat.x * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.y * quat.y), 0},
+    {0                                          , 0                                          , 0                                          , 1},
 }}
 {}
 
-inline Mat4::Mat4(const float v) :
+inline constexpr Mat4::Mat4(const float v) :
     data
-{ {
-    {  v, 0.f, 0.f, 0.f},
-    {0.f,   v, 0.f, 0.f},
-    {0.f, 0.f,   v, 0.f},
-    {0.f, 0.f, 0.f,   v}
-} }
+{{
+    {v  , 0.f, 0.f, 0.f},
+    {0.f, v  , 0.f, 0.f},
+    {0.f, 0.f, v  , 0.f},
+    {0.f, 0.f, 0.f, v  }
+}}
 {}
+
+inline constexpr Vec4::Vec4(const float v) : x{v}, y{v}, z{v}, w{v} {}
+inline constexpr Vec4::Vec4(const float x_, const float y_, const float z_, const float w_) : x{x_}, y{y_}, z{z_}, w{w_} {}
 
 inline Vec4& Mat4::operator[](const size_t index)
 {
-    if ((index < 0) || (index > 4))
+    if (index > 4)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
@@ -594,15 +534,15 @@ inline Vec4& Mat4::operator[](const size_t index)
 
 inline const Vec4& Mat4::operator[](const size_t index) const
 {
-    if ((index < 0) || (index > 4))
+    if (index > 4)
     {
-        throw std::runtime_error("invalid index specified");
+        throw Exception{"invalid index specified"};
     }
 
     return data[index];
 }
 
-inline Mat4 operator*(const Mat4& lhs, const Mat4& rhs)
+inline constexpr Mat4 operator*(const Mat4& lhs, const Mat4& rhs)
 {
     return
     {
@@ -628,26 +568,24 @@ inline Mat4 operator*(const Mat4& lhs, const Mat4& rhs)
     };
 }
 
-inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
-{
-    const Mat4 scaleMatrix
-    {
-        scaleVec.x, 0         , 0         , 0  ,
-        0         , scaleVec.y, 0         , 0  ,
-        0         , 0         , scaleVec.z, 0  ,
-        0         , 0         , 0         , 1.f
-    };
-
-    return matrix * scaleMatrix;
-}
-
-inline Mat4 translate(const Mat4& matrix, const Vec3& translation)
+inline constexpr Mat4 transpose(const Mat4& mat)
 {
     return
     {
-                        matrix[0].x,                 matrix[0].y,                 matrix[0].z, matrix[0].w,
-                        matrix[1].x,                 matrix[1].y,                 matrix[1].z, matrix[1].w,
-                        matrix[2].x,                 matrix[2].y,                 matrix[2].z, matrix[2].w,
+        mat.data[0].x, mat.data[1].x, mat.data[2].x, mat.data[3].x,
+        mat.data[0].y, mat.data[1].y, mat.data[2].y, mat.data[3].y,
+        mat.data[0].z, mat.data[1].z, mat.data[2].z, mat.data[3].z,
+        mat.data[0].w, mat.data[1].w, mat.data[2].w, mat.data[3].w,
+    };
+}
+
+inline constexpr Mat4 translate(const Mat4& matrix, const Vec3& translation)
+{
+    return
+    {
+        matrix[0].x                , matrix[0].y                , matrix[0].z                , matrix[0].w,
+        matrix[1].x                , matrix[1].y                , matrix[1].z                , matrix[1].w,
+        matrix[2].x                , matrix[2].y                , matrix[2].z                , matrix[2].w,
         matrix[3].x + translation.x, matrix[3].y + translation.y, matrix[3].z + translation.z, matrix[3].w,
     };
 }
@@ -665,15 +603,15 @@ inline Mat4 rotate(const Mat4& matrix, const Vec3& axis, T angle)
     const T y = normalizedAxis.y;
     const T z = normalizedAxis.z;
 
-    const T tx  = t * x ;
-    const T ty  = t * y ;
-    const T tz  = t * z ;
+    const T tx = t * x;
+    const T ty = t * y;
+    const T tz = t * z;
     const T txy = tx * y;
     const T txz = tx * z;
     const T tyz = ty * z;
-    const T sx  = s * x ;
-    const T sy  = s * y ;
-    const T sz  = s * z ;
+    const T sx = s * x;
+    const T sy = s * y;
+    const T sz = s * z;
 
     const Mat4 rotationMatrix
     {
@@ -684,6 +622,19 @@ inline Mat4 rotate(const Mat4& matrix, const Vec3& axis, T angle)
     };
 
     return matrix * rotationMatrix;
+}
+
+inline constexpr Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
+{
+    const Mat4 scaleMatrix
+    {
+        scaleVec.x, 0         , 0         , 0,
+        0         , scaleVec.y, 0         , 0,
+        0         , 0         , scaleVec.z, 0,
+        0         , 0         , 0         , 1,
+    };
+
+    return matrix * scaleMatrix;
 }
 
 inline std::string to_string(const Mat4 mat)

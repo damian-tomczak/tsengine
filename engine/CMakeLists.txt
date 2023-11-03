@@ -105,7 +105,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
     ENGINE_NAME="${PROJECT_NAME}"
-    GAME_NAME="${GAME_NAME}"
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
@@ -114,6 +113,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     XR_USE_GRAPHICS_API_VULKAN
     $<$<BOOL:${CYBSDK_LIB}>:CYBSDK_FOUND>
     $<$<BOOL:${ENABLE_TESTS}>:TESTER_ADAPTER>
+    $<$<PLATFORM_ID:Windows>:NOMINMAX>
 )
 
 source_group(TREE ${CMAKE_SOURCE_DIR}/engine FILES

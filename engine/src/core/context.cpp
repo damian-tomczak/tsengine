@@ -30,11 +30,15 @@ Context& Context::createOpenXrContext()
     initXrSystemInfo();
     isXrBlendModeAvailable();
 
+    mIsXrContextCreated = true;
+
     return *this;
 }
 
 void Context::createVulkanContext()
 {
+    TS_ASSERT(mIsXrContextCreated, "XrContext should be firstly created");
+
     vulkanloader::connectWithLoader();
     vulkanloader::loadExportFunction();
     vulkanloader::loadGlobalLevelFunctions();
@@ -163,7 +167,7 @@ uint32_t Context::getVkGraphicsQueueFamilyIndex() const
 {
     if (mVkGraphicsQueueFamilyIndex == std::nullopt)
     {
-        LOGGER_ERR("graphics queue index isn't selected yet");
+        TS_ERR("graphics queue index isn't selected yet");
     }
 
     return *mVkGraphicsQueueFamilyIndex;
@@ -172,7 +176,7 @@ uint32_t Context::getVkPresentQueueFamilyIndex() const
 {
     if (mVkPresentQueueFamilyIndex == std::nullopt)
     {
-        LOGGER_ERR("present queue index isn't selected yet");
+        TS_ERR("present queue index isn't selected yet");
     }
 
     return *mVkPresentQueueFamilyIndex;
@@ -189,7 +193,7 @@ void Context::initXrSystemId()
 
     if (XR_FAILED(result))
     {
-        LOGGER_ERR("No headset detected");
+        TS_ERR("No headset detected");
     }
 }
 
@@ -198,31 +202,9 @@ void Context::initXrSystemInfo()
     XrSystemProperties xrSystemProperties{XR_TYPE_SYSTEM_PROPERTIES};
 
     LOGGER_XR(xrGetSystemProperties, mXrInstance, mXrSystemId, &xrSystemProperties);
-
-    auto knownDeviceIt = std::ranges::find_if(khronos_utils::knownXrDevices, [xrSystemProperties](const auto& systemId) -> bool {
-        return systemId == xrSystemProperties.systemId;
-    });
-
-    if (knownDeviceIt == khronos_utils::knownXrDevices.end())
-    {
-        LOGGER_WARN("Engine doesn't recognize headset in use");
-        return;
-    }
-
-    auto knownUnstableDeviceIt = std::ranges::find_if(khronos_utils::knownUnstableXrDevices, [xrSystemProperties](const auto& systemId) -> bool {
-        return systemId == xrSystemProperties.systemId;
-    });
-
-    if (knownUnstableDeviceIt != khronos_utils::knownUnstableXrDevices.end())
-    {
-        khronos_utils::gThrowExceptions = false;
-        LOGGER_WARN(std::format(
-            "Unstable OpenXr device in use."
-            "\nSystemId: {} ({})\n"
-            "Vulkan validation layers' errors won't stop the program.",
-            xrSystemProperties.systemId, xrSystemProperties.systemName).c_str());
-        return;
-    }
+    
+    // TODO: print xr device info
+    // TODO: costum xr loader
 }
 
 void Context::isXrBlendModeAvailable()
@@ -256,7 +238,7 @@ void Context::isXrBlendModeAvailable()
 
     if (!isModeFound)
     {
-        LOGGER_ERR("selected XrEnvironmentBlendMode isn't supported");
+        TS_ERR("selected XrEnvironmentBlendMode isn't supported");
     }
 }
 
@@ -307,11 +289,11 @@ void Context::isVulkanInstanceExtensionsAvailable(const std::vector<std::string>
 
         if ((!isExtensionSupported) && (requiredExtension != VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
         {
-            LOGGER_ERR((requiredExtension + " extension isn't supported").c_str());
+            TS_ERR((requiredExtension + " extension isn't supported").c_str());
         }
         else if ((!isExtensionSupported) && requiredExtension == VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
         {
-            LOGGER_WARN(VK_EXT_DEBUG_UTILS_EXTENSION_NAME " extension isn't supported");
+            TS_WARN(VK_EXT_DEBUG_UTILS_EXTENSION_NAME " extension isn't supported");
         }
     }
 }
@@ -335,7 +317,7 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
 {
     const VkApplicationInfo applicationInfo{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-        .pApplicationName = GAME_NAME,
+        .pApplicationName = mGameName.data(),
         .applicationVersion = VK_MAKE_API_VERSION(0, 0, 1, 0),
         .pEngineName = ENGINE_NAME,
         .engineVersion = VK_MAKE_API_VERSION(0, 0, 1, 0),
@@ -377,7 +359,7 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
 
         if (!isLayerSupported)
         {
-            LOGGER_WARN(("Vulkan validation layer isn't supported: "s + layer).c_str());
+            TS_WARN(("Vulkan validation layer isn't supported: "s + layer).c_str());
         }
     }
 
@@ -424,7 +406,7 @@ void Context::getGraphicsQueue()
 
     if (mVkGraphicsQueueFamilyIndex == std::nullopt)
     {
-        LOGGER_ERR("Graphics queue couldn't be found");
+        TS_ERR("Graphics queue couldn't be found");
     }
 }
 
@@ -463,7 +445,7 @@ void Context::getPresentQueue(const VkSurfaceKHR mirrorSurface)
 
     if (mVkPresentQueueFamilyIndex == std::nullopt)
     {
-        LOGGER_ERR("presentation queue couldn't be found");
+        TS_ERR("presentation queue couldn't be found");
     }
 }
 
@@ -490,7 +472,7 @@ void Context::isVulkanDeviceExtensionsAvailable(
 
         if (!isExtensionSupported)
         {
-            LOGGER_ERR(("Vulkan extension isn't supported: " + requiredExtension).c_str());
+            TS_ERR(("Vulkan extension isn't supported: " + requiredExtension).c_str());
         }
     }
 
@@ -512,7 +494,7 @@ void Context::isVulkanDeviceExtensionsAvailable(
     vkGetPhysicalDeviceFeatures(mPhysicalDevice, &physicalDeviceFeatures);
     if (!physicalDeviceFeatures.shaderStorageImageMultisample)
     {
-        LOGGER_ERR("Multisampling feature isn't available");
+        TS_ERR("Multisampling feature isn't available");
     }
 
     vkGetPhysicalDeviceFeatures(mPhysicalDevice, &physicalDeviceFeatures);
@@ -520,7 +502,7 @@ void Context::isVulkanDeviceExtensionsAvailable(
     vkGetPhysicalDeviceFeatures2(mPhysicalDevice, &physicalDeviceFeatures2);
     if (!physicalDeviceMultiviewFeatures.multiview)
     {
-        LOGGER_ERR("Multview feature isn't available");
+        TS_ERR("Multview feature isn't available");
     }
 }
 
@@ -638,13 +620,18 @@ Context::~Context()
 
 void Context::createXrInstance()
 {
-    const XrApplicationInfo appInfo{
-        .applicationName = GAME_NAME,
+    TS_ASSERT(mGameName.size() > 0, "setGameName() should be firstly called");
+    TS_ASSERT(mGameName.size() > 0, "setGameName() should be firstly called");
+
+    XrApplicationInfo appInfo{
         .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
         .engineName = ENGINE_NAME,
         .engineVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
         .apiVersion = XR_CURRENT_API_VERSION,
     };
+
+    const auto copySize = std::min(mGameName.size(), static_cast<size_t>(XR_MAX_APPLICATION_NAME_SIZE - 1));
+    strncpy(appInfo.applicationName, mGameName.data(), copySize);
 
     std::vector<const char*> extensions{XR_KHR_VULKAN_ENABLE_EXTENSION_NAME};
 
@@ -683,11 +670,11 @@ void Context::createXrInstance()
 
         if ((!isExtensionSupported) && (extension != XR_EXT_DEBUG_UTILS_EXTENSION_NAME))
         {
-            LOGGER_ERR(("OpenXr extension isn't supported: "s + extension).c_str());
+            TS_ERR(("OpenXr extension isn't supported: "s + extension).c_str());
         }
         else if (!isExtensionSupported)
         {
-            LOGGER_WARN(("OpenXr debug extension isn't supported: "s + extension).c_str());
+            TS_WARN(("OpenXr debug extension isn't supported: "s + extension).c_str());
         }
     }
 

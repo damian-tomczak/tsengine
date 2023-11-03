@@ -11,7 +11,7 @@ void loadShaderFromFile(const VkDevice device, const std::string& fileName, VkSh
     std::ifstream file(fileName, std::ios::ate | std::ios::binary);
     if (!file.is_open())
     {
-        LOGGER_ERR(("Can not open shader file: " + fileName).c_str());
+        TS_ERR(("Can not open shader file: " + fileName).c_str());
     }
 
     const auto fileSize = static_cast<size_t>(file.tellg());

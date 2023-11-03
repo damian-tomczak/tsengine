@@ -66,7 +66,7 @@ void ImageBuffer::createImage(
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         suitableMemoryTypeIndex))
     {
-        LOGGER_ERR("Suitable memory type can not be found");
+        TS_ERR("Suitable memory type can not be found");
     }
 
     const VkMemoryAllocateInfo memoryAllocateInfo{

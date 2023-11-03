@@ -26,6 +26,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     tsengine::tsengine
 )
 
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+    GAME_NAME="${GAME_NAME}"
+)
+
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES
     ${SRC_FILES}
     ${H_FILES}

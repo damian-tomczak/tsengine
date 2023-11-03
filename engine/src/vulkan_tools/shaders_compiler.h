@@ -2,5 +2,5 @@
 
 namespace ts
 {
-void compileShaders(const std::string& shadersPath);
+void compileShaders(const std::filesystem::path shadersPath);
 };

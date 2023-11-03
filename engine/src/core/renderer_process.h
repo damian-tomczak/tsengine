@@ -36,7 +36,7 @@ public:
         math::Vec3 cameraPosition;
         std::array<math::Mat4, 2> viewMats;
         std::array<math::Mat4, 2> projMats;
-    } mCommonUniformData;
+    } mCommonUniformData{};
 
     void updateUniformBufferData();
 
@@ -52,7 +52,7 @@ private:
     VkSemaphore mDrawableSemaphore{}, mPresentableSemaphore{};
     VkFence mFence{};
     std::unique_ptr<DataBuffer> mUniformBuffer;
-    void* mUniformBufferMemory;
+    void* mUniformBufferMemory{};
     VkDescriptorSet mDescriptorSet{};
     const Headset& mHeadset;
 };

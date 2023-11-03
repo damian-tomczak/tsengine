@@ -14,7 +14,7 @@ class Context final
     static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
 
 public:
-    Context() = default;
+    Context(const std::string& gameName) : mGameName{gameName} {}
     ~Context();
 
     static constexpr XrViewConfigurationType xrViewType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
@@ -37,15 +37,6 @@ public:
     [[nodiscard]] VkDeviceSize getUniformBufferOffsetAlignment() const { return mVkUniformBufferOffsetAlignment; }
 
 private:
-#ifndef NDEBUG
-    void createXrDebugMessenger();
-    void createVkDebugMessenger();
-
-    XrDebugUtilsMessengerEXT mXrDebugMessenger{};
-    VkDebugUtilsMessengerEXT mVkDebugMessenger{};
-    static constexpr std::array vkLayers{"VK_LAYER_KHRONOS_validation"};
-#endif // DEBUG
-
     void createXrInstance();
     void loadXrExtensions();
     void initXrSystemId();
@@ -73,6 +64,17 @@ private:
         std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
     void createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis);
 
+    const std::string mGameName;
+
+#ifndef NDEBUG
+    void createXrDebugMessenger();
+    void createVkDebugMessenger();
+
+    XrDebugUtilsMessengerEXT mXrDebugMessenger{};
+    VkDebugUtilsMessengerEXT mVkDebugMessenger{};
+    static constexpr std::array vkLayers{ "VK_LAYER_KHRONOS_validation" };
+#endif // DEBUG
+
     XrInstance mXrInstance{};
     XrSystemId mXrSystemId{};
 
@@ -83,6 +85,6 @@ private:
     VkQueue mVkGraphicsQueue{}, mVkPresentQueue{};
     VkSampleCountFlagBits mVkMultisampleCount{};
     VkDeviceSize mVkUniformBufferOffsetAlignment{};
-    std::string mXrDeviceName;
+    bool mIsXrContextCreated{};
 };
 } // namespace ts

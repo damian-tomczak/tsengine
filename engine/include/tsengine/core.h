@@ -2,23 +2,6 @@
 
 namespace ts
 {
-unsigned getTickCount();
-
-enum class Key
-{
-    RIGHT,
-    LEFT,
-    DOWN,
-    UP
-};
-
-enum class MouseButton
-{
-    LEFT,
-    MIDDLE,
-    RIGHT
-};
-
 class Engine
 {
 public:
@@ -29,17 +12,13 @@ public:
     Engine(const Engine&&) = delete;
     Engine& operator=(Engine&&) = delete;
 
-    virtual bool init(unsigned& width, unsigned& height) = 0;
-    virtual void close() = 0;
+    virtual bool init(const char*& gameName, unsigned& width, unsigned& height) = 0;
+    virtual void loadLvL() {};
     virtual bool tick() = 0;
-
-    virtual void onMouseMove(int x, int y, int xrelative, int yrelative) = 0;
-    virtual void onMouseButtonClick(MouseButton button, bool isReleased) = 0;
-    virtual void onKeyPressed(Key k) = 0;
-    virtual void onKeyReleased(Key k) = 0;
+    virtual void close() = 0;
 };
 
-int run(Engine* engine);
+int run(Engine* const engine);
 } // namespace ts
 
 #define TS_MAIN()                            \
@@ -48,7 +27,7 @@ int run(Engine* engine);
         try                                  \
         {                                    \
             auto result = ts::run(new Game); \
-            if (result != ts::SUCCESS)       \
+            if (result != ts::TS_SUCCESS)    \
             {                                \
                 return result;               \
             }                                \

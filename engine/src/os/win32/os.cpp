@@ -17,12 +17,12 @@ void Win32Window::createWindow()
 
     if (!RegisterClassEx(&wc))
     {
-        LOGGER_ERR("WNDCLASSEX registration failure");
+        TS_ERR("WNDCLASSEX registration failure");
     }
 
     mHwnd = CreateWindow(
         ENGINE_NAME,
-        GAME_NAME,
+        mWindowName.data(),
         WS_OVERLAPPEDWINDOW,
         static_cast<int>((GetSystemMetrics(SM_CXSCREEN) - mWidth) / 2),
         static_cast<int>((GetSystemMetrics(SM_CYSCREEN) - mHeight) / 2),
@@ -35,7 +35,7 @@ void Win32Window::createWindow()
 
     if (mHwnd == nullptr)
     {
-        LOGGER_ERR("Window creation failure");
+        TS_ERR("Window creation failure");
     }
 }
 

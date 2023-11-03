@@ -35,8 +35,8 @@ private:
     XrActionSet mActionSet{};
     XrAction mPoseAction{}, mFlyAction{}, mTriggerAction{};
     std::array<XrPath, controllerCount> mPaths;
-    std::array<math::Mat4, controllerCount> mPoses;
-    std::array<float, controllerCount> mFlyStates;
+    std::array<math::Mat4, controllerCount> mPoses{};
+    std::array<float, controllerCount> mFlyStates{};
 
     void createAction(
         const std::string& actionName,

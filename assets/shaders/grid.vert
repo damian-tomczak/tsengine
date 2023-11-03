@@ -25,7 +25,7 @@ void main()
     int idx = indices[gl_VertexIndex];
     vec3 position = pos[idx] * gridSize;
 
-    mat4 iViewMat = inverse(ubo.viewMat[gl_ViewIndex] * cameraMat);
+    mat4 iViewMat = inverse(ubo.viewMat[gl_ViewIndex]) * cameraMat;
     camPos = vec2(iViewMat[3][0], iViewMat[3][2]);
 
     position.x += camPos.x;

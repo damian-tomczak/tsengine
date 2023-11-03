@@ -14,11 +14,11 @@ Window::~Window()
     isWindowAlreadyCreated = false;
 }
 
-std::shared_ptr<Window> Window::createWindowInstance(const std::string& windowName, const size_t width, const size_t height)
+std::shared_ptr<Window> Window::createWindowInstance(const std::string_view windowName, const size_t width, const size_t height)
 {
     if (isWindowAlreadyCreated)
     {
-        LOGGER_ERR("Window is already created");
+        TS_ERR("Window is already created");
     }
 
     std::shared_ptr<Window> window;

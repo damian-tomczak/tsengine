@@ -1,4 +1,6 @@
 #include "tsengine/core.h"
+
+#include "tsengine/asset_store.h" 
 #include "context.h"
 #include "window.h"
 #include "tsengine/logger.h"
@@ -6,73 +8,96 @@
 #include "headset.h"
 #include "controllers.h"
 #include "vulkan_tools/shaders_compiler.h"
-#include "game_object.hpp"
 #include "renderer.h"
 #include "tests_core_adapter.h"
+
+#include "tsengine/ecs/ecs.hpp" 
+#include "ecs/movement_system.hpp" 
+#include "ecs/render_system.hpp" 
 
 #ifdef CYBSDK_FOUND
     #include "CVirt.h"
 #endif
 
-std::mutex engineInit;
-
-namespace
-{
-constexpr float flySpeedMultiplier{15.f};
-
-unsigned tickCount{};
-bool isAlreadyInitiated{};
-
-__forceinline void runCleaner()
-{
-    isAlreadyInitiated = false;
-}
-} // namespace
-
-
-// TODO: maybe would be possible to fancy break down run function?
 namespace ts
 {
-[[deprecated("not implemented yet")]]
-unsigned getTickCount()
+namespace
 {
-    return tickCount;
-}
+    std::mutex engineInit;
+    const std::string_view defaultGameName{"Awesome unamed game"};
+    bool isAlreadyInitiated{};
 
-int run(Engine* const engine) try
+    __forceinline void runCleaner()
+    {
+        isAlreadyInitiated = false;
+    }
+} // namespace
+
+// TODO: maybe would be possible to fancy break down run function?
+int run(Engine* const game) try
 {
     std::lock_guard<std::mutex> _{engineInit};
 
-    if (!engine)
+    if (!game)
     {
-        LOGGER_ERR("Game pointer is invalid");
+        TS_ERR("Game pointer is invalid");
     }
 
     if (isAlreadyInitiated)
     {
-        LOGGER_ERR("Game is already initiated");
+        TS_ERR("Game is already initialized");
     }
     isAlreadyInitiated = true;
 
 #ifdef TESTER_ADAPTER
-    const auto testerAdapter = dynamic_cast<TesterEngine*>(engine);
+    const auto testerAdapter = dynamic_cast<TesterEngine*>(game);
     bool isRenderingStarted{};
 #endif
 
     unsigned width{1280}, height{720};
-    engine->init(width, height);
+    const char* gameName = nullptr;
+    if (!game->init(gameName, width, height))
+    {
+        TS_ERR("Game initialization unsuccessful");
+    }
+
+    if (gameName == nullptr)
+    {
+        gameName = defaultGameName.data();
+        TS_WARN(("Game name wasn't set! Default game name selected: "s + gameName).c_str());
+    }
 
     if (!std::filesystem::is_directory("assets"))
     {
-        LOGGER_ERR("Assets can not be found");
+        TS_ERR("Assets can not be found");
     }
 
     compileShaders("assets/shaders");
 
-    Context ctx;
+    auto player = ts::gRegistry.createEntity();
+    player.setTag("player");
+    player.addComponent<ts::TransformComponent>();
+    player.addComponent<ts::RigidBodyComponent>(2.f);
+    
+    auto grid = ts::gRegistry.createEntity();
+    grid.setTag("grid");
+    grid.addComponent<ts::RendererComponent<PipelineType::GRID>>();
+
+    // TODO: try to delay it
+    game->loadLvL();
+
+    Context ctx{gameName};
     ctx.createOpenXrContext().createVulkanContext();
 
-    auto window = Window::createWindowInstance(GAME_NAME, width, height);
+    gRegistry.addSystem<AssetStore>();
+    gRegistry.addSystem<MovementSystem>();
+    gRegistry.addSystem<RenderSystem>(ctx.getUniformBufferOffsetAlignment());
+
+    gRegistry.update();
+
+    AssetStore::Models::load();
+
+    auto window = Window::createWindowInstance(gameName, width, height);
     MirrorView mirrorView{ctx, window};
     mirrorView.createSurface();
     ctx.createVkDevice(mirrorView.getSurface());
@@ -81,65 +106,18 @@ int run(Engine* const engine) try
     Controllers controllers(ctx.getXrInstance(), headset.getXrSession());
     controllers.setupControllers();
 
-    std::shared_ptr<Model> ruins = std::make_shared<Model>(Model{
-        .model = math::Mat4(1.f),
-        .pipeline = PipelineType::NORMAL_LIGHTING,
-    });
-    std::shared_ptr<Model> polonez = std::make_shared<Model>(Model{
-        .pos = {0.f, 0.f, -10.f},
-        .model = math::Mat4(1.f),
-        .pipeline = PipelineType::NORMAL_LIGHTING,
-    });
-
-    std::array spheres
-    {
-        std::make_shared<Model>(Model
-        {
-            .pos = {-5.f, 2.f, -5.f},
-            .model = math::Mat4(1.f),
-            .pipeline = PipelineType::PBR,
-            .material = Materials::create(Material::Type::GOLD),
-        }),
-        std::make_shared<Model>(Model
-        {
-            .pos = {0.f, 2.f, -5.f},
-            .model = math::Mat4(1.f),
-            .pipeline = PipelineType::PBR,
-            .material = Materials::create(Material::Type::GOLD),
-        }),
-        std::make_shared<Model>(Model
-        {
-            .pos = {5.f, 2.f, -5.f},
-            .model = math::Mat4(1.f),
-            .pipeline = PipelineType::PBR,
-            .material = Materials::create(Material::Type::GOLD),
-        }),
-    };
-
-    std::vector<std::shared_ptr<Model>> models
-    {
-        ruins,
-        polonez,
-    };
-    models.insert(models.end(), spheres.begin(), spheres.end());
-
-    auto meshData = std::make_unique<MeshData>();
-    meshData->loadModel("assets/models/village.obj", models, 1);
-    meshData->loadModel("assets/models/polonez.obj", models, 1);
-    meshData->loadModel("assets/models/sphere.obj", models, spheres.size());
-
-    Renderer renderer{ctx, headset, models, std::move(meshData)};
+    Renderer renderer{ctx, headset};
     renderer.createRenderer();
     mirrorView.connect(&headset, &renderer);
 
-    LOGGER_LOG("tsengine initialization completed successfully");
+    TS_LOG("tsengine initialization completed successfully");
 
     window->show();
-    math::Vec3 cameraPosition{0, 0, 0};
+    math::Vec3 cameraPosition{1.f};
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::steady_clock::now();
-    // TODO: consider if we should provide an option to render firstly to the window then copy it to the headset
+    // TODO: firstly render to the window then copy to the headset
 
 #ifdef CYBSDK_FOUND
     const auto device = CybSDK::Virt::FindDevice();
@@ -176,7 +154,7 @@ int run(Engine* const engine) try
         }
 #endif
 
-        if (headset.isExitRequested())
+        if ((!game->tick()) || headset.isExitRequested())
         {
             loop = false;
         }
@@ -195,9 +173,13 @@ int run(Engine* const engine) try
         const auto nowTime = std::chrono::high_resolution_clock::now();
         const long long elapsedNanoseconds =
             std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - previousTime).count();
-        constexpr auto nanosecondsPerSecond = 1e9f;
+        static constexpr auto nanosecondsPerSecond = 1e9f;
         const auto deltaTime = static_cast<float>(elapsedNanoseconds) / nanosecondsPerSecond;
         previousTime = nowTime;
+
+        gRegistry.update();
+
+        gRegistry.getSystem<MovementSystem>().update(deltaTime);
 
         uint32_t swapchainImageIndex;
         const auto frameResult = headset.beginFrame(swapchainImageIndex);
@@ -240,14 +222,14 @@ int run(Engine* const engine) try
                 {
                     const auto controllerPose = controllers.getPose(controllerIndex)[2];
 
-                    if ((!controllerPose.isNan()) || (controllerPose == math::Vec3(0.f)))
+                    if ((!controllerPose.isNan()) || (controllerPose == math::Vec3{0.f}))
                     {
                         const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
-                        cameraPosition += forward * flySpeedMultiplier * deltaTime;
+                        cameraPosition += forward * player.getComponent<RigidBodyComponent>().velocity * deltaTime;
                     }
                     else
                     {
-                        LOGGER_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
+                        TS_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
                     }
                 }
             }
@@ -272,7 +254,7 @@ int run(Engine* const engine) try
         }
     }
 
-    engine->close();
+    game->close();
     ctx.sync();
     isAlreadyInitiated = false;
 

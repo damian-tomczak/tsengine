@@ -1,9 +1,9 @@
 #pragma once
 
-#include "tsengine/utils.h"
+#include "tsengine/utils.hpp"
 
 #define TS_CATCH_FALLBACK                                                           \
-    catch (const TSException&)                                                      \
+    catch (const Exception&)                                                        \
     {                                                                               \
         return TS_FAILURE;                                                          \
     }                                                                               \
@@ -19,11 +19,11 @@
     }
 
 #define TS_CATCH_FALLBACK_WITH_CLEANER(cleanerFunction)                             \
-    catch (const TSException&)                                                      \
+    catch (const Exception&)                                                        \
     {                                                                               \
         cleanerFunction();                                                          \
                                                                                     \
-    return TS_FAILURE;                                                              \
+        return TS_FAILURE;                                                          \
     }                                                                               \
     catch (const std::exception& e)                                                 \
     {                                                                               \

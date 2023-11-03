@@ -1,24 +1,27 @@
 #pragma once
 
-#include "utils.h"
+#include "utils.hpp"
+
+#include "tsengine/ecs/ecs.hpp"
+#include "tsengine/ecs/components/mesh_component.hpp"
 
 namespace ts
 {
-class AssetStore final : public Singleton<AssetStore>
+class AssetStore final : public System
 {
-    SINGLETON_BODY(AssetStore);
-    NOT_MOVEABLE(AssetStore);
-
 public:
-    //struct Model final
-    //{
-    //    size_t firstIndex;
-    //    size_t indexCount;
-    //};
+    AssetStore()
+    {
+        requireComponent<MeshComponent>();
+    }
 
-    //void loadModel();
+    struct Models
+    {
+        static void load();
+        static void writeTo(char* const destination);
 
-
-    //void reset();
+        static size_t getIndexOffset();
+        static size_t getSize();
+    };
 };
 } // namespace ts

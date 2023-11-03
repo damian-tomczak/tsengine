@@ -1,8 +1,9 @@
 #include "tsengine/logger.h"
+
 #include "internal_utils.h"
 
 #ifdef _WIN32
-#include <windows.h>
+#include <Windows.h>
 #endif
 
 namespace
@@ -93,7 +94,8 @@ void warning(
     const char* message,
     const char* fileName,
     const char* functionName,
-    int lineNumber)
+    int lineNumber,
+    bool debugBreak)
 {
     std::lock_guard<std::mutex> _{loggerMutex};
 
@@ -107,6 +109,17 @@ void warning(
         << formatingEnd
         << message
         << "\n";
+
+#ifndef NDEBUG
+    if (debugBreak)
+    {
+#ifdef _WIN32
+        DebugBreak();
+#else
+#error not implemented
+#endif // _WIN32
+    }
+#endif // !NDEBUG
 }
 
 void error(
@@ -143,7 +156,7 @@ if (debugBreak)
 
     if (throwException)
     {
-        throw TSException();
+        throw Exception{};
     }
 }
 } // namespace ts::logger

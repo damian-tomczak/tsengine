@@ -1,6 +1,8 @@
 #include "renderer.h"
+
+#include "tsengine/math.hpp"
+
 #include "context.h"
-#include "game_object.hpp"
 #include "vulkan_tools/vulkan_functions.h"
 #include "renderer_process.h"
 #include "pipeline.h"
@@ -9,17 +11,15 @@
 #include "khronos_utils.h"
 #include "headset.h"
 #include "render_target.h"
+#include "tsengine/asset_store.h"
 
-#include "shaders/light_cube.h"
-#include "shaders/grid.h"
+#include "tsengine/ecs/components/renderer_component.hpp"
+#include "tsengine/ecs/components/mesh_component.hpp"
+#include "ecs/render_system.hpp"
 
 namespace ts
 {
-Renderer::Renderer(const Context& ctx, const Headset& headset, const std::vector<std::shared_ptr<Model>>& models, std::unique_ptr<MeshData>&& meshData) :
-    mCtx{ctx},
-    mHeadset{headset},
-    mModels{models},
-    mMeshData{std::move(meshData)}
+Renderer::Renderer(const Context& ctx, const Headset& headset) : mCtx{ctx}, mHeadset{headset}
 {}
 
 Renderer::~Renderer()
@@ -119,7 +119,7 @@ void Renderer::createRenderer()
     pushConstantRanges.emplace_back<VkPushConstantRange>({
         .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
         .offset = pushConstantRanges.at(0).size,
-        .size = sizeof(Material)
+        .size = sizeof(RendererComponent<PipelineType::PBR>::Material)
     });
 
     const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
@@ -141,17 +141,17 @@ void Renderer::createRenderer()
     for (auto& renderProcess : mRenderProcesses)
     {
         renderProcess = std::make_unique<RenderProcess>(mCtx, mHeadset);
-        renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, mModels.size());
+        renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, gRegistry.getSystem<AssetStore>().getSystemEntities().size());
     }
 
-    mGridPipeline = std::make_unique<Pipeline>(mCtx);
+    mGridPipeline = std::make_shared<Pipeline>(mCtx);
     mGridPipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
         "assets/shaders/grid.vert.spirv",
         "assets/shaders/grid.frag.spirv");
 
-    mLightCubePipeline = std::make_unique<Pipeline>(mCtx);
+    mLightCubePipeline = std::make_shared<Pipeline>(mCtx);
     mLightCubePipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
@@ -160,7 +160,7 @@ void Renderer::createRenderer()
 
     const VkVertexInputBindingDescription vertexInputBindingDescription{
         .binding = 0,
-        .stride = sizeof(Vertex),
+        .stride = sizeof(MeshComponent::Vertex),
         .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
     };
 
@@ -168,24 +168,24 @@ void Renderer::createRenderer()
         .location = 0,
         .binding = 0,
         .format = VK_FORMAT_R32G32B32_SFLOAT,
-        .offset = offsetof(Vertex, position)
+        .offset = offsetof(MeshComponent::Vertex, position)
     };
 
     const VkVertexInputAttributeDescription vertexInputAttributeNormal{
         .location = 1,
         .binding = 0,
         .format = VK_FORMAT_R32G32B32_SFLOAT,
-        .offset = offsetof(Vertex, normal),
+        .offset = offsetof(MeshComponent::Vertex, normal),
     };
 
     const VkVertexInputAttributeDescription vertexInputAttributeColor{
         .location = 2,
         .binding = 0,
         .format = VK_FORMAT_R32G32B32_SFLOAT,
-        .offset = offsetof(Vertex, color),
+        .offset = offsetof(MeshComponent::Vertex, color),
     };
 
-    mNormalLightingPipeline = std::make_unique<Pipeline>(mCtx);
+    mNormalLightingPipeline = std::make_shared<Pipeline>(mCtx);
     mNormalLightingPipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
@@ -194,7 +194,7 @@ void Renderer::createRenderer()
         {vertexInputBindingDescription},
         {vertexInputAttributePosition, vertexInputAttributeNormal});
 
-    mPbrPipeline = std::make_unique<Pipeline>(mCtx);
+    mPbrPipeline = std::make_shared<Pipeline>(mCtx);
     mPbrPipeline->createPipeline(
         mPipelineLayout,
         mHeadset.getVkRenderPass(),
@@ -205,7 +205,9 @@ void Renderer::createRenderer()
 
     createVertexIndexBuffer();
 
-    mIndexOffset = mMeshData->getIndexOffset();
+    mIndexOffset = AssetStore::Models::getIndexOffset();
+
+    initRendererFrontend();
 }
 
 void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainImageIndex)
@@ -228,7 +230,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
         VkClearValue{.depthStencil = {1.f, 0}}
     };
 
-    VkRenderPassBeginInfo renderPassBeginInfo{
+    const VkRenderPassBeginInfo renderPassBeginInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .renderPass = mHeadset.getVkRenderPass(),
         .framebuffer = mHeadset.getRenderTarget(swapchainImageIndex)->getFramebuffer(),
@@ -241,7 +243,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    VkViewport viewport{
+    const VkViewport viewport{
         .x = static_cast<float>(renderPassBeginInfo.renderArea.offset.x),
         .y = static_cast<float>(renderPassBeginInfo.renderArea.offset.y),
         .width = static_cast<float>(renderPassBeginInfo.renderArea.extent.width),
@@ -251,7 +253,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
     };
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-    VkRect2D scissor{
+    const VkRect2D scissor{
         .offset = renderPassBeginInfo.renderArea.offset,
         .extent = renderPassBeginInfo.renderArea.extent
     };
@@ -265,94 +267,12 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
 
     const auto descriptorSet = renderProcess->getDescriptorSet();
 
-    // TODO: it needs refactoring
-    for (decltype(std::ssize(mModels)) modelIdx{}; modelIdx < (1 + std::ssize(lightUniformData) + std::ssize(mModels)); ++modelIdx)
-    {
-        const auto modelIdxWithOffset = std::abs(modelIdx - std::ssize(lightUniformData) - 1);
-
-        const auto uniformBufferOffset = static_cast<uint32_t>(
-            khronos_utils::align(
-                static_cast<VkDeviceSize>(sizeof(decltype(RenderProcess::mIndividualUniformData)::value_type)),
-                mCtx.getUniformBufferOffsetAlignment()) * static_cast<VkDeviceSize>(modelIdxWithOffset));
-
-        vkCmdBindDescriptorSets(
-            commandBuffer,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            mPipelineLayout,
-            0,
-            1,
-            &descriptorSet,
-            1,
-            &uniformBufferOffset);
-
-        if (modelIdx == 0)
-        {
-            mGridPipeline->bind(commandBuffer);
-            vkCmdDraw(commandBuffer, GRID_DRAW_CALL_VERTEX_COUNT, 1, 0, 0);
-
-            continue;
-        }
-        else if ((modelIdx >= 1) && (modelIdx < (1 + std::ssize(lightUniformData))))
-        {
-            mLightCubePipeline->bind(commandBuffer);
-            vkCmdPushConstants(commandBuffer,
-                mPipelineLayout,
-                VK_SHADER_STAGE_VERTEX_BIT,
-                0,
-                sizeof(math::Vec3),
-                &lightUniformData.at(modelIdx - 1));
-
-            vkCmdDraw(commandBuffer, LIGHT_CUBE_DRAW_CALL_VERTEX_COUNT, 1, 0, 0);
-
-            continue;
-        }
-
-        const auto& model = mModels.at(modelIdxWithOffset);
-        vkCmdPushConstants(commandBuffer,
-            mPipelineLayout,
-            VK_SHADER_STAGE_VERTEX_BIT,
-            0,
-            sizeof(math::Vec3),
-            &model->pos);
-
-        switch(model->pipeline)
-        {
-        case PipelineType::COLOR:
-        {
-            LOGGER_ERR("PipelineType::COLOR is not implemented yet");
-        }
-        case PipelineType::NORMAL_LIGHTING:
-        {
-            mNormalLightingPipeline->bind(commandBuffer);
-            break;
-        }
-        case PipelineType::PBR:
-        {
-            mPbrPipeline->bind(commandBuffer);
-            vkCmdPushConstants(commandBuffer,
-                mPipelineLayout,
-                VK_SHADER_STAGE_FRAGMENT_BIT,
-                sizeof(math::Vec3),
-                sizeof(Material),
-                &model->material);
-            break;
-        }
-        default:
-            LOGGER_ERR(("Invalid pipeline type: " + std::to_string(static_cast<uint32_t>(model->pipeline))).c_str());
-        }
-
-        vkCmdDrawIndexed(commandBuffer,
-            static_cast<uint32_t>(model->indexCount),
-            1,
-            static_cast<uint32_t>(model->firstIndex),
-            0,
-            0);
-    }
+    gRegistry.getSystem<RenderSystem>().update(commandBuffer, descriptorSet);
 
     vkCmdEndRenderPass(commandBuffer);
 }
 
-void Renderer::submit(bool useSemaphores) const
+void Renderer::submit(const bool useSemaphores) const
 {
     const auto& renderProcess = mRenderProcesses.at(mCurrentRenderProcessIndex);
     const auto commandBuffer = renderProcess->getCommandBuffer();
@@ -393,7 +313,7 @@ VkCommandBuffer Renderer::getCurrentCommandBuffer() const
 
 void Renderer::createVertexIndexBuffer()
 {
-    const auto bufferSize = static_cast<VkDeviceSize>(mMeshData->getSize());
+    const auto bufferSize = static_cast<VkDeviceSize>(AssetStore::Models::getSize());
     auto stagingBuffer = std::make_unique<DataBuffer>(mCtx);
     stagingBuffer->createDataBuffer(
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -403,10 +323,10 @@ void Renderer::createVertexIndexBuffer()
     auto bufferData = static_cast<char*>(stagingBuffer->map());
     if (!bufferData)
     {
-        LOGGER_ERR("Invalid mapping memory");
+        TS_ERR("Invalid mapping memory");
     }
 
-    mMeshData->writeTo(bufferData);
+    AssetStore::Models::writeTo(bufferData);
     stagingBuffer->unmap();
 
     mVertexIndexBuffer = std::make_unique<DataBuffer>(mCtx);
@@ -419,7 +339,7 @@ void Renderer::createVertexIndexBuffer()
 
     if (mRenderProcesses.size() == 0)
     {
-        LOGGER_ERR("Render processes weren't created");
+        TS_ERR("Render processes weren't created");
     }
 
     stagingBuffer->copyTo(*mVertexIndexBuffer, mRenderProcesses.at(0)->getCommandBuffer(), mCtx.getVkGraphicsQueue());
@@ -429,9 +349,10 @@ void Renderer::createVertexIndexBuffer()
 
 void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::unique_ptr<RenderProcess>& renderProcess)
 {
-    for (size_t modelIndex{}; modelIndex < mModels.size(); ++modelIndex)
+    const auto entities = gRegistry.getSystem<AssetStore>().getSystemEntities();
+    for (size_t modelIndex{}; modelIndex < entities.size(); ++modelIndex)
     {
-        renderProcess->mIndividualUniformData.at(modelIndex).model = mModels.at(modelIndex)->model;
+        renderProcess->mIndividualUniformData.at(modelIndex).model = entities.at(modelIndex).getComponent<TransformComponent>().modelMat;
     }
 
     renderProcess->mCommonUniformData.cameraPosition = cameraPosition;
@@ -442,5 +363,15 @@ void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::un
     }
 
     renderProcess->updateUniformBufferData();
+}
+void Renderer::initRendererFrontend()
+{
+    auto& renderSystem = gRegistry.getSystem<RenderSystem>();
+    renderSystem.mpGridPipeline = mGridPipeline;
+    renderSystem.mpNormalLightingPipeline = mNormalLightingPipeline;
+    renderSystem.mpPbrPipeline = mPbrPipeline;
+    renderSystem.mpLightCubePipeline = mLightCubePipeline;
+
+    renderSystem.mpPipelineLayout = mPipelineLayout;
 }
 }
