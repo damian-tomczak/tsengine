@@ -37,7 +37,7 @@ public:
 private:
     void createVertexIndexBuffer();
     void updateUniformData(const math::Vec3& cameraMatrix, const std::unique_ptr<RenderProcess>& renderProcess);
-    void initRenderSystem();
+    void initRendererFrontend();
 
     const Context& mCtx;
     const Headset& mHeadset;

@@ -207,7 +207,7 @@ void Renderer::createRenderer()
 
     mIndexOffset = AssetStore::Models::getIndexOffset();
 
-    initRenderSystem();
+    initRendererFrontend();
 }
 
 void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainImageIndex)
@@ -230,7 +230,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
         VkClearValue{.depthStencil = {1.f, 0}}
     };
 
-    VkRenderPassBeginInfo renderPassBeginInfo{
+    const VkRenderPassBeginInfo renderPassBeginInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .renderPass = mHeadset.getVkRenderPass(),
         .framebuffer = mHeadset.getRenderTarget(swapchainImageIndex)->getFramebuffer(),
@@ -243,7 +243,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    VkViewport viewport{
+    const VkViewport viewport{
         .x = static_cast<float>(renderPassBeginInfo.renderArea.offset.x),
         .y = static_cast<float>(renderPassBeginInfo.renderArea.offset.y),
         .width = static_cast<float>(renderPassBeginInfo.renderArea.extent.width),
@@ -253,7 +253,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
     };
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-    VkRect2D scissor{
+    const VkRect2D scissor{
         .offset = renderPassBeginInfo.renderArea.offset,
         .extent = renderPassBeginInfo.renderArea.extent
     };
@@ -359,15 +359,12 @@ void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::un
     for (size_t eyeIndex{}; eyeIndex < mHeadset.getEyeCount(); ++eyeIndex)
     {
         renderProcess->mCommonUniformData.viewMats.at(eyeIndex) = mHeadset.getEyeViewMatrix(eyeIndex);
-        renderProcess->mCommonUniformData.viewMats.at(eyeIndex)[0].w = cameraPosition.x;
-        renderProcess->mCommonUniformData.viewMats.at(eyeIndex)[1].w = cameraPosition.y;
-        renderProcess->mCommonUniformData.viewMats.at(eyeIndex)[2].w = cameraPosition.z;
         renderProcess->mCommonUniformData.projMats.at(eyeIndex) = mHeadset.getEyeProjectionMatrix(eyeIndex);
     }
 
     renderProcess->updateUniformBufferData();
 }
-void Renderer::initRenderSystem()
+void Renderer::initRendererFrontend()
 {
     auto& renderSystem = gRegistry.getSystem<RenderSystem>();
     renderSystem.mpGridPipeline = mGridPipeline;

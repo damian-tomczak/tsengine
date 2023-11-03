@@ -55,8 +55,12 @@ const vec3 cubeVertices[36] =
 
 void main()
 {
+    mat4 cameraMat = mat4(1.0);
+    cameraMat[3] = vec4(ubo.camPos, 1.0);
+
     gl_Position =
         ubo.projMats[gl_ViewIndex] *
         ubo.viewMat[gl_ViewIndex] *
+        cameraMat *
         vec4(pushConst.objPos + cubeVertices[gl_VertexIndex], 1.0);
 }

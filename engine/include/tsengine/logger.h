@@ -13,16 +13,15 @@
 #define TS_ERR(message) ts::logger::error(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
 
 // TODO: default message
-
 #ifndef NDEBUG
-#define TS_ASSERT(condition, ...)     \
-    if (!condition)                   \
-    {                                 \
-        TS_ERR(__VA_ARGS__);          \
-    }                                 \
+#define TS_ASSERT(condition, ...)                                                       \
+    if (!(condition))                                                                   \
+    {                                                                                   \
+        ts::logger::warning(__VA_ARGS__, __FILE__, FUNCTION_SIGNATURE, __LINE__, true); \
+    }
 
 #else
-#define TS_ASSERT(condition, message)
+#define TS_ASSERT(condition, ...)
 #endif
 
 namespace ts
@@ -39,7 +38,8 @@ void warning(
     const char* message,
     const char* fileName,
     const char* functionName,
-    int lineNumber);
+    int lineNumber,
+    bool debugBreak = false);
 
 void error(
     const char* message,

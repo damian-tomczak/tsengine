@@ -30,10 +30,13 @@ public:
         gRegistry.addSystem<Lights>();
     }
 
+    // TODO: sort by z
     void update(const VkCommandBuffer cmdBuf, const VkDescriptorSet descriptorSet)
     {
         for (const auto entity : getSystemEntities())
         {
+            auto v = entity.getTag();
+
             size_t entityIndexforUniformBufferOffset{};
             const auto uniformBufferOffset = static_cast<uint32_t>(
                 khronos_utils::align(
@@ -50,14 +53,15 @@ public:
                 1,
                 &uniformBufferOffset);
 
-            if (!entity.hasComponent<TransformComponent>())
+            auto& pos = entity.getComponent<TransformComponent>().pos;
+            if (entity.hasComponent<TransformComponent>())
             {
                 vkCmdPushConstants(cmdBuf,
                     mpPipelineLayout,
                     VK_SHADER_STAGE_VERTEX_BIT,
                     0,
                     sizeof(math::Vec3),
-                    &entity.getComponent<TransformComponent>().pos);
+                    &pos);
             }
 
             if (entity.hasComponent<MeshComponent>())
@@ -74,7 +78,7 @@ public:
                     }
                     else
                     {
-                        throw Exception{ "Invalid normal lighting pipeline" };
+                        throw Exception{"Invalid normal lighting pipeline"};
                     }
                 }
                 else if (entity.hasComponent<RendererComponent<PipelineType::PBR>>())
@@ -85,7 +89,7 @@ public:
                     }
                     else
                     {
-                        throw Exception{ "Invalid pbr pipeline" };
+                        throw Exception{"Invalid pbr pipeline"};
                     }
                 
                     vkCmdPushConstants(cmdBuf,
@@ -102,6 +106,8 @@ public:
                     static_cast<uint32_t>(mesh.firstIndex),
                     0,
                     0);
+
+                entityIndexforUniformBufferOffset++;
             }
             else if (entity.hasComponent<RendererComponent<PipelineType::LIGHT>>())
             {

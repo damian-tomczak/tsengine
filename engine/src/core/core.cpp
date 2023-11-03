@@ -24,7 +24,7 @@ namespace ts
 namespace
 {
     std::mutex engineInit;
-    std::string_view defaultGameName{ "Awesome unamed game" };
+    const std::string_view defaultGameName{"Awesome unamed game"};
     bool isAlreadyInitiated{};
 
     __forceinline void runCleaner()
@@ -75,12 +75,12 @@ int run(Engine* const game) try
     compileShaders("assets/shaders");
 
     auto player = ts::gRegistry.createEntity();
-    player.tag("player");
+    player.setTag("player");
     player.addComponent<ts::TransformComponent>();
     player.addComponent<ts::RigidBodyComponent>(2.f);
     
     auto grid = ts::gRegistry.createEntity();
-    grid.tag("grid");
+    grid.setTag("grid");
     grid.addComponent<ts::RendererComponent<PipelineType::GRID>>();
 
     // TODO: try to delay it

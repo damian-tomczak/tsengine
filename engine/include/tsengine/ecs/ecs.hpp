@@ -13,6 +13,8 @@
 #include <memory>
 #include <typeindex>
 
+// TODO: common abi
+
 namespace ts
 {
 using Id = uint32_t;
@@ -67,8 +69,9 @@ public:
     void kill();
 
     // TODO: hash tags
-    void tag(const std::string& tag);
-    bool hasTag(const std::string& tag) const;
+    void setTag(const std::string& tag);
+    std::string getTag() const;
+    bool hasTag(const std::string& tag = "") const;
     void group(const std::string& group);
     bool belongsToGroup(const std::string& group) const;
 
@@ -149,7 +152,7 @@ public:
     void tagEntity(const Entity entity, const std::string& tag);
     bool entityHasTag(const Entity entity, const std::string& tag) const;
     Entity getEntityByTag(const std::string& tag) const { return entityPerTag.at(tag); }
-    std::string_view getTagByEntity(const Entity entity) const { return tagPerEntity.at(entity.getId()); }
+    std::string getTagByEntity(const Entity entity) const { return tagPerEntity.at(entity.getId()); }
     void removeEntityTag(const Entity entity);
 
     void groupEntity(const Entity entity, const std::string& group);
@@ -182,9 +185,14 @@ inline void Entity::kill()
     mpRegistry->killEntity(*this);
 }
 
-inline void Entity::tag(const std::string& tag)
+inline void Entity::setTag(const std::string& tag)
 {
     mpRegistry->tagEntity(*this, tag);
+}
+
+inline std::string Entity::getTag() const
+{
+    return mpRegistry->getTagByEntity(*this);
 }
 
 inline bool Entity::hasTag(const std::string& tag) const
@@ -372,10 +380,7 @@ inline void Registry::tagEntity(const Entity entity, const std::string& tag)
 
 inline bool Registry::entityHasTag(const Entity entity, const std::string& tag) const
 {
-    if (tagPerEntity.find(entity.getId()) == tagPerEntity.end())
-    {
-        return false;
-    }
+    TS_ASSERT(tagPerEntity.find(entity.getId()) != tagPerEntity.end(), "Entity doesn't have tag");
 
     return entityPerTag.find(tag)->second == entity;
 }
@@ -440,6 +445,10 @@ inline void Registry::removeEntityGroup(const Entity entity)
 template<typename TSystem, typename ...TArgs>
 void Registry::addSystem(TArgs&& ...args)
 {
+    const auto index = std::type_index(typeid(TSystem));
+
+    TS_ASSERT(systems.find(index) == systems.end(), "System is already added");
+
     const auto newSystem = std::make_shared<TSystem>(std::forward<TArgs>(args)...);
     systems.insert(std::make_pair(std::type_index(typeid(TSystem)), newSystem));
 }

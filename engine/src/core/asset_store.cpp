@@ -19,10 +19,9 @@ namespace
 // TODO: avoid the same files
 void AssetStore::Models::load()
 {
-    const auto entities = gRegistry.getSystem<AssetStore>().getSystemEntities();
-    for (const auto entity : entities)
+    for (const auto entity : gRegistry.getSystem<AssetStore>().getSystemEntities())
     {
-        auto meshComponent = entity.getComponent<MeshComponent>();
+        auto& meshComponent = entity.getComponent<MeshComponent>();
         const auto& fileName = meshComponent.assetName;
 
         tinyobj::attrib_t attrib;

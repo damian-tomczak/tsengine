@@ -19,13 +19,13 @@ bool Game::init(const char*& gameName, unsigned&, unsigned&)
 void Game::loadLvL()
 {
     ts::Entity village = ts::gRegistry.createEntity();
-    village.tag("village");
+    village.setTag("village");
     village.addComponent<ts::TransformComponent>();
     village.addComponent<ts::RendererComponent<ts::PipelineType::NORMAL_LIGHTING>>();
     village.addComponent<ts::MeshComponent>("assets/models/village.obj");
 
     ts::Entity polonez = ts::gRegistry.createEntity();
-    polonez.tag("polonez");
+    polonez.setTag("polonez");
     polonez.addComponent<ts::TransformComponent>(ts::math::Vec3{0.f, 0.f, -10.f});
     polonez.addComponent<ts::RendererComponent<ts::PipelineType::NORMAL_LIGHTING>>();
     polonez.addComponent<ts::MeshComponent>("assets/models/polonez.obj");
@@ -35,19 +35,19 @@ void Game::loadLvL()
     for (size_t i{}; i < spheresNumber; ++i)
     {
         ts::Entity sphere = ts::gRegistry.createEntity();
-        sphere.tag("sphere" + std::to_string(i));
+        sphere.setTag("sphere" + std::to_string(i));
         sphere.addComponent<ts::TransformComponent>(ts::math::Vec3{spheresNumber / 3 * -5.f + 5.f * i, 2.f, -5.f});
         sphere.addComponent<ts::RendererComponent<ts::PipelineType::PBR>>();
         sphere.addComponent<ts::MeshComponent>("assets/models/sphere.obj");
     }
 
     ts::Entity light1 = ts::gRegistry.createEntity();
-    light1.tag("light1");
+    light1.setTag("light1");
     light1.addComponent<ts::TransformComponent>(ts::math::Vec3{0.f, 5.f, -7.f});
     light1.addComponent<ts::RendererComponent<ts::PipelineType::LIGHT>>();
 
     ts::Entity light2 = ts::gRegistry.createEntity();
-    light2.tag("light2");
+    light2.setTag("light2");
     light2.addComponent<ts::TransformComponent>(ts::math::Vec3{0.f, 5.f,  0.f});
     light2.addComponent<ts::RendererComponent<ts::PipelineType::LIGHT>>();
 }

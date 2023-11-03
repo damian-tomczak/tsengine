@@ -30,11 +30,15 @@ Context& Context::createOpenXrContext()
     initXrSystemInfo();
     isXrBlendModeAvailable();
 
+    mIsXrContextCreated = true;
+
     return *this;
 }
 
 void Context::createVulkanContext()
 {
+    TS_ASSERT(mIsXrContextCreated, "XrContext should be firstly created");
+
     vulkanloader::connectWithLoader();
     vulkanloader::loadExportFunction();
     vulkanloader::loadGlobalLevelFunctions();
@@ -616,6 +620,9 @@ Context::~Context()
 
 void Context::createXrInstance()
 {
+    TS_ASSERT(mGameName.size() > 0, "setGameName() should be firstly called");
+    TS_ASSERT(mGameName.size() > 0, "setGameName() should be firstly called");
+
     XrApplicationInfo appInfo{
         .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
         .engineName = ENGINE_NAME,
