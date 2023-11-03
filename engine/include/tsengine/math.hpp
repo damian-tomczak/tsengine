@@ -348,9 +348,9 @@ inline constexpr Mat3::Mat3(
 inline constexpr Mat3::Mat3(const Quat& quat) :
     data
 {{
-    {1 - 2 * (quat.y * quat.y + quat.z * quat.z),     2 * (quat.x * quat.y + quat.z * quat.w),     2 * (quat.x * quat.z - quat.y * quat.w)},
-    {    2 * (quat.x * quat.y - quat.z * quat.w), 1 - 2 * (quat.x * quat.x + quat.z * quat.z),     2 * (quat.y * quat.z + quat.x * quat.w)},
-    {    2 * (quat.x * quat.z + quat.y * quat.w),     2 * (quat.y * quat.z - quat.x * quat.w), 1 - 2 * (quat.x * quat.x + quat.y * quat.y)},
+    {1 - 2 * (quat.y * quat.y + quat.z * quat.z), 2 * (quat.x * quat.y + quat.z * quat.w)    , 2 * (quat.x * quat.z - quat.y * quat.w)    },
+    {2 * (quat.x * quat.y - quat.z * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.z * quat.z), 2 * (quat.y * quat.z + quat.x * quat.w)    },
+    {2 * (quat.x * quat.z + quat.y * quat.w)    , 2 * (quat.y * quat.z - quat.x * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.y * quat.y)},
 }}
 {}
 
@@ -502,20 +502,20 @@ inline constexpr Mat4::Mat4(
 inline constexpr Mat4::Mat4(const Quat& quat) :
     data
 {{
-    {1 - 2 * (quat.y * quat.y + quat.z * quat.z),     2 * (quat.x * quat.y + quat.z * quat.w),     2 * (quat.x * quat.z - quat.y * quat.w), 0},
-    {    2 * (quat.x * quat.y - quat.z * quat.w), 1 - 2 * (quat.x * quat.x + quat.z * quat.z),     2 * (quat.y * quat.z + quat.x * quat.w), 0},
-    {    2 * (quat.x * quat.z + quat.y * quat.w),     2 * (quat.y * quat.z - quat.x * quat.w), 1 - 2 * (quat.x * quat.x + quat.y * quat.y), 0},
-    {                                          0,                                           0,                                           0, 1},
+    {1 - 2 * (quat.y * quat.y + quat.z * quat.z), 2 * (quat.x * quat.y + quat.z * quat.w)    , 2 * (quat.x * quat.z - quat.y * quat.w)    , 0},
+    {2 * (quat.x * quat.y - quat.z * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.z * quat.z), 2 * (quat.y * quat.z + quat.x * quat.w)    , 0},
+    {2 * (quat.x * quat.z + quat.y * quat.w)    , 2 * (quat.y * quat.z - quat.x * quat.w)    , 1 - 2 * (quat.x * quat.x + quat.y * quat.y), 0},
+    {0                                          , 0                                          , 0                                          , 1},
 }}
 {}
 
 inline constexpr Mat4::Mat4(const float v) :
     data
 {{
-    {  v, 0.f, 0.f, 0.f},
-    {0.f,   v, 0.f, 0.f},
-    {0.f, 0.f,   v, 0.f},
-    {0.f, 0.f, 0.f,   v}
+    {v  , 0.f, 0.f, 0.f},
+    {0.f, v  , 0.f, 0.f},
+    {0.f, 0.f, v  , 0.f},
+    {0.f, 0.f, 0.f, v  }
 }}
 {}
 
@@ -583,15 +583,13 @@ inline constexpr Mat4 translate(const Mat4& matrix, const Vec3& translation)
 {
     return
     {
-                        matrix[0].x,                 matrix[0].y,                 matrix[0].z, matrix[0].w,
-                        matrix[1].x,                 matrix[1].y,                 matrix[1].z, matrix[1].w,
-                        matrix[2].x,                 matrix[2].y,                 matrix[2].z, matrix[2].w,
+        matrix[0].x                , matrix[0].y                , matrix[0].z                , matrix[0].w,
+        matrix[1].x                , matrix[1].y                , matrix[1].z                , matrix[1].w,
+        matrix[2].x                , matrix[2].y                , matrix[2].z                , matrix[2].w,
         matrix[3].x + translation.x, matrix[3].y + translation.y, matrix[3].z + translation.z, matrix[3].w,
     };
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 template<typename T>
 inline Mat4 rotate(const Mat4& matrix, const Vec3& axis, T angle)
 {
@@ -605,15 +603,15 @@ inline Mat4 rotate(const Mat4& matrix, const Vec3& axis, T angle)
     const T y = normalizedAxis.y;
     const T z = normalizedAxis.z;
 
-    const T tx  = t * x ;
-    const T ty  = t * y ;
-    const T tz  = t * z ;
+    const T tx = t * x;
+    const T ty = t * y;
+    const T tz = t * z;
     const T txy = tx * y;
     const T txz = tx * z;
     const T tyz = ty * z;
-    const T sx  = s * x ;
-    const T sy  = s * y ;
-    const T sz  = s * z ;
+    const T sx = s * x;
+    const T sy = s * y;
+    const T sz = s * z;
 
     const Mat4 rotationMatrix
     {
@@ -624,11 +622,9 @@ inline Mat4 rotate(const Mat4& matrix, const Vec3& axis, T angle)
     };
 
     return matrix * rotationMatrix;
-=======
-inline Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
-=======
+}
+
 inline constexpr Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
->>>>>>> 9a2e018 (progress)
 {
     const Mat4 scaleMatrix
     {
@@ -639,7 +635,6 @@ inline constexpr Mat4 scale(const Mat4& matrix, const Vec3& scaleVec)
     };
 
     return matrix * scaleMatrix;
->>>>>>> 7bc0c31 (progress)
 }
 
 inline std::string to_string(const Mat4 mat)
