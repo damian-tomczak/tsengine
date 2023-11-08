@@ -2,6 +2,7 @@
 
 #include "tsengine/math.hpp"
 #include "internal_utils.h"
+#include "shaders/common.h"
 
 #include "vulkan/vulkan.h"
 
@@ -20,16 +21,22 @@ public:
     ~RenderProcess();
 
     void createRendererProcess(
-        VkCommandPool commandPool,
-        VkDescriptorPool descriptorPool,
-        VkDescriptorSetLayout descriptorSetLayout,
-        size_t modelCount);
+        const VkCommandPool commandPool,
+        const VkDescriptorPool descriptorPool,
+        const VkDescriptorSetLayout descriptorSetLayout,
+        const size_t modelsNum,
+        const size_t lightsNum);
 
     struct IndivialData final
     {
         math::Mat4 model;
     };
-    std::vector<IndivialData> mIndividualUniformData;
+    std::vector<IndivialData> mIndividualUniformData{};
+    
+    struct LightData final
+    {
+        std::array<math::Vec3, LIGHTS_N> positions;
+    } mLightsUniformData{};
 
     struct CommonUniformData final
     {

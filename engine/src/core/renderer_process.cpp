@@ -47,12 +47,13 @@ RenderProcess::~RenderProcess()
 }
 
 void RenderProcess::createRendererProcess(
-    VkCommandPool commandPool,
-    VkDescriptorPool descriptorPool,
-    VkDescriptorSetLayout descriptorSetLayout,
-    size_t modelCount)
+    const VkCommandPool commandPool,
+    const VkDescriptorPool descriptorPool,
+    const VkDescriptorSetLayout descriptorSetLayout,
+    const size_t modelsNum,
+    const size_t lightsNum)
 {
-    mIndividualUniformData.resize(modelCount);
+    mIndividualUniformData.resize(modelsNum);
 
     const auto device = mCtx.getVkDevice();
 
@@ -84,13 +85,17 @@ void RenderProcess::createRendererProcess(
     });
 
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
-        .offset = descriptorBufferInfos.at(0).offset + khronos_utils::align(descriptorBufferInfos.at(0).range, uniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(modelCount),
+        .offset = descriptorBufferInfos.at(0).offset +
+            khronos_utils::align(descriptorBufferInfos.at(0).range, uniformBufferOffsetAlignment) *
+            static_cast<VkDeviceSize>(modelsNum),
         .range = sizeof(mCommonUniformData),
     });
 
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
-        .offset = descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment),
-        .range = sizeof(math::Vec3) * gReg.getSystem<RenderSystem::Lights>().getSystemEntities().size()
+        .offset = descriptorBufferInfos.at(1).offset +
+            khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment) *
+            static_cast<VkDeviceSize>(lightsNum),
+        .range = sizeof(decltype(mLightsUniformData.positions)) * mLightsUniformData.positions.size()
     });
 
     if (descriptorBufferInfos.empty())
@@ -149,7 +154,7 @@ void RenderProcess::createRendererProcess(
             .dstBinding = 2,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, // TODO: SBBO
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .pBufferInfo = &descriptorBufferInfos.at(2),
         },
     };
@@ -171,10 +176,10 @@ void RenderProcess::updateUniformBufferData()
 
     const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
 
-    auto offset = static_cast<char*>(mUniformBufferMemory);
+    auto offset = static_cast<int8_t*>(mUniformBufferMemory);
 
     {
-        constexpr VkDeviceSize length{sizeof(decltype(mIndividualUniformData)::value_type)};
+        constexpr auto length = sizeof(decltype(mIndividualUniformData)::value_type);
         for (const auto& individualData : mIndividualUniformData)
         {
             memcpy(offset, &individualData, length);
@@ -183,15 +188,18 @@ void RenderProcess::updateUniformBufferData()
     }
 
     {
-        constexpr VkDeviceSize length = sizeof(decltype(mCommonUniformData));
+        constexpr auto length = sizeof(decltype(mCommonUniformData));
         memcpy(offset, &mCommonUniformData, length);
         offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
     }
 
-    //{
-    //    constexpr VkDeviceSize length = sizeof(lightUniformData);
-    //    memcpy(offset, &lightUniformData, length);
-    //    offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
-    //}
+    {
+        constexpr auto length = sizeof(decltype(mLightsUniformData.positions));
+        for (const auto& lightData : mLightsUniformData.positions)
+        {
+            memcpy(offset, &lightData, length);
+            offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
+        }
+    }
 }
 }

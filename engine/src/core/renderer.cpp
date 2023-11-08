@@ -146,7 +146,8 @@ void Renderer::createRenderer()
             mCommandPool,
             mDescriptorPool,
             mDescriptorSetLayout,
-            gReg.getSystem<AssetStore>().getSystemEntities().size());
+            gReg.getSystem<AssetStore>().getSystemEntities().size(),
+            gReg.getSystem<RenderSystem::Lights>().getSystemEntities().size());
     }
 
     mGridPipeline = std::make_shared<Pipeline>(mCtx);
@@ -215,7 +216,7 @@ void Renderer::createRenderer()
     initRendererFrontend();
 }
 
-void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainImageIndex)
+void Renderer::render(const size_t swapchainImageIndex)
 {
     mCurrentRenderProcessIndex = (mCurrentRenderProcessIndex + 1) % mRenderProcesses.size();
     auto& renderProcess = mRenderProcesses.at(mCurrentRenderProcessIndex);
@@ -228,7 +229,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
     const VkCommandBufferBeginInfo commandBufferBeginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
     TS_VK_CHECK(vkBeginCommandBuffer, commandBuffer, &commandBufferBeginInfo);
 
-    updateUniformData(cameraPosition, renderProcess);
+    updateUniformData(renderProcess);
 
     const std::array clearValues{
         VkClearValue{.color = {0.01f, 0.01f, 0.01f, 1.f}},
@@ -352,15 +353,22 @@ void Renderer::createVertexIndexBuffer()
     stagingBuffer.reset();
 }
 
-void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::unique_ptr<RenderProcess>& renderProcess)
+void Renderer::updateUniformData(const std::unique_ptr<RenderProcess>& renderProcess)
 {
-    const auto entities = gReg.getSystem<AssetStore>().getSystemEntities();
-    for (size_t modelIndex{}; modelIndex < entities.size(); ++modelIndex)
+    const auto assets = gReg.getSystem<AssetStore>().getSystemEntities();
+    for (size_t modelIdx{}; modelIdx < assets.size(); ++modelIdx)
     {
-        renderProcess->mIndividualUniformData.at(modelIndex).model = entities.at(modelIndex).getComponent<TransformComponent>().modelMat;
+        renderProcess->mIndividualUniformData.at(modelIdx).model = assets.at(modelIdx).getComponent<TransformComponent>().modelMat;
     }
 
-    renderProcess->mCommonUniformData.cameraPosition = cameraPosition;
+    const auto lights = gReg.getSystem<RenderSystem::Lights>().getSystemEntities();
+    for (size_t lightIdx{}; lightIdx < lights.size(); ++lightIdx)
+    {
+        renderProcess->mLightsUniformData.positions.at(lightIdx) = lights.at(lightIdx).getComponent<TransformComponent>().pos;
+    }
+
+    const auto cameraPos = gReg.getEntityByTag("player").getComponent<TransformComponent>().pos;
+    renderProcess->mCommonUniformData.cameraPosition = cameraPos;
     for (size_t eyeIndex{}; eyeIndex < mHeadset.getEyeCount(); ++eyeIndex)
     {
         renderProcess->mCommonUniformData.viewMats.at(eyeIndex) = mHeadset.getEyeViewMatrix(eyeIndex);

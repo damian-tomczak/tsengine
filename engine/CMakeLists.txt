@@ -149,6 +149,8 @@ if(MSVC)
         $<$<CONFIG:Release>: /O2 /MD>
         /W3 /WX /wd4710
     )
+else()
+    message(FATAL_ERROR "not implemented")
 endif()
 
 if(ENABLE_TESTS)

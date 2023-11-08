@@ -28,7 +28,8 @@ public:
     {
         requireComponent<RendererComponentBase>();
 
-        getMainReg().addSystem<Lights>();
+        gReg.addSystem<Lights>();
+        gReg.addSystem<Meshes>();
     }
 
     void update(const VkCommandBuffer cmdBuf, const VkDescriptorSet descriptorSet)
@@ -41,12 +42,9 @@ public:
 
         for (const auto entity : entities)
         {
-            auto v = entity.getTag();
-
             size_t entityIndexforUniformBufferOffset{};
-            const auto uniformBufferOffset = static_cast<uint32_t>(
-                khronos_utils::align(
-                    static_cast<VkDeviceSize>(sizeof(decltype(RenderProcess::mIndividualUniformData)::value_type)),
+            uint32_t uniformBufferOffsets = 
+                static_cast<uint32_t>(khronos_utils::align(static_cast<VkDeviceSize>(sizeof(decltype(RenderProcess::mIndividualUniformData)::value_type)),
                     mVkUniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(entityIndexforUniformBufferOffset));
 
             vkCmdBindDescriptorSets(
@@ -57,7 +55,7 @@ public:
                 1,
                 &descriptorSet,
                 1,
-                &uniformBufferOffset);
+                &uniformBufferOffsets);
 
             auto& pos = entity.getComponent<TransformComponent>().pos;
             if (entity.hasComponent<TransformComponent>())
@@ -156,12 +154,9 @@ public:
             requireComponent<RendererComponent<PipelineType::LIGHT>>();
         }
 
-        // TODO: move to header
-        static constexpr uint32_t lightsNumber{LIGHTS_N};
-
         void update()
         {
-            TS_ASSERT_MSG(getSystemEntities().size() == lightsNumber, "TODO: lights pipeline is prepared for 2 light sources");
+            TS_ASSERT_MSG(getSystemEntities().size() == LIGHTS_N, "TODO: lights pipeline is prepared for 2 light sources");
         }
     };
 
@@ -170,5 +165,14 @@ private:
     const VkDeviceSize& mVkUniformBufferOffsetAlignment;
     std::weak_ptr<Pipeline> mpGridPipeline, mpNormalLightingPipeline, mpPbrPipeline, mpLightCubePipeline;
     VkPipelineLayout mpPipelineLayout{};
+
+    class Meshes : public System
+    {
+    public:
+        Meshes()
+        {
+            requireComponent<MeshComponent>();
+        }
+    };
 };
 }

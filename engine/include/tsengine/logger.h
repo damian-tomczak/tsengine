@@ -13,10 +13,10 @@
 #define TS_ERR(msg) ts::logger::error(msg, __FILE__, FUNCTION_SIGNATURE, __LINE__)
 
 #ifndef NDEBUG
-#define TS_ASSERT(condition)                                                                   \
-    if (!(condition))                                                                          \
-    {                                                                                          \
-        ts::logger::warning("Assertion Failed", __FILE__, FUNCTION_SIGNATURE, __LINE__, true); \
+#define TS_ASSERT(condition)                                                                                \
+    if (!(condition))                                                                                       \
+    {                                                                                                       \
+        ts::logger::warning("Assertion Failed: " #condition, __FILE__, FUNCTION_SIGNATURE, __LINE__, true); \
     }
 
 #define TS_ASSERT_MSG(condition, msg)                                           \
