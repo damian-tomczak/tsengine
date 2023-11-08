@@ -8,20 +8,26 @@
 
 #define NOT_PRINT_LINE_NUMBER -1
 
-#define TS_LOG(message) ts::logger::log(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
-#define TS_WARN(message) ts::logger::warning(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
-#define TS_ERR(message) ts::logger::error(message, __FILE__, FUNCTION_SIGNATURE, __LINE__)
+#define TS_LOG(msg) ts::logger::log(msg, __FILE__, FUNCTION_SIGNATURE, __LINE__)
+#define TS_WARN(msg) ts::logger::warning(msg, __FILE__, FUNCTION_SIGNATURE, __LINE__)
+#define TS_ERR(msg) ts::logger::error(msg, __FILE__, FUNCTION_SIGNATURE, __LINE__)
 
-// TODO: default message
 #ifndef NDEBUG
-#define TS_ASSERT(condition, ...)                                                       \
-    if (!(condition))                                                                   \
-    {                                                                                   \
-        ts::logger::warning(__VA_ARGS__, __FILE__, FUNCTION_SIGNATURE, __LINE__, true); \
+#define TS_ASSERT(condition)                                                                   \
+    if (!(condition))                                                                          \
+    {                                                                                          \
+        ts::logger::warning("Assertion Failed", __FILE__, FUNCTION_SIGNATURE, __LINE__, true); \
+    }
+
+#define TS_ASSERT_MSG(condition, msg)                                           \
+    if (!(condition))                                                           \
+    {                                                                           \
+        ts::logger::warning(msg, __FILE__, FUNCTION_SIGNATURE, __LINE__, true); \
     }
 
 #else
-#define TS_ASSERT(condition, ...)
+#define TS_ASSERT(condition)
+#define TS_ASSERT_MSG(condition, msg)
 #endif
 
 namespace ts

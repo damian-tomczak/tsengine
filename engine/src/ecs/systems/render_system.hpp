@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tsengine/ecs/ecs.hpp"
+#include "tsengine/ecs/ecs.h"
 
 #include "tsengine/ecs/components/mesh_component.hpp"
 #include "tsengine/ecs/components/transform_component.hpp"
@@ -12,6 +12,7 @@
 
 #include "shaders/light_cube.h"
 #include "shaders/grid.h"
+#include "shaders/common.h"
 
 #include "vulkan_tools/vulkan_functions.h"
 
@@ -27,13 +28,18 @@ public:
     {
         requireComponent<RendererComponentBase>();
 
-        gRegistry.addSystem<Lights>();
+        getMainReg().addSystem<Lights>();
     }
 
-    // TODO: sort by z
     void update(const VkCommandBuffer cmdBuf, const VkDescriptorSet descriptorSet)
     {
-        for (const auto entity : getSystemEntities())
+        auto entities = getSystemEntities();
+
+        std::ranges::sort(entities, std::less{}, [](const auto entity) {
+            return entity.getComponent<RendererComponentBase>().z;
+        });
+
+        for (const auto entity : entities)
         {
             auto v = entity.getTag();
 
@@ -66,7 +72,7 @@ public:
 
             if (entity.hasComponent<MeshComponent>())
             {
-                TS_ASSERT(!entity.hasComponent<RendererComponent<PipelineType::COLOR>>(), "Not implemented yet");
+                TS_ASSERT_MSG(!entity.hasComponent<RendererComponent<PipelineType::COLOR>>(), "Not implemented yet");
 
                 const auto& mesh = entity.getComponent<MeshComponent>();
 
@@ -150,6 +156,13 @@ public:
             requireComponent<RendererComponent<PipelineType::LIGHT>>();
         }
 
+        // TODO: move to header
+        static constexpr uint32_t lightsNumber{LIGHTS_N};
+
+        void update()
+        {
+            TS_ASSERT_MSG(getSystemEntities().size() == lightsNumber, "TODO: lights pipeline is prepared for 2 light sources");
+        }
     };
 
 private:

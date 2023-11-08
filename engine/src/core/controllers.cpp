@@ -6,7 +6,7 @@ namespace
 XrPath stringToXrPath(XrInstance instance, std::string_view str)
 {
     XrPath path;
-    LOGGER_XR(xrStringToPath, instance, str.data(), &path);
+    TS_XR_CHECK(xrStringToPath, instance, str.data(), &path);
 
     return path;
 }
@@ -44,7 +44,7 @@ void Controllers::setupControllers()
     strcpy(actionSetCreateInfo.actionSetName, actionSetName.data());
     strcpy(actionSetCreateInfo.localizedActionSetName, localizedActionSetName.data());
 
-    LOGGER_XR(xrCreateActionSet, mInstance, &actionSetCreateInfo, &mActionSet);
+    TS_XR_CHECK(xrCreateActionSet, mInstance, &actionSetCreateInfo, &mActionSet);
 
     mPaths.at(0) = stringToXrPath(mInstance, "/user/hand/left");
     mPaths.at(1) = stringToXrPath(mInstance, "/user/hand/right");
@@ -62,7 +62,7 @@ void Controllers::setupControllers()
             .poseInActionSpace = khronos_utils::makeXrIdentity()
         };
 
-        LOGGER_XR(xrCreateActionSpace, mSession, &actionSpaceCreateInfo, &mSpaces.at(controllerIndex));
+        TS_XR_CHECK(xrCreateActionSpace, mSession, &actionSpaceCreateInfo, &mSpaces.at(controllerIndex));
     }
 
     const std::array bindings{
@@ -79,7 +79,7 @@ void Controllers::setupControllers()
         .suggestedBindings = bindings.data(),
     };
 
-    LOGGER_XR(xrSuggestInteractionProfileBindings, mInstance, &interactionProfileSuggestedBinding);
+    TS_XR_CHECK(xrSuggestInteractionProfileBindings, mInstance, &interactionProfileSuggestedBinding);
 
     XrSessionActionSetsAttachInfo sessionActionSetsAttachInfo{
         .type = XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO,
@@ -87,7 +87,7 @@ void Controllers::setupControllers()
         .actionSets = &mActionSet
     };
 
-    LOGGER_XR(xrAttachSessionActionSets, mSession, &sessionActionSetsAttachInfo);
+    TS_XR_CHECK(xrAttachSessionActionSets, mSession, &sessionActionSetsAttachInfo);
 }
 
 void Controllers::sync(const XrSpace space, const XrTime time)
@@ -118,7 +118,7 @@ void Controllers::sync(const XrSpace space, const XrTime time)
         if (poseState.isActive)
         {
             XrSpaceLocation spaceLocation{ XR_TYPE_SPACE_LOCATION };
-            LOGGER_XR(xrLocateSpace, mSpaces.at(controllerIndex), space, time, &spaceLocation);
+            TS_XR_CHECK(xrLocateSpace, mSpaces.at(controllerIndex), space, time, &spaceLocation);
 
             constexpr XrSpaceLocationFlags checkFlags{
                 XR_SPACE_LOCATION_POSITION_VALID_BIT | XR_SPACE_LOCATION_POSITION_TRACKED_BIT |
@@ -148,7 +148,7 @@ void Controllers::updateActionStatePose(const XrSession session, const XrAction 
         .subactionPath = path
     };
 
-    LOGGER_XR(xrGetActionStatePose, session, &actionStateGetInfo, &state);
+    TS_XR_CHECK(xrGetActionStatePose, session, &actionStateGetInfo, &state);
 }
 
 void Controllers::updateActionStateFloat(const XrSession session, const XrAction action, const XrPath path, XrActionStateFloat& state)
@@ -159,7 +159,7 @@ void Controllers::updateActionStateFloat(const XrSession session, const XrAction
         .subactionPath = path
     };
 
-    LOGGER_XR(xrGetActionStateFloat, session, &actionStateGetInfo, &state);
+    TS_XR_CHECK(xrGetActionStateFloat, session, &actionStateGetInfo, &state);
 }
 
 void Controllers::createAction(const std::string& actionName, const std::string& localizedActionName, const XrActionType type, XrAction& action)
@@ -174,6 +174,6 @@ void Controllers::createAction(const std::string& actionName, const std::string&
     strcpy(const_cast<char*>(actionCreateInfo.actionName), actionName.data());
     strcpy(const_cast<char*>(actionCreateInfo.localizedActionName), localizedActionName.data());
 
-    LOGGER_XR(xrCreateAction, mActionSet, &actionCreateInfo, &action);
+    TS_XR_CHECK(xrCreateAction, mActionSet, &actionCreateInfo, &action);
 }
 }

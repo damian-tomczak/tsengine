@@ -16,7 +16,7 @@ layout (binding = 1) uniform CommonUbo {
     mat4 projMats[2];
 } commonUbo;
 
-layout (binding = 2) uniform LightsUbo {
+layout (binding = LIGHTS_N) uniform LightsUbo {
     vec3 lights[2];
 } lightsUbo;
 

@@ -43,7 +43,7 @@ void RenderTarget::createRenderTarget(
         }
     };
 
-    LOGGER_VK(vkCreateImageView, mDevice, &imageViewCreateInfo, nullptr, &mImageView);
+    TS_VK_CHECK(vkCreateImageView, mDevice, &imageViewCreateInfo, nullptr, &mImageView);
 
     const std::array attachments{colorImageView, depthImageView, mImageView};
 
@@ -57,6 +57,6 @@ void RenderTarget::createRenderTarget(
         .layers = 1
     };
 
-    LOGGER_VK(vkCreateFramebuffer, mDevice, &framebufferCreateInfo, nullptr, &mFramebuffer);
+    TS_VK_CHECK(vkCreateFramebuffer, mDevice, &framebufferCreateInfo, nullptr, &mFramebuffer);
 }
 }

@@ -95,10 +95,10 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
 
     mXrFrameState.type = XR_TYPE_FRAME_STATE;
     XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO};
-    LOGGER_XR(xrWaitFrame, mXrSession, &frameWaitInfo, &mXrFrameState);
+    TS_XR_CHECK(xrWaitFrame, mXrSession, &frameWaitInfo, &mXrFrameState);
 
     XrFrameBeginInfo frameBeginInfo{XR_TYPE_FRAME_BEGIN_INFO};
-    LOGGER_XR(xrBeginFrame, mXrSession, &frameBeginInfo);
+    TS_XR_CHECK(xrBeginFrame, mXrSession, &frameBeginInfo);
 
     if (!mXrFrameState.shouldRender)
     {
@@ -113,7 +113,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
         .space = mXrSpace
     };
     uint32_t viewCount;
-    LOGGER_XR(xrLocateViews,
+    TS_XR_CHECK(xrLocateViews,
         mXrSession,
         &viewLocateInfo,
         &mXrViewState,
@@ -139,13 +139,13 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
     }
 
     XrSwapchainImageAcquireInfo swapchainImageAcquireInfo{ XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
-    LOGGER_XR(xrAcquireSwapchainImage, mXrSwapchain, &swapchainImageAcquireInfo, &swapchainImageIndex);
+    TS_XR_CHECK(xrAcquireSwapchainImage, mXrSwapchain, &swapchainImageAcquireInfo, &swapchainImageIndex);
 
     XrSwapchainImageWaitInfo swapchainImageWaitInfo{
         .type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO,
         .timeout = XR_INFINITE_DURATION,
     };
-    LOGGER_XR(xrWaitSwapchainImage, mXrSwapchain, &swapchainImageWaitInfo);
+    TS_XR_CHECK(xrWaitSwapchainImage, mXrSwapchain, &swapchainImageWaitInfo);
 
     return BeginFrameResult::RENDER_FULLY;
 }
@@ -236,7 +236,7 @@ void Headset::createVkRenderPass()
     };
 
     const auto vkDevice = mCtx.getVkDevice();
-    LOGGER_VK(vkCreateRenderPass, vkDevice, &renderPassCreateInfo, nullptr, &mVkRenderPass);
+    TS_VK_CHECK(vkCreateRenderPass, vkDevice, &renderPassCreateInfo, nullptr, &mVkRenderPass);
 }
 
 void Headset::createXrSession()
@@ -257,7 +257,7 @@ void Headset::createXrSession()
     };
 
     const auto pXrInstance{mCtx.getXrInstance()};
-    LOGGER_XR(xrCreateSession, pXrInstance, &sessionCreateInfo, &mXrSession);
+    TS_XR_CHECK(xrCreateSession, pXrInstance, &sessionCreateInfo, &mXrSession);
 }
 
 void Headset::createXrSpace()
@@ -269,12 +269,12 @@ void Headset::createXrSpace()
         .poseInReferenceSpace = identity
     };
 
-    LOGGER_XR(xrCreateReferenceSpace, mXrSession, &referenceSpaceCreateInfo, &mXrSpace);
+    TS_XR_CHECK(xrCreateReferenceSpace, mXrSession, &referenceSpaceCreateInfo, &mXrSpace);
 }
 
 void Headset::createViews()
 {
-    LOGGER_XR(xrEnumerateViewConfigurationViews,
+    TS_XR_CHECK(xrEnumerateViewConfigurationViews,
         mCtx.getXrInstance(),
         mCtx.getXrSystemId(),
         mCtx.xrViewType,
@@ -288,7 +288,7 @@ void Headset::createViews()
         eyeInfo.next = nullptr;
     }
 
-    LOGGER_XR(xrEnumerateViewConfigurationViews,
+    TS_XR_CHECK(xrEnumerateViewConfigurationViews,
         mCtx.getXrInstance(),
         mCtx.getXrSystemId(),
         mCtx.xrViewType,
@@ -308,10 +308,10 @@ void Headset::createXrSwapchain()
     createViews();
 
     uint32_t formatCount{};
-    LOGGER_XR(xrEnumerateSwapchainFormats, mXrSession, 0, &formatCount, nullptr);
+    TS_XR_CHECK(xrEnumerateSwapchainFormats, mXrSession, 0, &formatCount, nullptr);
 
     std::vector<int64_t> formats(formatCount);
-    LOGGER_XR(xrEnumerateSwapchainFormats, mXrSession, formatCount, &formatCount, formats.data());
+    TS_XR_CHECK(xrEnumerateSwapchainFormats, mXrSession, formatCount, &formatCount, formats.data());
 
     bool isFormatFound{};
     for (const auto& format : formats)
@@ -361,10 +361,10 @@ void Headset::createXrSwapchain()
         .mipCount = 1
     };
 
-    LOGGER_XR(xrCreateSwapchain, mXrSession, &swapchainCreateInfo, &mXrSwapchain);
+    TS_XR_CHECK(xrCreateSwapchain, mXrSession, &swapchainCreateInfo, &mXrSwapchain);
 
     uint32_t swapchainImageCount;
-    LOGGER_XR(xrEnumerateSwapchainImages, mXrSwapchain, 0, &swapchainImageCount, nullptr);
+    TS_XR_CHECK(xrEnumerateSwapchainImages, mXrSwapchain, 0, &swapchainImageCount, nullptr);
 
     std::vector<XrSwapchainImageVulkanKHR> swapchainImages;
     swapchainImages.resize(swapchainImageCount);
@@ -374,7 +374,7 @@ void Headset::createXrSwapchain()
     }
 
     auto pXrSwapchainImageBaseHeader{reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchainImages.data())};
-    LOGGER_XR(xrEnumerateSwapchainImages,
+    TS_XR_CHECK(xrEnumerateSwapchainImages,
         mXrSwapchain,
         static_cast<uint32_t>(swapchainImages.size()),
         &swapchainImageCount,
@@ -421,7 +421,7 @@ void Headset::endFrame(bool skipReleaseSwapchainImage) const
     if (!skipReleaseSwapchainImage)
     {
         XrSwapchainImageReleaseInfo swapchainImageReleaseInfo{ XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
-        LOGGER_XR(xrReleaseSwapchainImage, mXrSwapchain, &swapchainImageReleaseInfo);
+        TS_XR_CHECK(xrReleaseSwapchainImage, mXrSwapchain, &swapchainImageReleaseInfo);
     }
 
     XrCompositionLayerProjection compositionLayerProjection{
@@ -447,7 +447,7 @@ void Headset::endFrame(bool skipReleaseSwapchainImage) const
         .layerCount = static_cast<uint32_t>(layers.size()),
         .layers = layers.data(),
     };
-    LOGGER_XR(xrEndFrame, mXrSession, &frameEndInfo);
+    TS_XR_CHECK(xrEndFrame, mXrSession, &frameEndInfo);
 }
 
 [[nodiscard]] VkExtent2D Headset::getEyeResolution(int32_t eyeIndex) const
@@ -462,12 +462,12 @@ void Headset::beginSession() const
         .type = XR_TYPE_SESSION_BEGIN_INFO,
         .primaryViewConfigurationType = mCtx.xrViewType
     };
-    LOGGER_XR(xrBeginSession, mXrSession, &sessionBeginInfo);
+    TS_XR_CHECK(xrBeginSession, mXrSession, &sessionBeginInfo);
 }
 
 void Headset::endSession() const
 {
-    LOGGER_XR(xrEndSession, mXrSession);
+    TS_XR_CHECK(xrEndSession, mXrSession);
 }
 
 } // namespace ts

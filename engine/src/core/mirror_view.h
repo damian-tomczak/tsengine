@@ -13,7 +13,7 @@ class Renderer;
 
 class MirrorView final
 {
-    NOT_COPYABLE_AND_MOVEABLE(MirrorView);
+    TS_NOT_COPYABLE_AND_MOVEABLE(MirrorView);
 
     static constexpr VkFormat colorFormat{VK_FORMAT_B8G8R8A8_SRGB};
     static constexpr VkPresentModeKHR presentMode{VK_PRESENT_MODE_FIFO_KHR};

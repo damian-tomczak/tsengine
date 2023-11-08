@@ -13,7 +13,7 @@ class Headset;
 
 class RenderProcess final
 {
-    NOT_COPYABLE_AND_MOVEABLE(RenderProcess);
+    TS_NOT_COPYABLE_AND_MOVEABLE(RenderProcess);
 
 public:
     RenderProcess(const Context& ctx, const Headset& headset);

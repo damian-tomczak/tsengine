@@ -10,7 +10,7 @@ class Context;
 
 class DataBuffer final
 {
-    NOT_COPYABLE_AND_MOVEABLE(DataBuffer);
+    TS_NOT_COPYABLE_AND_MOVEABLE(DataBuffer);
 
 public:
     DataBuffer(const Context& ctx);

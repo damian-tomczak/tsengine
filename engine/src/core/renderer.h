@@ -17,7 +17,7 @@ class DataBuffer;
 
 class Renderer
 {
-    NOT_COPYABLE_AND_MOVEABLE(Renderer);
+    TS_NOT_COPYABLE_AND_MOVEABLE(Renderer);
 
     static constexpr size_t framesInFlightCount{2};
 

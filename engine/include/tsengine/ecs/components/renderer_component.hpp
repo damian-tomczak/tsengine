@@ -4,6 +4,8 @@
 
 namespace ts
 {
+class Renderer;
+
 // TODO: enum reflection
 // TODO: implement color
 
@@ -27,23 +29,31 @@ enum class PipelineType
 struct RendererComponentBase : public Component
 {
     using Base = RendererComponentBase;
+    using ZIdxT = int32_t;
+
+    RendererComponentBase(const ZIdxT z_ = {}) : z{z_} {}
+
+    ZIdxT z;
 };
 
 template<PipelineType pipeType>
 struct RendererComponent : public RendererComponentBase 
 {
     PipelineType pipeline{pipeType};
+
+    RendererComponent(const ZIdxT z_ = {}) : RendererComponentBase{z_}
+    {}
 };
 
 template<>
 struct RendererComponent<PipelineType::PBR> : public RendererComponentBase
 {
 #define TS_MATERIALS_LIST \
-    MATERIAL(WHITE,    .color = {     1.0f,       1.0f,     1.0f}, .roughness = 0.5f, .metallic = 1.0f) \
-    MATERIAL(RED,      .color = {     1.0f,       0.0f,     0.0f}, .roughness = 0.5f, .metallic = 1.0f) \
-    MATERIAL(BLUE,     .color = {     0.0f,       0.0f,     1.0f}, .roughness = 0.5f, .metallic = 1.0f) \
-    MATERIAL(BLACK,    .color = {     0.0f,       0.0f,     0.0f}, .roughness = 0.5f, .metallic = 1.0f) \
-    MATERIAL(GOLD,     .color = {     1.0f, 0.765557f, 0.336057f}, .roughness = 0.5f, .metallic = 1.0f) \
+    MATERIAL(WHITE,    .color = {1.0f     , 1.0f      ,1.0f     }, .roughness = 0.5f, .metallic = 1.0f) \
+    MATERIAL(RED,      .color = {1.0f     , 0.0f      ,0.0f     }, .roughness = 0.5f, .metallic = 1.0f) \
+    MATERIAL(BLUE,     .color = {0.0f     , 0.0f      ,1.0f     }, .roughness = 0.5f, .metallic = 1.0f) \
+    MATERIAL(BLACK,    .color = {0.0f     , 0.0f      ,0.0f     }, .roughness = 0.5f, .metallic = 1.0f) \
+    MATERIAL(GOLD,     .color = {1.0f     , 0.765557f, 0.336057f}, .roughness = 0.5f, .metallic = 1.0f) \
     MATERIAL(COPPER,   .color = {0.955008f, 0.637427f, 0.538163f}, .roughness = 0.5f, .metallic = 1.0f) \
     MATERIAL(CHROMIUM, .color = {0.549585f, 0.556114f, 0.554256f}, .roughness = 0.5f, .metallic = 1.0f) \
     MATERIAL(NICKEL,   .color = {0.659777f, 0.608679f, 0.525649f}, .roughness = 0.5f, .metallic = 1.0f) \
@@ -66,9 +76,10 @@ struct RendererComponent<PipelineType::PBR> : public RendererComponentBase
         {
             switch (type)
             {
-#define MATERIAL(type, ...) \
-    case Material::Type::type: \
+#define MATERIAL(type, ...)          \
+    case Material::Type::type:       \
         return Material{__VA_ARGS__};
+
                 TS_MATERIALS_LIST
 #undef MATERIAL
             default: throw Exception{"Invalid material type"};
@@ -82,6 +93,10 @@ struct RendererComponent<PipelineType::PBR> : public RendererComponentBase
         float metallic;
     };
 
-    Material material{Material::create(Material::Type::RED)};
+    Material material;
+
+    RendererComponent(const Material material_ = Material::create(Material::Type::RED), const ZIdxT z_ = {})
+        : RendererComponentBase{z_}, material{material_}
+    {}
 };
 }

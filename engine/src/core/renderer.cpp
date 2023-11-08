@@ -1,5 +1,6 @@
 #include "renderer.h"
 
+#include "globals.hpp"
 #include "tsengine/math.hpp"
 
 #include "context.h"
@@ -15,7 +16,7 @@
 
 #include "tsengine/ecs/components/renderer_component.hpp"
 #include "tsengine/ecs/components/mesh_component.hpp"
-#include "ecs/render_system.hpp"
+#include "ecs/systems/render_system.hpp"
 
 namespace ts
 {
@@ -68,7 +69,7 @@ void Renderer::createRenderer()
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
         .queueFamilyIndex = mCtx.getVkGraphicsQueueFamilyIndex()
     };
-    LOGGER_VK(vkCreateCommandPool, device, &commandPoolCreateInfo, nullptr, &mCommandPool);
+    TS_VK_CHECK(vkCreateCommandPool, device, &commandPoolCreateInfo, nullptr, &mCommandPool);
 
     const std::array descriptorPoolSizes{
         VkDescriptorPoolSize{
@@ -87,7 +88,7 @@ void Renderer::createRenderer()
         .poolSizeCount = static_cast<uint32_t>(descriptorPoolSizes.size()),
         .pPoolSizes = descriptorPoolSizes.data(),
     };
-    LOGGER_VK(vkCreateDescriptorPool, device, &descriptorPoolCreateInfo, nullptr, &mDescriptorPool);
+    TS_VK_CHECK(vkCreateDescriptorPool, device, &descriptorPoolCreateInfo, nullptr, &mDescriptorPool);
 
     const std::array descriptorSetLayoutBindings{
         VkDescriptorSetLayoutBinding{
@@ -127,7 +128,7 @@ void Renderer::createRenderer()
         .bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size()),
         .pBindings = descriptorSetLayoutBindings.data()
     };
-    LOGGER_VK(vkCreateDescriptorSetLayout, device, &descriptorSetLayoutCreateInfo, nullptr, &mDescriptorSetLayout);
+    TS_VK_CHECK(vkCreateDescriptorSetLayout, device, &descriptorSetLayoutCreateInfo, nullptr, &mDescriptorSetLayout);
 
     const VkPipelineLayoutCreateInfo pipelinelineLayoutCreateInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -136,12 +137,16 @@ void Renderer::createRenderer()
         .pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.size()),
         .pPushConstantRanges = pushConstantRanges.data(),
     };
-    LOGGER_VK(vkCreatePipelineLayout, device, &pipelinelineLayoutCreateInfo, nullptr, &mPipelineLayout);
+    TS_VK_CHECK(vkCreatePipelineLayout, device, &pipelinelineLayoutCreateInfo, nullptr, &mPipelineLayout);
 
     for (auto& renderProcess : mRenderProcesses)
     {
         renderProcess = std::make_unique<RenderProcess>(mCtx, mHeadset);
-        renderProcess->createRendererProcess(mCommandPool, mDescriptorPool, mDescriptorSetLayout, gRegistry.getSystem<AssetStore>().getSystemEntities().size());
+        renderProcess->createRendererProcess(
+            mCommandPool,
+            mDescriptorPool,
+            mDescriptorSetLayout,
+            gReg.getSystem<AssetStore>().getSystemEntities().size());
     }
 
     mGridPipeline = std::make_shared<Pipeline>(mCtx);
@@ -216,12 +221,12 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
     auto& renderProcess = mRenderProcesses.at(mCurrentRenderProcessIndex);
 
     const auto busyFence = renderProcess->getFence();
-    LOGGER_VK(vkWaitForFences, mCtx.getVkDevice(), 1, &busyFence, true, std::numeric_limits<int64_t>::max());
-    LOGGER_VK(vkResetFences, mCtx.getVkDevice(), 1, &busyFence);
+    TS_VK_CHECK(vkWaitForFences, mCtx.getVkDevice(), 1, &busyFence, true, std::numeric_limits<int64_t>::max());
+    TS_VK_CHECK(vkResetFences, mCtx.getVkDevice(), 1, &busyFence);
 
     const auto commandBuffer = renderProcess->getCommandBuffer();
     const VkCommandBufferBeginInfo commandBufferBeginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
-    LOGGER_VK(vkBeginCommandBuffer, commandBuffer, &commandBufferBeginInfo);
+    TS_VK_CHECK(vkBeginCommandBuffer, commandBuffer, &commandBufferBeginInfo);
 
     updateUniformData(cameraPosition, renderProcess);
 
@@ -267,7 +272,7 @@ void Renderer::render(const math::Vec3& cameraPosition, const size_t swapchainIm
 
     const auto descriptorSet = renderProcess->getDescriptorSet();
 
-    gRegistry.getSystem<RenderSystem>().update(commandBuffer, descriptorSet);
+    gReg.getSystem<RenderSystem>().update(commandBuffer, descriptorSet);
 
     vkCmdEndRenderPass(commandBuffer);
 }
@@ -276,7 +281,7 @@ void Renderer::submit(const bool useSemaphores) const
 {
     const auto& renderProcess = mRenderProcesses.at(mCurrentRenderProcessIndex);
     const auto commandBuffer = renderProcess->getCommandBuffer();
-    LOGGER_VK(vkEndCommandBuffer, commandBuffer);
+    TS_VK_CHECK(vkEndCommandBuffer, commandBuffer);
 
     constexpr VkPipelineStageFlags waitStages{VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     const auto drawableSemaphore = renderProcess->getDrawableSemaphore();
@@ -293,7 +298,7 @@ void Renderer::submit(const bool useSemaphores) const
         .pSignalSemaphores = useSemaphores ? &presentableSemaphore : nullptr
     };
 
-    LOGGER_VK(vkQueueSubmit, mCtx.getVkGraphicsQueue(), 1, &submitInfo, renderProcess->getFence());
+    TS_VK_CHECK(vkQueueSubmit, mCtx.getVkGraphicsQueue(), 1, &submitInfo, renderProcess->getFence());
 }
 
 VkSemaphore Renderer::getCurrentDrawableSemaphore() const
@@ -349,7 +354,7 @@ void Renderer::createVertexIndexBuffer()
 
 void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::unique_ptr<RenderProcess>& renderProcess)
 {
-    const auto entities = gRegistry.getSystem<AssetStore>().getSystemEntities();
+    const auto entities = gReg.getSystem<AssetStore>().getSystemEntities();
     for (size_t modelIndex{}; modelIndex < entities.size(); ++modelIndex)
     {
         renderProcess->mIndividualUniformData.at(modelIndex).model = entities.at(modelIndex).getComponent<TransformComponent>().modelMat;
@@ -366,7 +371,7 @@ void Renderer::updateUniformData(const math::Vec3& cameraPosition, const std::un
 }
 void Renderer::initRendererFrontend()
 {
-    auto& renderSystem = gRegistry.getSystem<RenderSystem>();
+    auto& renderSystem = gReg.getSystem<RenderSystem>();
     renderSystem.mpGridPipeline = mGridPipeline;
     renderSystem.mpNormalLightingPipeline = mNormalLightingPipeline;
     renderSystem.mpPbrPipeline = mPbrPipeline;

@@ -31,12 +31,12 @@
                                                                                     \
         cleanerFunction();                                                          \
                                                                                     \
-        return STL_FAILURE;                                                         \
+        return TS_STL_FAILURE;                                                      \
     }                                                                               \
     catch (...)                                                                     \
     {                                                                               \
         cleanerFunction();                                                          \
                                                                                     \
-        return UNKNOWN_FAILURE;                                                     \
+        return TS_UNKNOWN_FAILURE;                                                  \
     }
 

@@ -10,7 +10,7 @@ namespace ts
 {
 class Window
 {
-    NOT_COPYABLE_AND_MOVEABLE(Window);
+    TS_NOT_COPYABLE_AND_MOVEABLE(Window);
 
 public:
     Window(const std::string_view windowName, const size_t width, const size_t height) :

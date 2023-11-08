@@ -38,7 +38,7 @@ void DataBuffer::createDataBuffer(const VkBufferUsageFlags bufferUsageFlags, con
         .usage = bufferUsageFlags,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE
     };
-    LOGGER_VK(vkCreateBuffer, device, &bufferCreateInfo, nullptr, &mBuffer);
+    TS_VK_CHECK(vkCreateBuffer, device, &bufferCreateInfo, nullptr, &mBuffer);
 
     VkMemoryRequirements memoryRequirements;
     vkGetBufferMemoryRequirements(device, mBuffer, &memoryRequirements);
@@ -55,9 +55,9 @@ void DataBuffer::createDataBuffer(const VkBufferUsageFlags bufferUsageFlags, con
         .allocationSize = memoryRequirements.size,
         .memoryTypeIndex = suitableMemoryTypeIndex
     };
-    LOGGER_VK(vkAllocateMemory, device, &memoryAllocateInfo, nullptr, &mDeviceMemory);
+    TS_VK_CHECK(vkAllocateMemory, device, &memoryAllocateInfo, nullptr, &mDeviceMemory);
 
-    LOGGER_VK(vkBindBufferMemory, device, mBuffer, mDeviceMemory, 0);
+    TS_VK_CHECK(vkBindBufferMemory, device, mBuffer, mDeviceMemory, 0);
 }
 
 void DataBuffer::copyTo(const DataBuffer& target, VkCommandBuffer commandBuffer, VkQueue queue) const
@@ -66,29 +66,29 @@ void DataBuffer::copyTo(const DataBuffer& target, VkCommandBuffer commandBuffer,
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
     };
-    LOGGER_VK(vkBeginCommandBuffer, commandBuffer, &beginInfo);
+    TS_VK_CHECK(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
     VkBufferCopy copyRegion{
         .size = mSize
     };
     vkCmdCopyBuffer(commandBuffer, mBuffer, target.getBuffer(), 1, &copyRegion);
 
-    LOGGER_VK(vkEndCommandBuffer, commandBuffer);
+    TS_VK_CHECK(vkEndCommandBuffer, commandBuffer);
 
     VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .commandBufferCount = 1,
         .pCommandBuffers = &commandBuffer
     };
-    LOGGER_VK(vkQueueSubmit, queue, 1, &submitInfo, VK_NULL_HANDLE);
+    TS_VK_CHECK(vkQueueSubmit, queue, 1, &submitInfo, VK_NULL_HANDLE);
 
-    LOGGER_VK(vkQueueWaitIdle, queue);
+    TS_VK_CHECK(vkQueueWaitIdle, queue);
 }
 
 void* DataBuffer::map() const
 {
     void* data;
-    LOGGER_VK(vkMapMemory, mCtx.getVkDevice(), mDeviceMemory, 0, mSize, 0, &data);
+    TS_VK_CHECK(vkMapMemory, mCtx.getVkDevice(), mDeviceMemory, 0, mSize, 0, &data);
 
     return data;
 }

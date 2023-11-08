@@ -1,5 +1,7 @@
 #include "renderer_process.h"
 
+#include "globals.hpp"
+
 #include "context.h"
 #include "vulkan_tools/vulkan_functions.h"
 #include "tsengine/logger.h"
@@ -7,9 +9,9 @@
 #include "data_buffer.h"
 #include "headset.h"
 
-#include "tsengine/ecs/ecs.hpp"
+#include "tsengine/ecs/ecs.h"
 #include "tsengine/ecs/components/renderer_component.hpp"
-#include "ecs/render_system.hpp"
+#include "ecs/systems/render_system.hpp"
 
 namespace ts
 {
@@ -60,18 +62,18 @@ void RenderProcess::createRendererProcess(
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
         .commandBufferCount = 1,
     };
-    LOGGER_VK(vkAllocateCommandBuffers, device, &commandBufferAllocateInfo, &mCommandBuffer);
+    TS_VK_CHECK(vkAllocateCommandBuffers, device, &commandBufferAllocateInfo, &mCommandBuffer);
 
     const VkSemaphoreCreateInfo semaphoreCreateInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-    LOGGER_VK(vkCreateSemaphore, device, &semaphoreCreateInfo, nullptr, &mDrawableSemaphore);
+    TS_VK_CHECK(vkCreateSemaphore, device, &semaphoreCreateInfo, nullptr, &mDrawableSemaphore);
 
-    LOGGER_VK(vkCreateSemaphore, device, &semaphoreCreateInfo, nullptr, &mPresentableSemaphore);
+    TS_VK_CHECK(vkCreateSemaphore, device, &semaphoreCreateInfo, nullptr, &mPresentableSemaphore);
 
     const VkFenceCreateInfo fenceCreateInfo{
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
         .flags = VK_FENCE_CREATE_SIGNALED_BIT,
     };
-    LOGGER_VK(vkCreateFence, device, &fenceCreateInfo, nullptr, &mFence);
+    TS_VK_CHECK(vkCreateFence, device, &fenceCreateInfo, nullptr, &mFence);
 
     const auto uniformBufferOffsetAlignment = mCtx.getUniformBufferOffsetAlignment();
 
@@ -88,7 +90,7 @@ void RenderProcess::createRendererProcess(
 
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
         .offset = descriptorBufferInfos.at(1).offset + khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment),
-        .range = sizeof(math::Vec3) * gRegistry.getSystem<RenderSystem::Lights>().getSystemEntities().size()
+        .range = sizeof(math::Vec3) * gReg.getSystem<RenderSystem::Lights>().getSystemEntities().size()
     });
 
     if (descriptorBufferInfos.empty())
@@ -115,7 +117,7 @@ void RenderProcess::createRendererProcess(
         .descriptorSetCount = 1,
         .pSetLayouts = &descriptorSetLayout
     };
-    LOGGER_VK(vkAllocateDescriptorSets, device, &descriptorSetAllocateInfo, &mDescriptorSet);
+    TS_VK_CHECK(vkAllocateDescriptorSets, device, &descriptorSetAllocateInfo, &mDescriptorSet);
 
     for (auto& descriptorBufferInfo : descriptorBufferInfos)
     {

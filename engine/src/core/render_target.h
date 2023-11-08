@@ -7,7 +7,7 @@ namespace ts
 {
 class RenderTarget final
 {
-    NOT_COPYABLE_AND_MOVEABLE(RenderTarget);
+    TS_NOT_COPYABLE_AND_MOVEABLE(RenderTarget);
 
 public:
     RenderTarget(VkDevice device, VkImage image) : mDevice(device), mImage(image)

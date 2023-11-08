@@ -9,7 +9,7 @@ namespace ts
 {
 class Controllers final
 {
-    NOT_COPYABLE_AND_MOVEABLE(Controllers);
+    TS_NOT_COPYABLE_AND_MOVEABLE(Controllers);
 
     static constexpr std::string_view actionSetName{"actionset"};
     static constexpr std::string_view localizedActionSetName{"Actions"};

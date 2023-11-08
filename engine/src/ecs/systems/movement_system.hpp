@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tsengine/ecs/ecs.hpp"
+#include "tsengine/ecs/ecs.h"
 
 #include "tsengine/ecs/components/transform_component.hpp"
 #include "tsengine/ecs/components/rigid_body_component.hpp"
