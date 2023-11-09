@@ -2,25 +2,25 @@
 
 // TODO: Remove the need of providing class name - reflection
 
-#define NOT_COPYABLE(ClassName)                      \
+#define TS_NOT_COPYABLE(ClassName)                   \
     ClassName(const ClassName&) = delete;            \
     ClassName& operator=(const ClassName&) = delete;
 
-#define NOT_MOVEABLE(ClassName)                 \
+#define TS_NOT_MOVEABLE(ClassName)              \
     ClassName(ClassName&&) = delete;            \
     ClassName& operator=(ClassName&&) = delete;
 
-#define NOT_COPYABLE_AND_MOVEABLE(ClassName) \
-    NOT_COPYABLE(ClassName);                 \
-    NOT_MOVEABLE(ClassName);
+#define TS_NOT_COPYABLE_AND_MOVEABLE(ClassName) \
+    TS_NOT_COPYABLE(ClassName);                 \
+    TS_NOT_MOVEABLE(ClassName);
 
-#define SINGLETON_BODY(ClassName)         \
-    NOT_COPYABLE_AND_MOVEABLE(ClassName); \
-    private: ClassName() = default;       \
+#define TS_SINGLETON_BODY(ClassName)         \
+    TS_NOT_COPYABLE_AND_MOVEABLE(ClassName); \
+    private: ClassName() = default;          \
     friend Singleton<ClassName>;
 
-#define STR(x) XSTR(x)
-#define XSTR(x) #x
+#define TS_STR(x) XSTR(x)
+#define TS_XSTR(x) #x
 
 template<>
 struct std::hash<std::string_view> final
@@ -44,8 +44,8 @@ enum
 {
     TS_SUCCESS,
     TS_FAILURE,
-    STL_FAILURE,
-    UNKNOWN_FAILURE
+    TS_STL_FAILURE,
+    TS_UNKNOWN_FAILURE
 };
 
 class Exception : public std::exception
@@ -63,7 +63,7 @@ private:
 template<typename DerivedClass>
 class Singleton
 {
-    NOT_COPYABLE_AND_MOVEABLE(Singleton);
+    TS_NOT_COPYABLE_AND_MOVEABLE(Singleton);
 
 public:
     static auto& getInstance()

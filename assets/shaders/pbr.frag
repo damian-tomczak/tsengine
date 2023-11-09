@@ -3,6 +3,7 @@
 #extension GL_GOOGLE_include_directive : enable
 #extension GL_EXT_multiview : enable
 #extension GL_EXT_debug_printf : enable
+#extension GL_EXT_nonuniform_qualifier : enable
 
 #include "assets/shaders/common.h"
 
@@ -17,7 +18,7 @@ layout (binding = 1) uniform CommonUbo {
 } commonUbo;
 
 layout (binding = 2) uniform LightsUbo {
-    vec3 lights[2];
+    vec3 positions[LIGHTS_N];
 } lightsUbo;
 
 layout(push_constant) uniform Material {
@@ -38,7 +39,8 @@ float D_GGX(float dotNH, float roughness)
     float alpha = roughness * roughness;
     float alpha2 = alpha * alpha;
     float denom = dotNH * dotNH * (alpha2 - 1.0) + 1.0;
-    return (alpha2)/(PI * denom*denom);
+
+    return alpha2 / (PI * denom*denom);
 }
 
 float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
@@ -47,6 +49,7 @@ float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
     float k = (r*r) / 8.0;
     float GL = dotNL / (dotNL * (1.0 - k) + k);
     float GV = dotNV / (dotNV * (1.0 - k) + k);
+
     return GL * GV;
 }
 
@@ -54,6 +57,7 @@ vec3 F_Schlick(float cosTheta, float metallic)
 {
     vec3 F0 = mix(vec3(0.04), materialcolor(), metallic);
     vec3 F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+
     return F;
 }
 
@@ -88,9 +92,6 @@ void main()
 {
     vec3 N = normalize(inNormal);
 
-    // vec3 var = vec4(inverse(commonUbo.viewMats[gl_ViewIndex]) * vec4(-commonUbo.camPos - inWorldPos, 1.0)).xyz;
-    // vec3 V = normalize(vec3(var.x, var.y + 1.0, var.z));
-
     vec3 temp = vec3(commonUbo.viewMats[gl_ViewIndex][3]);
     vec3 v1 = vec3(
         commonUbo.camPos.x + temp.x,
@@ -100,9 +101,9 @@ void main()
     vec3 V = normalize(-v1 - inWorldPos);
 
     vec3 Lo = vec3(0.0);
-    for (int i = 0; i < lightsUbo.lights.length(); i++)
+    for (int i = 0; i < lightsUbo.positions.length(); i++)
     {
-        vec3 L = normalize(lightsUbo.lights[i] - inWorldPos);
+        vec3 L = normalize(lightsUbo.positions[i] - inWorldPos);
         Lo += BRDF(L, V, N, material.metallic, material.roughness);
     };
 

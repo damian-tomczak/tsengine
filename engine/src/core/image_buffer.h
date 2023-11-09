@@ -10,7 +10,7 @@ class Context;
 
 class ImageBuffer final
 {
-    NOT_COPYABLE_AND_MOVEABLE(ImageBuffer);
+    TS_NOT_COPYABLE_AND_MOVEABLE(ImageBuffer);
 
 public:
     ImageBuffer(const Context& ctx) : mCtx{ctx}

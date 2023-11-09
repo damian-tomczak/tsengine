@@ -285,7 +285,7 @@ void MirrorView::createSurface()
         .hwnd = winWindow->getHwnd()
     };
 
-    LOGGER_VK(vkCreateWin32SurfaceKHR, mCtx.getVkInstance(), &ci, nullptr, &mSurface);
+    TS_VK_CHECK(vkCreateWin32SurfaceKHR, mCtx.getVkInstance(), &ci, nullptr, &mSurface);
 #else
 #error not implemented
 #endif
@@ -320,7 +320,7 @@ void MirrorView::getSurfaceCapabilitiesAndExtent()
 {
     const auto physicalDevice = mCtx.getVkPhysicalDevice();
 
-    LOGGER_VK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR, physicalDevice, mSurface, &mSurfaceCapabilities);
+    TS_VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR, physicalDevice, mSurface, &mSurfaceCapabilities);
 
     if (!(mSurfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
     {
@@ -355,10 +355,10 @@ void MirrorView::pickSurfaceFormat()
     const auto physicalDevice = mCtx.getVkPhysicalDevice();
 
     uint32_t surfaceFormatCount{};
-    LOGGER_VK(vkGetPhysicalDeviceSurfaceFormatsKHR, physicalDevice, mSurface, &surfaceFormatCount, nullptr);
+    TS_VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR, physicalDevice, mSurface, &surfaceFormatCount, nullptr);
 
     std::vector<VkSurfaceFormatKHR> surfaceFormats(surfaceFormatCount);
-    LOGGER_VK(vkGetPhysicalDeviceSurfaceFormatsKHR, physicalDevice, mSurface, &surfaceFormatCount, surfaceFormats.data());
+    TS_VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR, physicalDevice, mSurface, &surfaceFormatCount, surfaceFormats.data());
 
     bool surfaceFormatFound{};
     for (const VkSurfaceFormatKHR& surfaceFormatCandidate : surfaceFormats)
@@ -401,12 +401,12 @@ void MirrorView::createSwapchain()
         .presentMode = presentMode,
         .clipped = VK_TRUE,
     };
-    LOGGER_VK(vkCreateSwapchainKHR, device, &swapchainCreateInfo, nullptr, &mSwapchain);
+    TS_VK_CHECK(vkCreateSwapchainKHR, device, &swapchainCreateInfo, nullptr, &mSwapchain);
 
     uint32_t swapchainImageCount{};
-    LOGGER_VK(vkGetSwapchainImagesKHR, device, mSwapchain, &swapchainImageCount, nullptr);
+    TS_VK_CHECK(vkGetSwapchainImagesKHR, device, mSwapchain, &swapchainImageCount, nullptr);
 
     mSwapchainImages.resize(swapchainImageCount);
-    LOGGER_VK(vkGetSwapchainImagesKHR, device, mSwapchain, &swapchainImageCount, mSwapchainImages.data());
+    TS_VK_CHECK(vkGetSwapchainImagesKHR, device, mSwapchain, &swapchainImageCount, mSwapchainImages.data());
 }
 }

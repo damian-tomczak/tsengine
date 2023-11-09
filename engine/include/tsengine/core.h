@@ -12,10 +12,10 @@ public:
     Engine(const Engine&&) = delete;
     Engine& operator=(Engine&&) = delete;
 
-    virtual bool init(const char*& gameName, unsigned& width, unsigned& height) = 0;
-    virtual void loadLvL() {};
+    virtual bool init(const char*& gameName, unsigned& width, unsigned& height);
+    virtual void loadLvL() = 0;
     virtual bool tick() = 0;
-    virtual void close() = 0;
+    virtual void close();
 };
 
 int run(Engine* const engine);

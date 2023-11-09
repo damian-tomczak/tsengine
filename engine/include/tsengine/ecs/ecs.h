@@ -127,7 +127,7 @@ public:
     const T& operator [](const Id index) const { return data.at(index); }
 };
 
-inline class Registry
+class Registry
 {
     std::unordered_map<std::type_index, std::shared_ptr<System>> systems;
     std::unordered_map<std::string, Entity> entityPerTag;
@@ -176,7 +176,9 @@ private:
 
     void addEntityToSystems(const Entity entity);
     void removeEntityFromSystems(const Entity entity);
-} gRegistry;
+};
+
+Registry& getMainReg();
 
 // Entity
 
@@ -367,7 +369,7 @@ inline Entity Registry::createEntity()
 
     const auto [entity, isQueued] = entitiesToBeAdded.emplace(entityId, this);
 
-    TS_ASSERT(isQueued, "Entity couldn't be added to the queue of entities to be added.");
+    TS_ASSERT_MSG(isQueued, "Entity couldn't be added to the queue of entities to be added.");
 
     return *entity;
 }
@@ -380,8 +382,6 @@ inline void Registry::tagEntity(const Entity entity, const std::string& tag)
 
 inline bool Registry::entityHasTag(const Entity entity, const std::string& tag) const
 {
-    TS_ASSERT(tagPerEntity.find(entity.getId()) != tagPerEntity.end(), "Entity doesn't have tag");
-
     return entityPerTag.find(tag)->second == entity;
 }
 
@@ -447,7 +447,7 @@ void Registry::addSystem(TArgs&& ...args)
 {
     const auto index = std::type_index(typeid(TSystem));
 
-    TS_ASSERT(systems.find(index) == systems.end(), "System is already added");
+    TS_ASSERT_MSG(systems.find(index) == systems.end(), "System is already added");
 
     const auto newSystem = std::make_shared<TSystem>(std::forward<TArgs>(args)...);
     systems.insert(std::make_pair(std::type_index(typeid(TSystem)), newSystem));
@@ -479,7 +479,7 @@ void Registry::addComponent(const Entity entity, TArgs&& ...args)
 {
     if constexpr (!is_component_of_v<typename TComponent::Base>)
     {
-        _addComponent<typename TComponent::Base>(entity, std::forward<TArgs>(args)...);
+        _addComponent<typename TComponent::Base>(entity);
     }
 
     _addComponent<TComponent>(entity, std::forward<TArgs>(args)...);

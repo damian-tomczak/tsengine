@@ -26,7 +26,7 @@ void loadShaderFromFile(const VkDevice device, const std::string& fileName, VkSh
         .pCode = reinterpret_cast<const uint32_t*>(code.data())
     };
 
-    LOGGER_VK(vkCreateShaderModule, device, &shaderModuleCreateInfo, nullptr, &shaderModule);
+    TS_VK_CHECK(vkCreateShaderModule, device, &shaderModuleCreateInfo, nullptr, &shaderModule);
 }
 }
 
@@ -162,7 +162,7 @@ void Pipeline::createPipeline(
         .layout = pipelinelineLayout,
         .renderPass = renderPass,
     };
-    LOGGER_VK(vkCreateGraphicsPipelines, device, nullptr, 1, &graphicsPipelineCreateInfo, nullptr, &mPipeline);
+    TS_VK_CHECK(vkCreateGraphicsPipelines, device, nullptr, 1, &graphicsPipelineCreateInfo, nullptr, &mPipeline);
 
     vkDestroyShaderModule(device, vertexShaderModule, nullptr);
     vkDestroyShaderModule(device, fragmentShaderModule, nullptr);

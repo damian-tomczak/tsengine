@@ -1,8 +1,9 @@
 #include "tsengine/asset_store.h"
 
+#include "globals.hpp"
 #include "tsengine/logger.h"
 
-#include "tsengine/ecs/ecs.hpp"
+#include "tsengine/ecs/ecs.h"
 #include "tsengine/ecs/components/mesh_component.hpp"
 #include "tsengine/ecs/components/transform_component.hpp"
 
@@ -19,7 +20,7 @@ namespace
 // TODO: avoid the same files
 void AssetStore::Models::load()
 {
-    for (const auto entity : gRegistry.getSystem<AssetStore>().getSystemEntities())
+    for (const auto entity : gReg.getSystem<AssetStore>().getSystemEntities())
     {
         auto& meshComponent = entity.getComponent<MeshComponent>();
         const auto& fileName = meshComponent.assetName;

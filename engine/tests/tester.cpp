@@ -132,9 +132,9 @@ TEST(MathTests, mat4InversionTest)
 
 TEST(MathTests, mat4rotationTest)
 {
-    const ts::math::Mat4 matrix = ts::math::Mat4(1.f);
+    const auto matrix = ts::math::Mat4(1.f);
 
-    const ts::math::Vec3 axis { 0.f, 1.f, 0.f };
+    const ts::math::Vec3 axis{0.f, 1.f, 0.f};
     const auto result = ts::math::rotate(matrix, axis, ts::math::radians(180.f));
 
     const ts::math::Mat4 expected
@@ -153,13 +153,6 @@ class TestGame final : public ts::TesterEngine
 
 public:
     TestGame() : TesterEngine{renderingDuration}
-    {}
-
-    bool init(const char*& gameName, unsigned& width, unsigned& height) override { return true; }
-
-    bool tick() override { return true; }
-
-    void close() override
     {}
 };
 

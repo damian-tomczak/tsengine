@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tsengine/ecs/ecs.hpp"
+#include "tsengine/ecs/ecs.h"
 
 #include "tsengine/ecs/components/mesh_component.hpp"
 #include "tsengine/ecs/components/transform_component.hpp"
@@ -12,6 +12,7 @@
 
 #include "shaders/light_cube.h"
 #include "shaders/grid.h"
+#include "shaders/common.h"
 
 #include "vulkan_tools/vulkan_functions.h"
 
@@ -27,20 +28,23 @@ public:
     {
         requireComponent<RendererComponentBase>();
 
-        gRegistry.addSystem<Lights>();
+        gReg.addSystem<Lights>();
+        gReg.addSystem<Meshes>();
     }
 
-    // TODO: sort by z
     void update(const VkCommandBuffer cmdBuf, const VkDescriptorSet descriptorSet)
     {
-        for (const auto entity : getSystemEntities())
-        {
-            auto v = entity.getTag();
+        auto entities = getSystemEntities();
 
+        std::ranges::sort(entities, std::less{}, [](const auto entity) {
+            return entity.getComponent<RendererComponentBase>().z;
+        });
+
+        for (const auto entity : entities)
+        {
             size_t entityIndexforUniformBufferOffset{};
-            const auto uniformBufferOffset = static_cast<uint32_t>(
-                khronos_utils::align(
-                    static_cast<VkDeviceSize>(sizeof(decltype(RenderProcess::mIndividualUniformData)::value_type)),
+            uint32_t uniformBufferOffsets = 
+                static_cast<uint32_t>(khronos_utils::align(static_cast<VkDeviceSize>(sizeof(decltype(RenderProcess::mIndividualUniformData)::value_type)),
                     mVkUniformBufferOffsetAlignment) * static_cast<VkDeviceSize>(entityIndexforUniformBufferOffset));
 
             vkCmdBindDescriptorSets(
@@ -51,7 +55,7 @@ public:
                 1,
                 &descriptorSet,
                 1,
-                &uniformBufferOffset);
+                &uniformBufferOffsets);
 
             auto& pos = entity.getComponent<TransformComponent>().pos;
             if (entity.hasComponent<TransformComponent>())
@@ -66,7 +70,7 @@ public:
 
             if (entity.hasComponent<MeshComponent>())
             {
-                TS_ASSERT(!entity.hasComponent<RendererComponent<PipelineType::COLOR>>(), "Not implemented yet");
+                TS_ASSERT_MSG(!entity.hasComponent<RendererComponent<PipelineType::COLOR>>(), "Not implemented yet");
 
                 const auto& mesh = entity.getComponent<MeshComponent>();
 
@@ -150,6 +154,10 @@ public:
             requireComponent<RendererComponent<PipelineType::LIGHT>>();
         }
 
+        void update()
+        {
+            TS_ASSERT_MSG(getSystemEntities().size() == LIGHTS_N, "TODO: lights pipeline is prepared for 2 light sources");
+        }
     };
 
 private:
@@ -157,5 +165,14 @@ private:
     const VkDeviceSize& mVkUniformBufferOffsetAlignment;
     std::weak_ptr<Pipeline> mpGridPipeline, mpNormalLightingPipeline, mpPbrPipeline, mpLightCubePipeline;
     VkPipelineLayout mpPipelineLayout{};
+
+    class Meshes : public System
+    {
+    public:
+        Meshes()
+        {
+            requireComponent<MeshComponent>();
+        }
+    };
 };
 }

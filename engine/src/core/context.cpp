@@ -37,7 +37,7 @@ Context& Context::createOpenXrContext()
 
 void Context::createVulkanContext()
 {
-    TS_ASSERT(mIsXrContextCreated, "XrContext should be firstly created");
+    TS_ASSERT_MSG(mIsXrContextCreated, "XrContext should be firstly created");
 
     vulkanloader::connectWithLoader();
     vulkanloader::loadExportFunction();
@@ -109,7 +109,7 @@ void Context::createXrDebugMessenger()
         .userCallback = reinterpret_cast<PFN_xrDebugUtilsMessengerCallbackEXT>(khronos_utils::xrCallback)
     };
 
-    LOGGER_XR(xrCreateDebugUtilsMessengerEXT,
+    TS_XR_CHECK(xrCreateDebugUtilsMessengerEXT,
         mXrInstance,
         &ci,
         &mXrDebugMessenger);
@@ -124,39 +124,39 @@ void Context::createVkDebugMessenger()
         .pfnUserCallback = &khronos_utils::vkCallback
     };
 
-    LOGGER_VK(vkCreateDebugUtilsMessengerEXT, mVkInstance, &ci, nullptr, &mVkDebugMessenger);
+    TS_VK_CHECK(vkCreateDebugUtilsMessengerEXT, mVkInstance, &ci, nullptr, &mVkDebugMessenger);
 }
 #endif // DEBUG
 
 void Context::loadXrExtensions()
 {
-    LOGGER_XR(xrGetInstanceProcAddr,
+    TS_XR_CHECK(xrGetInstanceProcAddr,
         mXrInstance,
         "xrGetVulkanInstanceExtensionsKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanInstanceExtensionsKHR));
 
-    LOGGER_XR(xrGetInstanceProcAddr,
+    TS_XR_CHECK(xrGetInstanceProcAddr,
         mXrInstance,
         "xrGetVulkanGraphicsDeviceKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsDeviceKHR));
 
-    LOGGER_XR(xrGetInstanceProcAddr,
+    TS_XR_CHECK(xrGetInstanceProcAddr,
         mXrInstance,
         "xrGetVulkanDeviceExtensionsKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanDeviceExtensionsKHR));
 
-    LOGGER_XR(xrGetInstanceProcAddr,
+    TS_XR_CHECK(xrGetInstanceProcAddr,
         mXrInstance,
         "xrGetVulkanGraphicsRequirementsKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsRequirementsKHR));
 
 #ifndef NDEBUG
-    LOGGER_XR(xrGetInstanceProcAddr,
+    TS_XR_CHECK(xrGetInstanceProcAddr,
         mXrInstance,
         "xrCreateDebugUtilsMessengerEXT",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrCreateDebugUtilsMessengerEXT));
 
-    LOGGER_XR(xrGetInstanceProcAddr,
+    TS_XR_CHECK(xrGetInstanceProcAddr,
         mXrInstance,
         "xrDestroyDebugUtilsMessengerEXT",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrDestroyDebugUtilsMessengerEXT));
@@ -189,19 +189,14 @@ void Context::initXrSystemId()
         .formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
     };
 
-    auto result = xrGetSystem(mXrInstance, &xrSystemInfo, &mXrSystemId);
-
-    if (XR_FAILED(result))
-    {
-        TS_ERR("No headset detected");
-    }
+    TS_XR_CHECK_MSG("No headset detected", xrGetSystem, mXrInstance, &xrSystemInfo, &mXrSystemId);
 }
 
 void Context::initXrSystemInfo()
 {
     XrSystemProperties xrSystemProperties{XR_TYPE_SYSTEM_PROPERTIES};
 
-    LOGGER_XR(xrGetSystemProperties, mXrInstance, mXrSystemId, &xrSystemProperties);
+    TS_XR_CHECK(xrGetSystemProperties, mXrInstance, mXrSystemId, &xrSystemProperties);
     
     // TODO: print xr device info
     // TODO: costum xr loader
@@ -210,7 +205,7 @@ void Context::initXrSystemInfo()
 void Context::isXrBlendModeAvailable()
 {
     uint32_t environmentBlendModeCount;
-    LOGGER_XR(xrEnumerateEnvironmentBlendModes,
+    TS_XR_CHECK(xrEnumerateEnvironmentBlendModes,
         mXrInstance,
         mXrSystemId,
         xrViewType,
@@ -218,7 +213,7 @@ void Context::isXrBlendModeAvailable()
         &environmentBlendModeCount, nullptr);
 
     std::vector<XrEnvironmentBlendMode> supportedEnvironmentBlendModes(environmentBlendModeCount);
-    LOGGER_XR(xrEnumerateEnvironmentBlendModes,
+    TS_XR_CHECK(xrEnumerateEnvironmentBlendModes,
         mXrInstance,
         mXrSystemId,
         xrViewType,
@@ -245,7 +240,7 @@ void Context::isXrBlendModeAvailable()
 void Context::getRequiredVulkanInstanceExtensions(std::vector<std::string>& vulkanInstanceExtensions)
 {
     uint32_t count;
-    LOGGER_XR(xrGetVulkanInstanceExtensionsKHR,
+    TS_XR_CHECK(xrGetVulkanInstanceExtensionsKHR,
         mXrInstance,
         mXrSystemId,
         0,
@@ -253,7 +248,7 @@ void Context::getRequiredVulkanInstanceExtensions(std::vector<std::string>& vulk
         nullptr);
 
     std::string xrVulkanExtensionsStr(count, ' ');
-    LOGGER_XR(xrGetVulkanInstanceExtensionsKHR,
+    TS_XR_CHECK(xrGetVulkanInstanceExtensionsKHR,
         mXrInstance,
         mXrSystemId,
         count,
@@ -301,13 +296,13 @@ void Context::isVulkanInstanceExtensionsAvailable(const std::vector<std::string>
 void Context::getSupportedVulkanInstanceExtensions(std::vector<VkExtensionProperties>& supportedVulkanInstanceExtensions)
 {
     uint32_t instanceExtensionCount;
-    LOGGER_VK(vkEnumerateInstanceExtensionProperties,
+    TS_VK_CHECK(vkEnumerateInstanceExtensionProperties,
         nullptr,
         &instanceExtensionCount,
         nullptr);
 
     supportedVulkanInstanceExtensions.resize(instanceExtensionCount);
-    LOGGER_VK(vkEnumerateInstanceExtensionProperties,
+    TS_VK_CHECK(vkEnumerateInstanceExtensionProperties,
         nullptr,
         &instanceExtensionCount,
         supportedVulkanInstanceExtensions.data());
@@ -340,10 +335,10 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
 #ifndef NDEBUG
     std::vector<VkLayerProperties> supportedInstanceLayers;
     uint32_t instanceLayerCount;
-    LOGGER_VK(vkEnumerateInstanceLayerProperties, &instanceLayerCount, nullptr);
+    TS_VK_CHECK(vkEnumerateInstanceLayerProperties, &instanceLayerCount, nullptr);
 
     supportedInstanceLayers.resize(instanceLayerCount);
-    LOGGER_VK(vkEnumerateInstanceLayerProperties, &instanceLayerCount, supportedInstanceLayers.data());
+    TS_VK_CHECK(vkEnumerateInstanceLayerProperties, &instanceLayerCount, supportedInstanceLayers.data());
 
     for (const auto layer : vkLayers)
     {
@@ -367,12 +362,12 @@ void Context::createVulkanInstance(const std::vector<std::string>& vulkanInstanc
     ci.ppEnabledLayerNames = vkLayers.data();
 #endif // DEBUG
 
-    LOGGER_VK(vkCreateInstance, &ci, nullptr, &mVkInstance);
+    TS_VK_CHECK(vkCreateInstance, &ci, nullptr, &mVkInstance);
 }
 
 void Context::createPhysicalDevice()
 {
-    LOGGER_XR(xrGetVulkanGraphicsDeviceKHR, mXrInstance, mXrSystemId, mVkInstance, &mPhysicalDevice);
+    TS_XR_CHECK(xrGetVulkanGraphicsDeviceKHR, mXrInstance, mXrSystemId, mVkInstance, &mPhysicalDevice);
 }
 
 void Context::getGraphicsQueue()
@@ -431,7 +426,7 @@ void Context::getPresentQueue(const VkSurfaceKHR mirrorSurface)
         }
 
         VkBool32 presentSupport{};
-        LOGGER_VK(vkGetPhysicalDeviceSurfaceSupportKHR,
+        TS_VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR,
             mPhysicalDevice,
             static_cast<uint32_t>(queueFamilyIndexCandidate),
             mirrorSurface, &presentSupport);
@@ -509,14 +504,14 @@ void Context::isVulkanDeviceExtensionsAvailable(
 void Context::getSupportedVulkanDeviceExtensions(std::vector<VkExtensionProperties>& vulkanDeviceExtensions)
 {
     uint32_t deviceExtensionCount;
-    LOGGER_VK(vkEnumerateDeviceExtensionProperties,
+    TS_VK_CHECK(vkEnumerateDeviceExtensionProperties,
         mPhysicalDevice,
         nullptr,
         &deviceExtensionCount,
         nullptr);
 
     vulkanDeviceExtensions.resize(deviceExtensionCount);
-    LOGGER_VK(vkEnumerateDeviceExtensionProperties,
+    TS_VK_CHECK(vkEnumerateDeviceExtensionProperties,
         mPhysicalDevice,
         nullptr,
         &deviceExtensionCount,
@@ -526,11 +521,11 @@ void Context::getSupportedVulkanDeviceExtensions(std::vector<VkExtensionProperti
 void Context::getRequiredVulkanDeviceExtensions(std::vector<std::string>& requiredVulkanDeviceExtensions)
 {
     uint32_t count;
-    LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mXrInstance, mXrSystemId, 0, &count, nullptr);
+    TS_XR_CHECK(xrGetVulkanDeviceExtensionsKHR, mXrInstance, mXrSystemId, 0, &count, nullptr);
 
     std::string buffer;
     buffer.resize(count);
-    LOGGER_XR(xrGetVulkanDeviceExtensionsKHR, mXrInstance, mXrSystemId, count, &count, buffer.data());
+    TS_XR_CHECK(xrGetVulkanDeviceExtensionsKHR, mXrInstance, mXrSystemId, count, &count, buffer.data());
 
     khronos_utils::unpackXrExtensionString(buffer, requiredVulkanDeviceExtensions);
 
@@ -560,10 +555,10 @@ void Context::createLogicalDevice(
         .pEnabledFeatures = &physicalDeviceFeatures,
     };
 
-    LOGGER_VK(vkCreateDevice, mPhysicalDevice, &deviceCi, nullptr, &mVkDevice);
+    TS_VK_CHECK(vkCreateDevice, mPhysicalDevice, &deviceCi, nullptr, &mVkDevice);
 
     XrGraphicsRequirementsVulkanKHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR};
-    LOGGER_XR(xrGetVulkanGraphicsRequirementsKHR, mXrInstance, mXrSystemId, &graphicsRequirements);
+    TS_XR_CHECK(xrGetVulkanGraphicsRequirementsKHR, mXrInstance, mXrSystemId, &graphicsRequirements);
 }
 
 void Context::createQueues(std::vector<VkDeviceQueueCreateInfo>& deviceQueueCis)
@@ -620,8 +615,8 @@ Context::~Context()
 
 void Context::createXrInstance()
 {
-    TS_ASSERT(mGameName.size() > 0, "setGameName() should be firstly called");
-    TS_ASSERT(mGameName.size() > 0, "setGameName() should be firstly called");
+    TS_ASSERT_MSG(mGameName.size() > 0, "setGameName() should be firstly called");
+    TS_ASSERT_MSG(mGameName.size() > 0, "setGameName() should be firstly called");
 
     XrApplicationInfo appInfo{
         .applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0)),
@@ -642,7 +637,7 @@ void Context::createXrInstance()
     std::vector<XrExtensionProperties> supportedXrInstanceExtensions;
 
     uint32_t instanceExtensionCount;
-    LOGGER_XR(xrEnumerateInstanceExtensionProperties, nullptr, 0, &instanceExtensionCount, nullptr)
+    TS_XR_CHECK(xrEnumerateInstanceExtensionProperties, nullptr, 0, &instanceExtensionCount, nullptr)
 
     supportedXrInstanceExtensions.resize(instanceExtensionCount);
     for (auto& extensionProperty : supportedXrInstanceExtensions)
@@ -650,7 +645,7 @@ void Context::createXrInstance()
         extensionProperty.type = XR_TYPE_EXTENSION_PROPERTIES;
     }
 
-    LOGGER_XR(xrEnumerateInstanceExtensionProperties,
+    TS_XR_CHECK(xrEnumerateInstanceExtensionProperties,
         nullptr,
         instanceExtensionCount,
         &instanceExtensionCount,
@@ -685,6 +680,6 @@ void Context::createXrInstance()
         .enabledExtensionNames = extensions.data(),
     };
 
-    LOGGER_XR(xrCreateInstance, &instanceCi, &mXrInstance);
+    TS_XR_CHECK(xrCreateInstance, &instanceCi, &mXrInstance);
 }
 } // namespace ts

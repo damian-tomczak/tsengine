@@ -2,7 +2,7 @@
 
 #include "tsengine/asset_store.h"
 #include "tsengine/core.h"
-#include "tsengine/ecs/ecs.hpp"
+#include "tsengine/ecs/ecs.h"
 #include "tsengine/event_bus.hpp"
 
 #include <iostream>

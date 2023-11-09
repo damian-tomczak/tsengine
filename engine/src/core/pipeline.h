@@ -9,7 +9,7 @@ class Context;
 
 class Pipeline final
 {
-    NOT_COPYABLE_AND_MOVEABLE(Pipeline);
+    TS_NOT_COPYABLE_AND_MOVEABLE(Pipeline);
 
 public:
     Pipeline(const Context& ctx);

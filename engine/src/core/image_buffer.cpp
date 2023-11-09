@@ -54,7 +54,7 @@ void ImageBuffer::createImage(
 
     const auto device = mCtx.getVkDevice();
 
-    LOGGER_VK(vkCreateImage, device, &imageCreateInfo, nullptr, &mImage);
+    TS_VK_CHECK(vkCreateImage, device, &imageCreateInfo, nullptr, &mImage);
 
     VkMemoryRequirements memoryRequirements;
     vkGetImageMemoryRequirements(device, mImage, &memoryRequirements);
@@ -74,8 +74,8 @@ void ImageBuffer::createImage(
         .allocationSize = memoryRequirements.size,
         .memoryTypeIndex = suitableMemoryTypeIndex
     };
-    LOGGER_VK(vkAllocateMemory, device, &memoryAllocateInfo, nullptr, &mDeviceMemory);
-    LOGGER_VK(vkBindImageMemory, device, mImage, mDeviceMemory, 0);
+    TS_VK_CHECK(vkAllocateMemory, device, &memoryAllocateInfo, nullptr, &mDeviceMemory);
+    TS_VK_CHECK(vkBindImageMemory, device, mImage, mDeviceMemory, 0);
 
     VkImageViewCreateInfo imageViewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -97,6 +97,6 @@ void ImageBuffer::createImage(
         }
     };
 
-    LOGGER_VK(vkCreateImageView, device, &imageViewCreateInfo, nullptr, &mImageView);
+    TS_VK_CHECK(vkCreateImageView, device, &imageViewCreateInfo, nullptr, &mImageView);
 }
 }

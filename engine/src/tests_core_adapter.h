@@ -18,12 +18,9 @@ struct TesterEngine : public Engine
     TesterEngine(const TesterEngine&&) = delete;
     TesterEngine& operator=(TesterEngine&&) = delete;
 
-    virtual bool init(const char*& gameName, unsigned& width, unsigned& height) override { return true; }
-
-    virtual void close() override
-    {}
-
     virtual bool tick() override { return true; }
+    virtual void loadLvL() override
+    {}
 
     std::chrono::steady_clock::duration renderingDuration;
 };

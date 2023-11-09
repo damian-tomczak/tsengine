@@ -7,7 +7,7 @@
 #include "openxr/openxr.h"
 #include "vulkan/vulkan.h"
 
-#define LOGGER_VK(function, ...)                                                                           \
+#define TS_VK_CHECK(function, ...)                                                                         \
     {                                                                                                      \
         VkResult result{function(__VA_ARGS__)};                                                            \
         if (result != VK_SUCCESS)                                                                          \
@@ -20,13 +20,39 @@
         }                                                                                                  \
     }
 
-#define LOGGER_XR(function, ...)                                                                           \
+#define TS_XR_CHECK(function, ...)                                                                         \
     {                                                                                                      \
         XrResult result{function(__VA_ARGS__)};                                                            \
         if (result != XR_SUCCESS)                                                                          \
         {                                                                                                  \
             ts::logger::error(                                                                             \
                 (#function " failed with status: " + ts::khronos_utils::xrResultToString(result)).c_str(), \
+                __FILE__,                                                                                  \
+                FUNCTION_SIGNATURE,                                                                        \
+                __LINE__);                                                                                 \
+        }                                                                                                  \
+    }
+
+#define TS_VK_CHECK_MSG(msg, function, ...)                                                                \
+    {                                                                                                      \
+        VkResult result{function(__VA_ARGS__)};                                                            \
+        if (result != VK_SUCCESS)                                                                          \
+        {                                                                                                  \
+            ts::logger::error(                                                                             \
+                msg,                                                                                       \
+                __FILE__,                                                                                  \
+                FUNCTION_SIGNATURE,                                                                        \
+                __LINE__);                                                                                 \
+        }                                                                                                  \
+    }
+
+#define TS_XR_CHECK_MSG(msg, function, ...)                                                                \
+    {                                                                                                      \
+        XrResult result{function(__VA_ARGS__)};                                                            \
+        if (result != XR_SUCCESS)                                                                          \
+        {                                                                                                  \
+            ts::logger::error(                                                                             \
+                msg,                                                                                       \
                 __FILE__,                                                                                  \
                 FUNCTION_SIGNATURE,                                                                        \
                 __LINE__);                                                                                 \

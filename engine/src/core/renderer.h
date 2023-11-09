@@ -17,7 +17,7 @@ class DataBuffer;
 
 class Renderer
 {
-    NOT_COPYABLE_AND_MOVEABLE(Renderer);
+    TS_NOT_COPYABLE_AND_MOVEABLE(Renderer);
 
     static constexpr size_t framesInFlightCount{2};
 
@@ -27,7 +27,7 @@ public:
     virtual ~Renderer();
 
     void createRenderer();
-    void render(const math::Vec3& cameraPosition, const size_t swapchainImageIndex);
+    void render(const size_t swapchainImageIndex);
     void submit(const bool useSemaphores) const;
 
     [[nodiscard]] VkSemaphore getCurrentDrawableSemaphore() const;
@@ -36,7 +36,7 @@ public:
 
 private:
     void createVertexIndexBuffer();
-    void updateUniformData(const math::Vec3& cameraMatrix, const std::unique_ptr<RenderProcess>& renderProcess);
+    void updateUniformData(const std::unique_ptr<RenderProcess>& renderProcess);
     void initRendererFrontend();
 
     const Context& mCtx;

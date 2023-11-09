@@ -14,7 +14,7 @@ class RenderTarget;
 
 class Headset final
 {
-    NOT_COPYABLE_AND_MOVEABLE(Headset);
+    TS_NOT_COPYABLE_AND_MOVEABLE(Headset);
 
     static constexpr XrReferenceSpaceType spaceType{XR_REFERENCE_SPACE_TYPE_STAGE};
     static constexpr VkFormat colorFormat{VK_FORMAT_R8G8B8A8_SRGB};

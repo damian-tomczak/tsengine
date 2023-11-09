@@ -9,7 +9,7 @@ namespace ts
 {
 class Context final
 {
-    NOT_COPYABLE_AND_MOVEABLE(Context);
+    TS_NOT_COPYABLE_AND_MOVEABLE(Context);
 
     static constexpr XrEnvironmentBlendMode xrEnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
 

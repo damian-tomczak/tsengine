@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-# TODO: cmake configuration time weird increased last time - investigate it
+# TODO: cmake configuration time weirdly increased last time - investigate it
 project(ts VERSION 0.0.1 LANGUAGES CXX)
 
 set(GAME_NAME "Awesome Game" CACHE STRING "Game name")

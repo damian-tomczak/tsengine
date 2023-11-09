@@ -2,7 +2,7 @@
 
 #include "utils.hpp"
 
-#include "tsengine/ecs/ecs.hpp"
+#include "tsengine/ecs/ecs.h"
 #include "tsengine/ecs/components/mesh_component.hpp"
 
 namespace ts

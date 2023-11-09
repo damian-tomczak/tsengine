@@ -2,6 +2,7 @@
 
 #include "tsengine/math.hpp"
 #include "internal_utils.h"
+#include "shaders/common.h"
 
 #include "vulkan/vulkan.h"
 
@@ -13,23 +14,29 @@ class Headset;
 
 class RenderProcess final
 {
-    NOT_COPYABLE_AND_MOVEABLE(RenderProcess);
+    TS_NOT_COPYABLE_AND_MOVEABLE(RenderProcess);
 
 public:
     RenderProcess(const Context& ctx, const Headset& headset);
     ~RenderProcess();
 
     void createRendererProcess(
-        VkCommandPool commandPool,
-        VkDescriptorPool descriptorPool,
-        VkDescriptorSetLayout descriptorSetLayout,
-        size_t modelCount);
+        const VkCommandPool commandPool,
+        const VkDescriptorPool descriptorPool,
+        const VkDescriptorSetLayout descriptorSetLayout,
+        const size_t modelsNum,
+        const size_t lightsNum);
 
     struct IndivialData final
     {
         math::Mat4 model;
     };
-    std::vector<IndivialData> mIndividualUniformData;
+    std::vector<IndivialData> mIndividualUniformData{};
+    
+    struct LightData final
+    {
+        std::array<math::Vec3, LIGHTS_N> positions;
+    } mLightsUniformData{};
 
     struct CommonUniformData final
     {

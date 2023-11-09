@@ -1,5 +1,7 @@
 #include "tsengine/core.h"
 
+#include "globals.hpp"
+
 #include "tsengine/asset_store.h" 
 #include "context.h"
 #include "window.h"
@@ -11,16 +13,20 @@
 #include "renderer.h"
 #include "tests_core_adapter.h"
 
-#include "tsengine/ecs/ecs.hpp" 
-#include "ecs/movement_system.hpp" 
-#include "ecs/render_system.hpp" 
-
-#ifdef CYBSDK_FOUND
-    #include "CVirt.h"
-#endif
+#include "tsengine/ecs/ecs.h" 
+#include "ecs/systems/movement_system.hpp" 
+#include "ecs/systems/render_system.hpp"
 
 namespace ts
 {
+bool Engine::init(const char*& gameName, unsigned& width, unsigned& height)
+{
+    return true;
+}
+
+void Engine::close()
+{}
+
 namespace
 {
     std::mutex engineInit;
@@ -74,12 +80,12 @@ int run(Engine* const game) try
 
     compileShaders("assets/shaders");
 
-    auto player = ts::gRegistry.createEntity();
+    auto player = gReg.createEntity();
     player.setTag("player");
     player.addComponent<ts::TransformComponent>();
-    player.addComponent<ts::RigidBodyComponent>(2.f);
+    player.addComponent<ts::RigidBodyComponent>(7.f);
     
-    auto grid = ts::gRegistry.createEntity();
+    auto grid = gReg.createEntity();
     grid.setTag("grid");
     grid.addComponent<ts::RendererComponent<PipelineType::GRID>>();
 
@@ -89,11 +95,11 @@ int run(Engine* const game) try
     Context ctx{gameName};
     ctx.createOpenXrContext().createVulkanContext();
 
-    gRegistry.addSystem<AssetStore>();
-    gRegistry.addSystem<MovementSystem>();
-    gRegistry.addSystem<RenderSystem>(ctx.getUniformBufferOffsetAlignment());
+    gReg.addSystem<AssetStore>();
+    gReg.addSystem<MovementSystem>();
+    gReg.addSystem<RenderSystem>(ctx.getUniformBufferOffsetAlignment());
 
-    gRegistry.update();
+    gReg.update();
 
     AssetStore::Models::load();
 
@@ -113,38 +119,13 @@ int run(Engine* const game) try
     TS_LOG("tsengine initialization completed successfully");
 
     window->show();
-    math::Vec3 cameraPosition{1.f};
     auto loop = true;
     auto previousTime = std::chrono::high_resolution_clock::now();
     auto startTime = std::chrono::steady_clock::now();
     // TODO: firstly render to the window then copy to the headset
-
-#ifdef CYBSDK_FOUND
-    const auto device = CybSDK::Virt::FindDevice();
-    if (device == nullptr)
-    {
-        LOGGER_ERR("Cyberith Virtualizer device not found");
-    }
-
-    const auto info = device->GetDeviceInfo();
-
-    const auto virtName = info.ProductName;
-    const auto virtNameLen = wcslen(virtName);
-    std::vector<char> virtBuf(virtNameLen);
-    wcstombs(virtBuf.data(), virtName, virtNameLen);
-    std::string virtConvertedName(virtBuf.begin(), virtBuf.end());
-    LOGGER_LOG(std::format("Device found {} Firmware Version: {}.{}", virtConvertedName, static_cast<int>(info.MajorVersion), static_cast<int>(info.MinorVersion)).c_str());
-
-
-    if (!device->Open())
-    {
-        LOGGER_ERR("Unable to connect to Cyberith Virtualizer");
-    }
-#endif
-
     while (loop)
     {
-#ifdef TESTER_ADAPTER
+#ifdef TESTER_ADAPTER 
         if ((testerAdapter != nullptr) && isRenderingStarted)
         {
             if (std::chrono::steady_clock::now() >= (startTime + testerAdapter->renderingDuration))
@@ -174,12 +155,10 @@ int run(Engine* const game) try
         const long long elapsedNanoseconds =
             std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - previousTime).count();
         static constexpr auto nanosecondsPerSecond = 1e9f;
-        const auto deltaTime = static_cast<float>(elapsedNanoseconds) / nanosecondsPerSecond;
+        const auto dt = static_cast<float>(elapsedNanoseconds) / nanosecondsPerSecond;
         previousTime = nowTime;
 
-        gRegistry.update();
-
-        gRegistry.getSystem<MovementSystem>().update(deltaTime);
+        gReg.update();
 
         uint32_t swapchainImageIndex;
         const auto frameResult = headset.beginFrame(swapchainImageIndex);
@@ -192,50 +171,10 @@ int run(Engine* const game) try
             }
 #endif
 
-#ifdef CYBSDK_FOUND
-            const auto ringHeight = device->GetPlayerHeight();
-            auto ringAngle = device->GetPlayerOrientation();
-            const auto movementDirection = device->GetMovementDirection();
-            const auto movementSpeed = device->GetMovementSpeed();
-
-            if (movementSpeed > 0.f)
-            {
-                ringAngle *= 2 * std::numbers::pi_v<float>;
-                auto offsetX = std::sin(ringAngle) * movementSpeed * flySpeedMultiplier * deltaTime;
-                auto offsetZ = -(std::cos(ringAngle) * movementSpeed * flySpeedMultiplier * deltaTime);
-
-                if (movementDirection == -1.f)
-                {
-                    offsetX *= -1;
-                    offsetZ *= -1;
-                }
-                cameraPosition.x += offsetX;
-                cameraPosition.z += offsetZ;
-            }
-#else
             controllers.sync(headset.getXrSpace(), headset.getXrFrameState().predictedDisplayTime);
+            gReg.getSystem<MovementSystem>().update(dt, controllers);
 
-            for (size_t controllerIndex{}; controllerIndex < controllers.controllerCount; ++controllerIndex)
-            {
-                const auto flyState = controllers.getFlyState(controllerIndex);
-                if (flyState)
-                {
-                    const auto controllerPose = controllers.getPose(controllerIndex)[2];
-
-                    if ((!controllerPose.isNan()) || (controllerPose == math::Vec3{0.f}))
-                    {
-                        const math::Vec3 forward{controllers.getPose(controllerIndex)[2]};
-                        cameraPosition += forward * player.getComponent<RigidBodyComponent>().velocity * deltaTime;
-                    }
-                    else
-                    {
-                        TS_WARN(std::format("Controller no. {} can not be located.", controllerIndex).c_str());
-                    }
-                }
-            }
-#endif
-
-            renderer.render(cameraPosition, swapchainImageIndex);
+            renderer.render(swapchainImageIndex);
             const auto mirrorResult = mirrorView.render(swapchainImageIndex);
 
             const auto isMirrorViewVisible = (mirrorResult == MirrorView::RenderResult::VISIBLE);
