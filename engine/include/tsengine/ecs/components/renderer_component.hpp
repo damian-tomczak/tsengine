@@ -4,6 +4,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Renderer;
 
 // TODO: enum reflection
@@ -99,4 +101,5 @@ struct RendererComponent<PipelineType::PBR> : public RendererComponentBase
         : RendererComponentBase{z_}, material{material_}
     {}
 };
-}
+} // namespace ver
+} // namespace ts

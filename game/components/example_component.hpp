@@ -1,12 +1,19 @@
 #pragma once
 
+#include "tsengine/ecs/ecs.h"
+#include "tsengine/math.hpp"
+
 #include <string>
 
-struct TextureComponent
+struct ExampleComponent : public ts::Component
 {
-    std::string assetId;
+    ts::math::Vec3 startPos;
+    ts::math::Vec3 endPos;
+    std::chrono::high_resolution_clock::time_point startTime;
 
-    TextureComponent(std::string assetId_) : assetId{ assetId_ }
-    {
-    }
+    ExampleComponent(ts::math::Vec3 startPos_ = {}, ts::math::Vec3 endPos_ = {}) :
+        startPos{startPos_},
+        endPos{endPos_},
+        startTime{std::chrono::high_resolution_clock::now()}
+    {}
 };

@@ -6,6 +6,10 @@
 #include <Windows.h>
 #endif
 
+namespace ts
+{
+inline namespace TS_VER
+{
 namespace
 {
 constexpr std::string_view formatingEnd{"\033[0m"};
@@ -68,7 +72,7 @@ inline auto debugInfo(std::string fileName, std::string functionName, int lineNu
 #endif // !NDEBUG
 } // namespace
 
-namespace ts::logger
+namespace logger
 {
 void log(
     const char* message,
@@ -159,4 +163,6 @@ if (debugBreak)
         throw Exception{};
     }
 }
-} // namespace ts::logger
+} // namespace logger
+} // namespace ver
+} // namespace ts

@@ -3,6 +3,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 void Win32Window::createWindow()
 {
     const WNDCLASSEX wc{
@@ -94,4 +96,5 @@ LRESULT Win32Window::windowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 
     return 0;
 }
+} // namespace ver
 } // namespace ts

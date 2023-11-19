@@ -6,6 +6,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Context;
 class Window;
 class Headset;
@@ -58,4 +60,5 @@ private:
     bool mIsResizeDetected{};
     uint32_t mDestinationImageIndex{};
 };
-}
+} // namespace ver
+} // namespace ts

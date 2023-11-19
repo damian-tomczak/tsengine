@@ -7,6 +7,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Win32Window final : public Window
 {
 public:
@@ -31,4 +33,5 @@ private:
 
     void createWindow() override;
 };
+} // namespace ver
 } // namespace ts

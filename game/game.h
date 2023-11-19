@@ -16,6 +16,6 @@ public:
 
     bool init(const char*& gameName, unsigned& width, unsigned& height) override;
     void loadLvL() override;
-    bool tick() override;
+    bool tick(const float dt) override;
     void close() override;
 };

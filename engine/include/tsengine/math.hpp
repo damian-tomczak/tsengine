@@ -5,6 +5,8 @@
 // TODO: column major
 namespace ts::math
 {
+inline namespace TS_VER
+{
 struct Vec2;
 struct Vec3;
 struct Vec4;
@@ -12,6 +14,10 @@ struct Mat2;
 struct Mat3;
 struct Mat4;
 struct Quat;
+
+inline Vec2 lerp(const Vec2 start, const Vec2 end, const float t);
+inline Vec3 lerp(const Vec3 start, const Vec3 end, const float t);
+inline Vec4 lerp(const Vec4 start, const Vec4 end, const float t);
 
 struct Vec2 final
 {
@@ -24,7 +30,7 @@ struct Vec2 final
     constexpr Vec2(const float x_, const float y_);
 
     [[nodiscard]] constexpr Vec2 operator*(const float scalar) const { return {x * scalar, y * scalar}; }
-    [[nodiscard]] constexpr Vec2 operator+(const Vec2& rhs) const { return {x + rhs.x, y * rhs.y}; }
+    [[nodiscard]] constexpr Vec2 operator+(const Vec2& rhs) const { return {x + rhs.x, y + rhs.y}; }
     constexpr Vec2& operator+=(const Vec2& rhs);
     constexpr auto operator<=>(const Vec2& other) const = default;
 
@@ -43,7 +49,7 @@ struct alignas(16) Vec3 final
     constexpr Vec3(const Vec4& vec4);
     constexpr Vec3(const float x_, const float y_, const float z_);
     [[nodiscard]] constexpr Vec3 operator*(const float scalar) const { return {x * scalar, y * scalar, z * scalar}; }
-    [[nodiscard]] constexpr Vec3 operator+(const Vec3& rhs) const { return {x + rhs.x, y * rhs.y, z + rhs.z}; }
+    [[nodiscard]] constexpr Vec3 operator+(const Vec3& rhs) const { return {x + rhs.x, y + rhs.y, z + rhs.z}; }
     constexpr Vec3& operator+=(const Vec3& rhs);
     constexpr auto operator<=>(const Vec3& other) const = default;
 
@@ -61,7 +67,7 @@ struct Vec4 final
     constexpr Vec4(const float v);
     constexpr Vec4(const float x_, const float y_, const float z_, const float w_);
     [[nodiscard]] constexpr Vec4 operator*(const float scalar) const { return {x * scalar, y * scalar, z * scalar, w * scalar}; }
-    [[nodiscard]] constexpr Vec4 operator+(const Vec4& rhs) const { return {x + rhs.x, y * rhs.y, z + rhs.z, w + rhs.w}; }
+    [[nodiscard]] constexpr Vec4 operator+(const Vec4& rhs) const { return {x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w}; }
     constexpr Vec4& operator+=(const Vec4& rhs);
     constexpr auto operator<=>(const Vec4& other) const = default;
 
@@ -649,4 +655,35 @@ inline std::string to_string(const Mat4 mat)
         mat[2].x, mat[2].y, mat[2].z, mat[2].w,
         mat[3].x, mat[3].y, mat[3].z, mat[3].w);
 }
+
+Vec2 lerp(const Vec2 start, const Vec2 end, const float t)
+{
+    return
+    {
+        start.x + t * (end.x - start.x),
+        start.y + t * (end.y - start.y),
+    };
+}
+
+Vec3 lerp(const Vec3 start, const Vec3 end, const float t)
+{
+    return
+    {
+        start.x + t * (end.x - start.x),
+        start.y + t * (end.y - start.y),
+        start.z + t * (end.z - start.z)
+    };
+}
+
+Vec4 lerp(const Vec4 start, const Vec4 end, const float t)
+{
+    return
+    {
+        start.x + t * (end.x - start.x),
+        start.y + t * (end.y - start.y),
+        start.z + t * (end.z - start.z),
+        start.w + t * (end.w - start.w)
+    };
+}
+} // namespace ver
 } // namespace ts

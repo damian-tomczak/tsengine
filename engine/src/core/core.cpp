@@ -19,6 +19,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 bool Engine::init(const char*& gameName, unsigned& width, unsigned& height)
 {
     return true;
@@ -125,6 +127,13 @@ int run(Engine* const game) try
     // TODO: firstly render to the window then copy to the headset
     while (loop)
     {
+        const auto nowTime = std::chrono::high_resolution_clock::now();
+        const long long elapsedNanoseconds =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - previousTime).count();
+        static constexpr auto nanosecondsPerSecond = 1e9f;
+        const auto dt = static_cast<float>(elapsedNanoseconds) / nanosecondsPerSecond;
+        previousTime = nowTime;
+
 #ifdef TESTER_ADAPTER 
         if ((testerAdapter != nullptr) && isRenderingStarted)
         {
@@ -135,7 +144,7 @@ int run(Engine* const game) try
         }
 #endif
 
-        if ((!game->tick()) || headset.isExitRequested())
+        if ((!game->tick(dt)) || headset.isExitRequested())
         {
             loop = false;
         }
@@ -150,13 +159,6 @@ int run(Engine* const game) try
             mirrorView.onWindowResize();
         }
         window->dispatchMessage();
-
-        const auto nowTime = std::chrono::high_resolution_clock::now();
-        const long long elapsedNanoseconds =
-            std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - previousTime).count();
-        static constexpr auto nanosecondsPerSecond = 1e9f;
-        const auto dt = static_cast<float>(elapsedNanoseconds) / nanosecondsPerSecond;
-        previousTime = nowTime;
 
         gReg.update();
 
@@ -200,4 +202,5 @@ int run(Engine* const game) try
     return EXIT_SUCCESS;
 }
 TS_CATCH_FALLBACK_WITH_CLEANER(runCleaner)
+} // namespace ver
 } // namespace ts

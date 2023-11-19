@@ -6,6 +6,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Context;
 
 class DataBuffer final
@@ -30,4 +32,5 @@ private:
     VkDeviceMemory mDeviceMemory{};
     VkDeviceSize mSize{};
 };
-}
+} // namespace ver
+} // namespace ts

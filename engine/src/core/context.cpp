@@ -4,21 +4,23 @@
 #include "vulkan_tools/vulkan_loader.h"
 #include "globals.hpp"
 
+namespace ts
+{
+inline namespace TS_VER
+{
 namespace
 {
-PFN_xrGetVulkanInstanceExtensionsKHR xrGetVulkanInstanceExtensionsKHR{};
-PFN_xrGetVulkanGraphicsDeviceKHR xrGetVulkanGraphicsDeviceKHR{};
-PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtensionsKHR{};
-PFN_xrGetVulkanGraphicsRequirementsKHR xrGetVulkanGraphicsRequirementsKHR{};
+    PFN_xrGetVulkanInstanceExtensionsKHR xrGetVulkanInstanceExtensionsKHR{};
+    PFN_xrGetVulkanGraphicsDeviceKHR xrGetVulkanGraphicsDeviceKHR{};
+    PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtensionsKHR{};
+    PFN_xrGetVulkanGraphicsRequirementsKHR xrGetVulkanGraphicsRequirementsKHR{};
 
 #ifndef NDEBUG
-PFN_xrCreateDebugUtilsMessengerEXT xrCreateDebugUtilsMessengerEXT{};
-PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
+    PFN_xrCreateDebugUtilsMessengerEXT xrCreateDebugUtilsMessengerEXT{};
+    PFN_xrDestroyDebugUtilsMessengerEXT xrDestroyDebugUtilsMessengerEXT{};
 #endif // !NDEBUG
 } // namespace
 
-namespace ts
-{
 Context& Context::createOpenXrContext()
 {
     createXrInstance();
@@ -39,9 +41,9 @@ void Context::createVulkanContext()
 {
     TS_ASSERT_MSG(mIsXrContextCreated, "XrContext should be firstly created");
 
-    vulkanloader::connectWithLoader();
-    vulkanloader::loadExportFunction();
-    vulkanloader::loadGlobalLevelFunctions();
+    vkLoader::connectWithLoader();
+    vkLoader::loadExportFunction();
+    vkLoader::loadGlobalLevelFunctions();
 
     std::vector<std::string> vulkanInstanceExtensions;
     getRequiredVulkanInstanceExtensions(vulkanInstanceExtensions);
@@ -49,10 +51,10 @@ void Context::createVulkanContext()
 
     createVulkanInstance(vulkanInstanceExtensions);
 
-    vulkanloader::loadInstanceLevelFunctions(mVkInstance, vulkanInstanceExtensions);
+    vkLoader::loadInstanceLevelFunctions(mVkInstance, vulkanInstanceExtensions);
 
 #ifdef _DEBUG
-    vulkanloader::loadDebugLevelFunctions(mVkInstance);
+    vkLoader::loadDebugLevelFunctions(mVkInstance);
     createVkDebugMessenger();
 #endif
 }
@@ -88,7 +90,7 @@ void Context::createVkDevice(const VkSurfaceKHR vkMirrorSurface)
         physicalDeviceMultiviewFeatures,
         deviceQueueCis);
 
-    vulkanloader::loadDeviceLevelFunctions(mVkDevice, requiredVulkanDeviceExtensions);
+    vkLoader::loadDeviceLevelFunctions(mVkDevice, requiredVulkanDeviceExtensions);
 
     vkGetDeviceQueue(mVkDevice, *mVkGraphicsQueueFamilyIndex, 0, &mVkGraphicsQueue);
     vkGetDeviceQueue(mVkDevice, *mVkPresentQueueFamilyIndex, 0, &mVkPresentQueue);
@@ -682,4 +684,5 @@ void Context::createXrInstance()
 
     TS_XR_CHECK(xrCreateInstance, &instanceCi, &mXrInstance);
 }
+} // namespace ver
 } // namespace ts

@@ -1,8 +1,6 @@
-cmake_minimum_required(VERSION 3.26)
-
 # TODO: implement dll engine version
 
-project(${CMAKE_PROJECT_NAME}engine)
+project(${CMAKE_PROJECT_NAME}engine VERSION 1.0.0 LANGUAGES CXX)
 
 function(os_files files_list_name regex)
     set(files_list ${${files_list_name}})
@@ -105,6 +103,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
     ENGINE_NAME="${PROJECT_NAME}"
+    TS_VER=v${PROJECT_VERSION_MAJOR}_${PROJECT_VERSION_MINOR}_${PROJECT_VERSION_PATCH}
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE

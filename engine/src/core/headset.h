@@ -8,6 +8,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Context;
 class ImageBuffer;
 class RenderTarget;
@@ -76,4 +78,5 @@ private:
     XrSessionState mXrSessionState{};
     XrViewState mXrViewState{};
 };
+} // namespace ver
 } // namespace ts

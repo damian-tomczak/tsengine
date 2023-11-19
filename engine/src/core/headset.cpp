@@ -9,6 +9,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 Headset::Headset(const Context& ctx) : mCtx(ctx)
 {}
 
@@ -373,7 +375,7 @@ void Headset::createXrSwapchain()
         swapchainImage.type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR;
     }
 
-    auto pXrSwapchainImageBaseHeader{reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchainImages.data())};
+    auto pXrSwapchainImageBaseHeader = reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchainImages.data());
     TS_XR_CHECK(xrEnumerateSwapchainImages,
         mXrSwapchain,
         static_cast<uint32_t>(swapchainImages.size()),
@@ -469,5 +471,5 @@ void Headset::endSession() const
 {
     TS_XR_CHECK(xrEndSession, mXrSession);
 }
-
+} // namespace ver
 } // namespace ts

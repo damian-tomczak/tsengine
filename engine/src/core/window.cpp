@@ -2,13 +2,15 @@
 #include "os.h"
 #include "tsengine/logger.h"
 
-namespace
-{
-bool isWindowAlreadyCreated{};
-}
-
 namespace ts
 {
+inline namespace TS_VER
+{
+namespace
+{
+    bool isWindowAlreadyCreated{};
+}
+
 Window::~Window()
 {
     isWindowAlreadyCreated = false;
@@ -35,4 +37,5 @@ std::shared_ptr<Window> Window::createWindowInstance(const std::string_view wind
 
     return window;
 }
+} // namespace ver
 } // namespace ts

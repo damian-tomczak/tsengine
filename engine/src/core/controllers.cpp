@@ -14,6 +14,8 @@ XrPath stringToXrPath(XrInstance instance, std::string_view str)
 
 namespace ts
 {
+inline namespace TS_VER
+{
 Controllers::~Controllers()
 {
     for (auto& space : mSpaces)
@@ -176,4 +178,5 @@ void Controllers::createAction(const std::string& actionName, const std::string&
 
     TS_XR_CHECK(xrCreateAction, mActionSet, &actionCreateInfo, &action);
 }
-}
+} // namespace ver
+} // namespace ts

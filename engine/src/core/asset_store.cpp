@@ -11,6 +11,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 namespace
 {
     std::vector<MeshComponent::Vertex> mVertices;
@@ -84,4 +86,5 @@ size_t AssetStore::Models::getSize()
 {
     return sizeof(mVertices.at(0)) * mVertices.size() + sizeof(mIndices.at(0)) * mIndices.size();
 }
-}
+} // namespace ver
+} // namespace ts

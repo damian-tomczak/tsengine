@@ -4,6 +4,10 @@
 #include "glslang/Public/resource_limits_c.h"
 #include "tsengine/logger.h"
 
+namespace ts
+{
+inline namespace TS_VER
+{
 namespace
 {
 std::string readShader(const std::filesystem::path& path)
@@ -153,10 +157,8 @@ void saveSPIRV(const std::filesystem::path& outputFilePath, const std::vector<ui
         TS_ERR(("Failed to close the shader file: " + outputFilePath.string()).c_str());
     }
 }
-}
+} // namespace
 
-namespace ts
-{
 void compileShaders(const std::filesystem::path shadersPath)
 {
     if (!glslang_initialize_process())
@@ -201,4 +203,5 @@ void compileShaders(const std::filesystem::path shadersPath)
 
     glslang_finalize_process();
 }
-}
+} // namespace ver
+} // namespace ts

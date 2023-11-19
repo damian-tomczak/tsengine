@@ -7,6 +7,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Controllers final
 {
     TS_NOT_COPYABLE_AND_MOVEABLE(Controllers);
@@ -47,4 +49,5 @@ private:
     void updateActionStatePose(const XrSession session, const XrAction action, const XrPath path, XrActionStatePose& state);
     void updateActionStateFloat(const XrSession session, const XrAction action, const XrPath path, XrActionStateFloat& state);
 };
-}
+} // namespace ver
+} // namespace ts

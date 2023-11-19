@@ -17,6 +17,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 using Id = uint32_t;
 
 inline constexpr auto maxComponents = 32;
@@ -412,7 +414,8 @@ inline bool Registry::entityBelongsToGroup(const Entity entity, const std::strin
     }
 
     const auto groupEntities = entitiesPerGroup.at(group);
-    return groupEntities.find(entity.getId()) != groupEntities.end();
+    const auto result = groupEntities.contains(entity);
+    return result;
 }
 
 inline std::vector<Entity> Registry::getEntitiesByGroup(const std::string& group) const
@@ -567,4 +570,5 @@ inline void Registry::removeEntityFromSystems(const Entity entity)
         system.second->removeEntityFromSystem(entity);
     }
 }
-}
+} // namespace ver
+} // namespace ts

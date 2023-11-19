@@ -5,6 +5,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class RenderTarget final
 {
     TS_NOT_COPYABLE_AND_MOVEABLE(RenderTarget);
@@ -31,4 +33,5 @@ private:
     VkImageView mImageView{};
     VkFramebuffer mFramebuffer{};
 };
-}
+} // namespace ver
+} // namespace ts

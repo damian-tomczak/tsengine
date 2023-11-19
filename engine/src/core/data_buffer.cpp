@@ -6,6 +6,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 DataBuffer::DataBuffer(const Context& ctx) : mCtx{ctx}
 {}
 
@@ -97,4 +99,5 @@ void DataBuffer::unmap() const
 {
     vkUnmapMemory(mCtx.getVkDevice(), mDeviceMemory);
 }
-}
+} // namespace ver
+} // namespace ts

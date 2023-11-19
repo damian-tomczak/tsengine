@@ -32,6 +32,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 namespace logger
 {
 void log(
@@ -55,4 +57,5 @@ void error(
     bool throwException = true,
     bool debugBreak = true);
 } // namespace logger
+} // namespace ver
 } // namespace ts
