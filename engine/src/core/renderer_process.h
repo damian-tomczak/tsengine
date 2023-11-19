@@ -8,6 +8,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Context;
 class DataBuffer;
 class Headset;
@@ -63,4 +65,5 @@ private:
     VkDescriptorSet mDescriptorSet{};
     const Headset& mHeadset;
 };
-}
+} // namespace ver
+} // namespace ts

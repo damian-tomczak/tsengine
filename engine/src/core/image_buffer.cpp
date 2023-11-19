@@ -7,6 +7,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 ImageBuffer::~ImageBuffer()
 {
     const auto device = mCtx.getVkDevice();
@@ -99,4 +101,5 @@ void ImageBuffer::createImage(
 
     TS_VK_CHECK(vkCreateImageView, device, &imageViewCreateInfo, nullptr, &mImageView);
 }
-}
+} // namespace ver
+} // namespace ts

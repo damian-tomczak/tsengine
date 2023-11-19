@@ -10,6 +10,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 MirrorView::MirrorView(const Context& ctx, const std::shared_ptr<Window> window) :
     mCtx{ctx},
     mWindow{window}
@@ -409,4 +411,5 @@ void MirrorView::createSwapchain()
     mSwapchainImages.resize(swapchainImageCount);
     TS_VK_CHECK(vkGetSwapchainImagesKHR, device, mSwapchain, &swapchainImageCount, mSwapchainImages.data());
 }
-}
+} // namespace ver
+} // namespace ts

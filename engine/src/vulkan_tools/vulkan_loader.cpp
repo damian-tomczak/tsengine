@@ -2,12 +2,15 @@
 #include "tsengine/logger.h"
 #include "os.h"
 
+namespace ts
+{
+inline namespace TS_VER
+{
 namespace
 {
-LIBRARY_TYPE vulkanLibrary{};
+    LIBRARY_TYPE vulkanLibrary{};
 } // namespace
-
-namespace ts::vulkanloader
+namespace vkLoader
 {
 void connectWithLoader()
 {
@@ -110,4 +113,6 @@ void loadDeviceLevelFunctions(const VkDevice device, const std::vector<std::stri
 
 #include "vulkan_functions.inl"
 }
-}
+} // namespace vkLoader
+} // namespace ver
+} // namespace ts

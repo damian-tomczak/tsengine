@@ -7,6 +7,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Context final
 {
     TS_NOT_COPYABLE_AND_MOVEABLE(Context);
@@ -87,4 +89,5 @@ private:
     VkDeviceSize mVkUniformBufferOffsetAlignment{};
     bool mIsXrContextCreated{};
 };
+} // namespace ver
 } // namespace ts

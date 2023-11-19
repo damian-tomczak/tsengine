@@ -4,6 +4,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 RenderTarget::~RenderTarget()
 {
     if (mFramebuffer)
@@ -59,4 +61,5 @@ void RenderTarget::createRenderTarget(
 
     TS_VK_CHECK(vkCreateFramebuffer, mDevice, &framebufferCreateInfo, nullptr, &mFramebuffer);
 }
-}
+} // namespace ver
+} // namespace ts

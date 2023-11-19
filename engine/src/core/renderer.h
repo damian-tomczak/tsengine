@@ -7,6 +7,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class AssetStore;
 class Context;
 struct Model;
@@ -52,4 +54,5 @@ private:
     size_t mCurrentRenderProcessIndex{};
 
 };
-}
+} // namespace ver
+} // namespace ts

@@ -60,7 +60,11 @@
     }
 
 
-namespace ts::khronos_utils
+namespace ts
+{
+inline namespace TS_VER
+{
+namespace khronos_utils
 {
 std::string vkResultToString(const VkResult result);
 std::string xrResultToString(const XrResult result);
@@ -105,4 +109,6 @@ bool findSuitableMemoryTypeIndex(
 VkDeviceSize align(const VkDeviceSize value, const VkDeviceSize alignment);
 math::Mat4 createXrProjectionMatrix(const XrFovf fov, const float nearClip, const float farClip);
 math::Mat4 xrPoseToMatrix(const XrPosef& pose);
-} // namespace ts::utils
+} // namespace khronos_utils
+} // namespace ver
+} // namespace ts

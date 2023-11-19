@@ -4,6 +4,11 @@
 #include "tsengine/logger.h"
 #include "khronos_utils.h"
 
+
+namespace ts
+{
+inline namespace TS_VER
+{
 namespace
 {
 void loadShaderFromFile(const VkDevice device, const std::string& fileName, VkShaderModule& shaderModule)
@@ -28,10 +33,8 @@ void loadShaderFromFile(const VkDevice device, const std::string& fileName, VkSh
 
     TS_VK_CHECK(vkCreateShaderModule, device, &shaderModuleCreateInfo, nullptr, &shaderModule);
 }
-}
+} // namespace
 
-namespace ts
-{
 Pipeline::Pipeline(const Context& ctx) : mCtx{ctx}
 {}
 
@@ -172,4 +175,5 @@ void Pipeline::bind(const VkCommandBuffer commandBuffer) const
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
 }
-}
+} // namespace ver
+} // namespace ts

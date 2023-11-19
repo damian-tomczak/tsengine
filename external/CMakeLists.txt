@@ -44,9 +44,10 @@ if (EXISTS ${CYBSDK_DIR})
     else()
         message(FATAL_ERROR "CybSDK dir was found but include dir can not be found!")
     endif()
-endif()
 
-file(GLOB_RECURSE EXTERNAL_DLL_FILES
-    ${CYBSDK_PATH}/CybSDK.dll
-)
-set(EXTERNAL_DLL_FILES ${EXTERNAL_DLL_FILES} PARENT_SCOPE)
+    file(GLOB_RECURSE EXTERNAL_DLL_FILES
+        ${CYBSDK_PATH}/CybSDK.dll
+    )
+
+    set(EXTERNAL_DLL_FILES ${EXTERNAL_DLL_FILES} PARENT_SCOPE)
+endif()

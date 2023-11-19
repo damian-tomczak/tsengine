@@ -15,6 +15,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 RenderProcess::RenderProcess(const Context& ctx, const Headset& headset) : mCtx{ctx}, mHeadset{headset}
 {}
 
@@ -202,4 +204,5 @@ void RenderProcess::updateUniformBufferData()
         }
     }
 }
-}
+} // namespace ver
+} // namespace ts

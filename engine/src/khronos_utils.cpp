@@ -4,7 +4,11 @@
 
 #undef STR
 
-namespace ts::khronos_utils
+namespace ts
+{
+inline namespace TS_VER
+{
+namespace khronos_utils
 {
 std::string vkResultToString(const VkResult result)
 {
@@ -287,4 +291,6 @@ math::Mat4 xrPoseToMatrix(const XrPosef& pose)
 
     return translation * rotation;
 }
-} // namespace ts::khronos_utils
+} // namespace khronos_utils
+} // namespace ver
+} // namespace ts

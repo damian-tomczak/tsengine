@@ -8,6 +8,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Window
 {
     TS_NOT_COPYABLE_AND_MOVEABLE(Window);
@@ -43,4 +45,5 @@ protected:
     const size_t mHeight;
     const std::string mWindowName;
 };
+} // namespace ver
 } // namespace ts

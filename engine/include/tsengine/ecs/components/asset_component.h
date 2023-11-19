@@ -4,6 +4,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class AssetStore;
 
 struct AssetComponent : public Component
@@ -18,4 +20,5 @@ protected:
     std::string assetName;
     size_t assetNameId;
 };
-}
+} // namespace ver
+} // namespace ts

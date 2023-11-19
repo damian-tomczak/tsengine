@@ -7,6 +7,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class IEventCallback;
 
 using THandlerList = std::list<std::unique_ptr<IEventCallback>>;
@@ -87,4 +89,5 @@ public:
 private:
     std::map<std::type_index, std::unique_ptr<THandlerList>> mSubscribers;
 };
+} // namespace ver
 } // namespace ts

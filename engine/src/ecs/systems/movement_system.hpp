@@ -14,6 +14,8 @@
 // TODO: create cyberith decorator
 namespace ts
 {
+inline namespace TS_VER
+{
 class MovementSystem : public ts::System
 {
 public:
@@ -104,4 +106,5 @@ private:
     CybSDK::VirtDevice* mpCyberithDevice;
 #endif
 };
-}
+} // namespace ver
+} // namespace ts

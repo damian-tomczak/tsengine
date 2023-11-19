@@ -6,6 +6,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Context;
 
 class ImageBuffer final
@@ -33,4 +35,5 @@ private:
     VkDeviceMemory mDeviceMemory{};
     VkImageView mImageView{};
 };
-}
+} // namespace ver
+} // namespace ts

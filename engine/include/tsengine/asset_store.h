@@ -7,6 +7,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class AssetStore final : public System
 {
 public:
@@ -24,4 +26,5 @@ public:
         static size_t getSize();
     };
 };
+} // namespace ver
 } // namespace ts

@@ -40,6 +40,8 @@ private:
 
 namespace ts
 {
+inline namespace TS_VER
+{
 enum
 {
     TS_SUCCESS,
@@ -80,4 +82,5 @@ protected:
 private:
     inline static std::mutex mutex;
 };
+} // namespace ver
 } // namespace ts

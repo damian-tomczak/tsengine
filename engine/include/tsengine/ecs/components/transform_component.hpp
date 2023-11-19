@@ -4,6 +4,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 struct TransformComponent : public Component
 {
     math::Vec3 pos;
@@ -12,4 +14,5 @@ struct TransformComponent : public Component
     TransformComponent(const math::Vec3 pos_ = math::Vec3{0.f}) : pos{pos_}
     {}
 };
-}
+} // namespace ver
+} // namespace ts

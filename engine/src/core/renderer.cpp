@@ -20,6 +20,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 Renderer::Renderer(const Context& ctx, const Headset& headset) : mCtx{ctx}, mHeadset{headset}
 {}
 
@@ -387,4 +389,5 @@ void Renderer::initRendererFrontend()
 
     renderSystem.mpPipelineLayout = mPipelineLayout;
 }
-}
+} // namespace ver
+} // namespace ts

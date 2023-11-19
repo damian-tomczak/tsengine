@@ -5,6 +5,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Context;
 
 class Pipeline final
@@ -29,4 +31,5 @@ private:
     const Context& mCtx;
     VkPipeline mPipeline{};
 };
-}
+} // namespace ver
+} // namespace ts

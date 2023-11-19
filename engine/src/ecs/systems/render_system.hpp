@@ -18,6 +18,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 class Renderer;
 
 class RenderSystem : public System
@@ -175,4 +177,5 @@ private:
         }
     };
 };
-}
+} // namespace ver
+} // namespace ts

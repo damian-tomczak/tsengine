@@ -4,6 +4,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 struct RigidBodyComponent : public Component
 {
     float velocity;
@@ -11,4 +13,5 @@ struct RigidBodyComponent : public Component
     RigidBodyComponent(const float velocity_ = 1.f) : velocity{velocity_}
     {}
 };
-}
+} // namespace ver
+} // namespace ts

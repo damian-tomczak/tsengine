@@ -6,6 +6,8 @@
 
 namespace ts
 {
+inline namespace TS_VER
+{
 struct MeshComponent : public AssetComponent
 {
     struct Vertex final
@@ -21,4 +23,5 @@ struct MeshComponent : public AssetComponent
     MeshComponent(const std::string_view fileName_ = "") : AssetComponent{fileName_}
     {}
 };
-}
+} // namespace ver
+} // namespace ts
