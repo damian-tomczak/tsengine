@@ -87,17 +87,16 @@ void RenderProcess::createRendererProcess(
     });
 
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
-        .offset = descriptorBufferInfos.at(0).offset +
-            khronos_utils::align(descriptorBufferInfos.at(0).range, uniformBufferOffsetAlignment) *
+        .offset = descriptorBufferInfos.back().offset +
+            khronos_utils::align(descriptorBufferInfos.back().range, uniformBufferOffsetAlignment) *
             static_cast<VkDeviceSize>(modelsNum),
         .range = sizeof(mCommonUniformData),
     });
 
     descriptorBufferInfos.emplace_back(VkDescriptorBufferInfo{
-        .offset = descriptorBufferInfos.at(1).offset +
-            khronos_utils::align(descriptorBufferInfos.at(1).range, uniformBufferOffsetAlignment) *
-            static_cast<VkDeviceSize>(lightsNum),
-        .range = sizeof(decltype(mLightsUniformData.positions)) * mLightsUniformData.positions.size()
+        .offset = descriptorBufferInfos.back().offset +
+            khronos_utils::align(descriptorBufferInfos.back().range, uniformBufferOffsetAlignment),
+        .range = sizeof(mLightsUniformData)
     });
 
     if (descriptorBufferInfos.empty())
@@ -196,12 +195,9 @@ void RenderProcess::updateUniformBufferData()
     }
 
     {
-        constexpr auto length = sizeof(decltype(mLightsUniformData.positions));
-        for (const auto& lightData : mLightsUniformData.positions)
-        {
-            memcpy(offset, &lightData, length);
-            offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
-        }
+        constexpr auto length = sizeof(decltype(mLightsUniformData));
+        memcpy(offset, &mLightsUniformData, length);
+        offset += khronos_utils::align(length, uniformBufferOffsetAlignment);
     }
 }
 } // namespace ver

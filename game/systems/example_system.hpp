@@ -8,8 +8,6 @@
 #include "components/example_component.hpp"
 #include "components/echo_component.hpp"
 
-#include <utility>
-
 class ExampleSystem : public ts::System
 {
     inline static constexpr std::chrono::seconds spheresMovementDuration{2s};
@@ -47,15 +45,16 @@ public:
                 {
                     const auto currentTime = std::chrono::high_resolution_clock::now();
                     const auto elapsedTime = currentTime - exampleComponent.startTime;
+                    const auto floatSpheresMovementDuration = std::chrono::duration<float>(spheresMovementDuration);
 
                     const auto newPos = ts::math::lerp(
                         exampleComponent.startPos,
                         exampleComponent.endPos,
-                        elapsedTime / std::chrono::duration<float>(spheresMovementDuration));
+                        elapsedTime / floatSpheresMovementDuration);
 
                     entity.getComponent<ts::TransformComponent>().pos = newPos;
 
-                    if (elapsedTime >= std::chrono::duration<float>(spheresMovementDuration))
+                    if (elapsedTime >= floatSpheresMovementDuration)
                     {
                         exampleComponent.startTime = currentTime;
 

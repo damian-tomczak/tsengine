@@ -26,9 +26,9 @@ void Game::loadLvL()
 
     auto village = ts::getMainReg().createEntity();
     village.setTag("village");
-    village.addComponent<ts::TS_VER::TransformComponent>();
-    village.addComponent<ts::TS_VER::RendererComponent<ts::PipelineType::NORMAL_LIGHTING>>();
-    village.addComponent<ts::TS_VER::MeshComponent>("assets/models/village.obj");
+    village.addComponent<ts::TransformComponent>();
+    village.addComponent<ts::RendererComponent<ts::PipelineType::NORMAL_LIGHTING>>();
+    village.addComponent<ts::MeshComponent>("assets/models/village.obj");
 
     auto polonez = ts::getMainReg().createEntity();
     polonez.setTag("polonez");
@@ -52,7 +52,7 @@ void Game::loadLvL()
 
         sphere.addComponent<ts::RendererComponent<ts::PipelineType::PBR>>(material);
         sphere.addComponent<ts::MeshComponent>("assets/models/sphere.obj");
-        const auto endPos = pos + ts::math::Vec3{ 0, 0, -50 };
+        const auto endPos = pos + ts::math::Vec3{0, 0, -50};
         sphere.addComponent<ExampleComponent>(pos, endPos);
     }
 
