@@ -10,7 +10,7 @@ inline Registry gReg;
 
 namespace khronos_utils
 {
-inline auto gThrowExceptions = true;
+inline bool gThrowExceptions{true};
 } // namespace khronos_utils
 } // namespace ver
 } // namespace ts
