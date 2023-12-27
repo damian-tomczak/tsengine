@@ -24,22 +24,22 @@ int run(Engine* const engine);
 } // namespace ver
 } // namespace ts
 
-#define TS_MAIN()                            \
-    int main()                               \
-    {                                        \
-        try                                  \
-        {                                    \
-            auto result = ts::run(new Game); \
-            if (result != ts::TS_SUCCESS)    \
-            {                                \
-                return result;               \
-            }                                \
-        }                                    \
-        catch (const std::exception& e)      \
-        {                                    \
-            std::cerr << e.what() << "\n";   \
-            return EXIT_FAILURE;             \
-        }                                    \
-                                             \
-        return EXIT_SUCCESS;                 \
+#define TS_MAIN(gameClass)                        \
+    int main()                                    \
+    {                                             \
+        try                                       \
+        {                                         \
+            auto result = ts::run(new gameClass); \
+            if (result != ts::TS_SUCCESS)         \
+            {                                     \
+                return result;                    \
+            }                                     \
+        }                                         \
+        catch (const std::exception& e)           \
+        {                                         \
+            std::cerr << e.what() << "\n";        \
+            return EXIT_FAILURE;                  \
+        }                                         \
+                                                  \
+        return EXIT_SUCCESS;                      \
     }
