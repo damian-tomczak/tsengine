@@ -79,4 +79,4 @@ void Game::close()
     TS_LOG("Thanks for playing!");
 }
 
-TS_MAIN()
+TS_MAIN(Game)
